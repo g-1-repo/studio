@@ -770,9 +770,40 @@ export async function watchGitHubActions(repositoryName: string, tagName: string
             const maxAttempts = 30
             let attempts = 0
 
+            // First, check if we have publishing workflows at all
+            let hasPublishingWorkflows = false
+            try {
+              const workflowsResult = await execa('gh', [
+                'workflow',
+                'list',
+                '--repo',
+                repositoryName,
+                '--json',
+                'name,state',
+              ], { stdio: 'pipe' })
+              
+              const workflows = JSON.parse(workflowsResult.stdout)
+              hasPublishingWorkflows = workflows.some((workflow: any) => {
+                const name = workflow.name?.toLowerCase() || ''
+                return name.includes('publish') || name.includes('npm')
+              })
+              
+              if (!hasPublishingWorkflows) {
+                helpers.setTitle('Find publishing workflow - ⚠️ No publishing workflows found')
+                helpers.setOutput('No GitHub Actions workflows found that publish to npm')
+                return
+              }
+            }
+            catch (error) {
+              helpers.setTitle('Find publishing workflow - ⚠️ Cannot check workflows')
+              helpers.setOutput('Failed to check GitHub Actions workflows - GitHub CLI may not be configured')
+              return
+            }
+
+            // Now look for recent workflow runs triggered by releases
             while (!foundPublishingWorkflow && attempts < maxAttempts) {
               try {
-                helpers.setOutput(`Checking for workflows... (${attempts + 1}/${maxAttempts})`)
+                helpers.setOutput(`Looking for workflow runs triggered by ${tagName}... (${attempts + 1}/${maxAttempts})`)
 
                 const result = await execa('gh', [
                   'run',
@@ -782,9 +813,9 @@ export async function watchGitHubActions(repositoryName: string, tagName: string
                   '--event',
                   'release',
                   '--limit',
-                  '5',
+                  '10',
                   '--json',
-                  'status,name,workflowName,createdAt,number,databaseId',
+                  'status,name,workflowName,createdAt,number,databaseId,conclusion',
                 ], { stdio: 'pipe' })
 
                 const runs = JSON.parse(result.stdout)
@@ -795,9 +826,10 @@ export async function watchGitHubActions(repositoryName: string, tagName: string
                   if (!isPublishWorkflow)
                     return false
 
+                  // Look for runs created in the last 10 minutes (more generous timeframe)
                   const runCreatedAt = new Date(run.createdAt)
-                  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-                  return runCreatedAt >= fiveMinutesAgo
+                  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+                  return runCreatedAt >= tenMinutesAgo
                 })
 
                 if (recentPublishRun) {
@@ -807,17 +839,19 @@ export async function watchGitHubActions(repositoryName: string, tagName: string
                   return
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 1000))
+                await new Promise(resolve => setTimeout(resolve, 2000)) // Wait 2 seconds between checks
                 attempts++
               }
               catch (error) {
-                throw new Error(`Failed to check workflows: ${error instanceof Error ? error.message : String(error)}`)
+                helpers.setOutput(`Error checking workflow runs: ${error instanceof Error ? error.message : String(error)}`)
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                attempts++
               }
             }
 
             if (!foundPublishingWorkflow) {
-              helpers.setTitle('Find publishing workflow - ⚠️ No workflow found')
-              helpers.setOutput('No publishing workflow found - may need to check GitHub manually')
+              helpers.setTitle('Find publishing workflow - ⚠️ No workflow run found')
+              helpers.setOutput(`No workflow runs triggered by ${tagName} found. The workflow may not have started yet, or the release may not have triggered it. Check GitHub Actions manually: https://github.com/${repositoryName}/actions`)
             }
           },
         },
