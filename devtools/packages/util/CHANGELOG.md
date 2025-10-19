@@ -1,5 +1,38 @@
 # @g-1/util
 
+## 2.0.0
+
+### Major Changes
+
+- # 🚀 Initial Production Release
+
+  This marks the first stable release of the G1 DevTools packages:
+
+  ## 📦 What's New
+
+  - **@g-1/util**: Complete utility library with Cloudflare Workers compatibility
+  - **@g-1/workflow**: Enterprise-grade release automation system
+  - **@g-1/test**: Unified test framework with factory patterns
+
+  ## 💥 Breaking Changes
+
+  This is the initial release, so there are no breaking changes from previous versions.
+
+  ## 🛠 Migration Guide
+
+  For new users:
+
+  ```bash
+  npm install @g-1/util @g-1/workflow @g-1/test
+  ```
+
+  ## 🔧 Key Features
+
+  - Tree-shakeable ESM/CJS dual exports
+  - Full TypeScript support
+  - Production-ready with comprehensive test coverage
+  - Optimized bundle sizes with monitoring
+
 ## [1.9.1] - 2025-10-19
 
 ### Bug Fixes
@@ -10,7 +43,6 @@
 
 - test: Fix flaky sortable ID test with proper timing
 
-
 ## [1.9.0] - 2025-10-19
 
 ### Features
@@ -20,7 +52,6 @@
 ### Other Changes
 
 - chore: commit changes before release
-
 
 ## [1.8.0] - 2025-10-19
 
@@ -33,9 +64,7 @@
 
 - chore(ci): add CI and release workflows; update repository metadata to g-1-repo/util (#1)
 
-
 ## [1.7.2] - 2025-10-18
-
 
 ## [1.7.1] - 2025-10-18
 
@@ -44,13 +73,11 @@
 - chore: commit changes before release
 - chore: release v1.7.0
 
-
 ## 1.7.0
 
 ### Minor Changes
 
 - Add new features and functionality
-
 
 ## 1.6.0
 
@@ -77,24 +104,24 @@ For existing users, imports remain the same, but new consolidated APIs are recom
 
 ```ts
 // Old way (still works)
-import { getCurrentBranch, hasUncommittedChanges } from '@g-1/util/node'
+import { getCurrentBranch, hasUncommittedChanges } from "@g-1/util/node";
 
 // New recommended way
-import { GitOperations, createGitOperations } from '@g-1/util/node'
-const git = createGitOperations()
-await git.getCurrentBranch()
-await git.hasUncommittedChanges()
+import { GitOperations, createGitOperations } from "@g-1/util/node";
+const git = createGitOperations();
+await git.getCurrentBranch();
+await git.hasUncommittedChanges();
 ```
 
 ```ts
-// Old way (still works)  
-import { createTimer, logWithTime } from '@g-1/util/debug'
+// Old way (still works)
+import { createTimer, logWithTime } from "@g-1/util/debug";
 
 // New recommended way
-import { StructuredLogger, createLogger } from '@g-1/util/debug'
-const logger = createLogger()
-const timer = logger.timer('operation')
-logger.logWithTime('message')
+import { StructuredLogger, createLogger } from "@g-1/util/debug";
+const logger = createLogger();
+const timer = logger.timer("operation");
+logger.logWithTime("message");
 ```
 
 ## 1.5.0
@@ -102,11 +129,12 @@ logger.logWithTime('message')
 ### Minor Changes
 
 - **Major Performance & Feature Update** - Comprehensive optimizations and new utility modules
-  
+
   ### 🚀 **New Modules**
+
   - **API Response Utilities** (`@g-1/util/api`) - Standardized API response formats
     - `createApiResponse()`, `createErrorResponse()`, `createPaginatedResponse()`
-    - Common HTTP status codes and error codes for G1 projects  
+    - Common HTTP status codes and error codes for G1 projects
     - Type guards for response validation
   - **Environment Utilities** (`@g-1/util/env`) - Cross-platform environment handling
     - `getEnv()`, `requireEnv()`, `getEnvNumber()`, `getEnvBoolean()`, `getEnvJson()`
@@ -116,24 +144,27 @@ logger.logWithTime('message')
     - `@g-1/util/validation/core` - Universal validation (email, UUID, phone, etc.)
     - `@g-1/util/validation/web` - Web-specific validation (URL, JSON, semver, etc.)
     - New validators: IP addresses, hex colors, credit cards, domains, slugs
-  
+
   ### ⚡ **Performance Optimizations**
+
   - **String Utilities** - Shared regex patterns reduce bundle size by ~15%
   - **Object Utilities** - Enhanced `deepClone()` with RegExp support and better type safety
   - **Async Utilities** - Fixed Cloudflare Workers compatibility (removed NodeJS.Timeout)
   - **Bundle Optimization** - Enhanced tree-shaking and code splitting
-  
+
   ### 🔧 **Developer Experience**
+
   - **Performance Benchmarking** - Added comprehensive performance tests
   - **Enhanced Build Config** - Optimized tsup and vitest configurations
   - **Better Type Safety** - Full compatibility with `exactOptionalPropertyTypes`
   - **Improved Linting** - Resolved all ESLint issues with modern patterns
-  
+
   ### 📊 **Bundle Impact**
+
   - Main bundle: 1.52KB gzipped (under 25KB target) ✅
   - Individual modules: All under 5KB gzipped ✅
   - 167 tests passing with 100% compatibility
-  
+
   Perfect for modern G1 projects requiring standardized APIs and cross-platform compatibility!
 
 ## 1.3.0
@@ -157,13 +188,11 @@ logger.logWithTime('message')
 
 - General maintenance and updates
 
-
 ## 1.2.4
 
 ### Patch Changes
 
 - General maintenance and updates
-
 
 ## 1.2.3
 
@@ -177,7 +206,6 @@ logger.logWithTime('message')
 - Update configuration files
 - General maintenance and updates
 
-
 ## 1.2.2
 
 ### Patch Changes
@@ -186,13 +214,11 @@ logger.logWithTime('message')
 - Update configuration files
 - General maintenance and updates
 
-
 ## 1.2.1
 
 ### Patch Changes
 
 - General maintenance and updates
-
 
 ## 1.2.0
 
@@ -207,7 +233,6 @@ logger.logWithTime('message')
 - Fix bugs and resolve issues
 - General maintenance and updates
 - Add new features and functionality
-
 
 ## 1.1.2
 
@@ -235,6 +260,7 @@ logger.logWithTime('message')
   ## New Features
 
   ### 🔧 Node.js Git & Repository Management
+
   - `analyzeChangesForVersionBump()` - Intelligent version bump analysis
   - `updateChangelog()` - Automated changelog generation
   - `getCurrentBranch()`, `hasUncommittedChanges()` - Git status utilities
@@ -242,24 +268,28 @@ logger.logWithTime('message')
   - `exec()` with colored logging - Safe shell command execution
 
   ### 🎯 Interactive CLI Prompts
+
   - `confirm()`, `select()`, `multiselect()` - User input prompts
   - `password()` - Secure password input with masking
   - `text()` - Text input with validation
   - `ProgressIndicator` - Animated progress spinners
 
   ### 🤖 MCP Server Integration
+
   - **AI Context Awareness** - Automatically tells AI assistants about available utilities
   - **Smart Suggestions** - AI knows when to suggest utilities for specific tasks
   - **Project Detection** - Detects @g-1/util installation automatically
   - **Warp Terminal Integration** - Works seamlessly with MCP protocol
 
   ### 📚 Enhanced Documentation
+
   - Comprehensive API documentation with examples
   - MCP server setup instructions
   - Example release script demonstrating utilities
   - Complete TypeScript definitions
 
   ## Perfect For
+
   - **Release Automation** - Automated version bumping and changelog generation
   - **CLI Development** - Interactive terminal applications with beautiful UX
   - **Git Workflows** - Repository management and automation
