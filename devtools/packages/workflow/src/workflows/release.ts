@@ -473,6 +473,12 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
         {
           title: 'Update package.json version',
           task: async (ctx, helpers) => {
+            if (options.dryRun) {
+              helpers.setOutput(`[DRY RUN] Would set version to ${ctx.version!.next}...`)
+              helpers.setTitle(`Update package.json version - ✅ ${ctx.version!.next} (dry run)`)
+              return
+            }
+            
             const git = createGitOperations()
             helpers.setOutput(`Setting version to ${ctx.version!.next}...`)
 
@@ -483,6 +489,12 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
         {
           title: 'Generate changelog',
           task: async (ctx, helpers) => {
+            if (options.dryRun) {
+              helpers.setOutput('[DRY RUN] Would generate changelog entry...')
+              helpers.setTitle('Generate changelog - ✅ CHANGELOG.md updated (dry run)')
+              return
+            }
+            
             helpers.setOutput('Generating changelog entry...')
 
             // Simple changelog generation - can be enhanced
@@ -511,6 +523,13 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
         {
           title: 'Commit release changes',
           task: async (ctx, helpers) => {
+            if (options.dryRun) {
+              const commitMessage = `chore: release v${ctx.version!.next}`
+              helpers.setOutput('[DRY RUN] Would stage and commit files...')
+              helpers.setTitle(`Commit release changes - ✅ ${commitMessage} (dry run)`)
+              return
+            }
+            
             const git = createGitOperations()
 
             helpers.setOutput('Staging files...')
@@ -526,8 +545,15 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
         {
           title: 'Create git tag',
           task: async (ctx, helpers) => {
-            const git = createGitOperations()
             const tagName = `v${ctx.version!.next}`
+            
+            if (options.dryRun) {
+              helpers.setOutput(`[DRY RUN] Would create tag ${tagName}...`)
+              helpers.setTitle(`Create git tag - ✅ ${tagName} (dry run)`)
+              return
+            }
+            
+            const git = createGitOperations()
 
             helpers.setOutput(`Creating tag ${tagName}...`)
             await git.createTag(tagName, `Release ${ctx.version!.next}`)
@@ -538,6 +564,12 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
         {
           title: 'Push to remote',
           task: async (ctx, helpers) => {
+            if (options.dryRun) {
+              helpers.setOutput('[DRY RUN] Would push commits and tags...')
+              helpers.setTitle('Push to remote - ✅ Complete (dry run)')
+              return
+            }
+            
             const git = createGitOperations()
 
             helpers.setOutput('Pushing commits...')
@@ -556,6 +588,12 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
     {
       title: 'Build project',
       task: async (ctx, helpers) => {
+        if (options.dryRun) {
+          helpers.setOutput('[DRY RUN] Would build project for deployment...')
+          helpers.setTitle('Build project - ✅ Build complete (dry run)')
+          return
+        }
+        
         helpers.setOutput('Building project for deployment...')
 
         const buildCommands: Array<[string, string[]]> = [
@@ -649,6 +687,12 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
     {
       title: 'Create GitHub release',
       task: async (ctx, helpers) => {
+        if (options.dryRun) {
+          helpers.setOutput('[DRY RUN] Would create GitHub release...')
+          helpers.setTitle(`Create GitHub release - ✅ v${ctx.version!.next} → npm via Actions (dry run)`)
+          return
+        }
+        
         helpers.setOutput('Creating GitHub release (triggers npm publishing)...')
 
         try {
