@@ -99,8 +99,8 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
     options.skipCloudflare = true
   }
 
-  // Handle uncommitted changes upfront (before workflow starts)
-  if (!options.force) {
+  // Handle uncommitted changes upfront (before workflow starts) - skip in dry-run mode
+  if (!options.force && !options.dryRun) {
     const git = createGitOperations()
     const hasChanges = await git.hasUncommittedChanges()
 
