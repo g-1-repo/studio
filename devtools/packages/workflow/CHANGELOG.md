@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.3.0] - 2025-10-19
+
+### Features
+
+- add comprehensive dry-run support for all git operations
+
+### Bug Fixes
+
+- skip uncommitted changes handling in dry-run mode
+
+### Other Changes
+
+- chore: rebuild with latest changes
+
+
 ## [3.2.2] - 2025-10-19
 
 
