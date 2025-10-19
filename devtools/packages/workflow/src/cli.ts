@@ -2,11 +2,11 @@
  * G1 Workflow CLI - Enterprise release automation
  */
 
+import type { ReleaseOptions } from './types/index.js'
+import process from 'node:process'
 import chalk from 'chalk'
 import { program } from 'commander'
-import process from 'node:process'
 import { createTaskEngine } from './core/task-engine.js'
-import type { ReleaseOptions } from './types/index.js'
 import { createReleaseWorkflow, deployToCloudflare, detectCloudflareSetup, hasNpmPublishingWorkflow, watchGitHubActions } from './workflows/release.js'
 
 // Load version from package.json

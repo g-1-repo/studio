@@ -15,7 +15,27 @@ vi.mock('@g-1/util/node', () => ({
     async commit() { return 'abc123' }
     async createTag() { return 'v1.0.0' }
     async push() { return true }
+    async isGitRepository() { return true }
+    getCurrentVersion() { return '1.0.0' }
+    async getRepositoryName() { return 'test-repo' }
+    async getCommitsSinceTag() { return [] }
+    async stageFiles() { return true }
+    updatePackageVersion() { return true }
   },
+  createGitOperations: vi.fn(() => new (class MockGitOperations {
+    async getCurrentBranch() { return 'main' }
+    async hasUncommittedChanges() { return false }
+    async getChangedFiles() { return ['README.md'] }
+    async commit() { return 'abc123' }
+    async createTag() { return 'v1.0.0' }
+    async push() { return true }
+    async isGitRepository() { return true }
+    getCurrentVersion() { return '1.0.0' }
+    async getRepositoryName() { return 'test-repo' }
+    async getCommitsSinceTag() { return [] }
+    async stageFiles() { return true }
+    updatePackageVersion() { return true }
+  })()),
 }))
 
 vi.mock('../core/git-store.js', () => ({
