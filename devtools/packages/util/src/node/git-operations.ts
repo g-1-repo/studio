@@ -134,14 +134,14 @@ export class GitOperations {
   }
 
   private async initializeSimpleGit(): Promise<void> {
-    // SimpleGit optional - fallback to exec methods only for now
-    // try {
-    //   const simpleGitModule = await import('simple-git')
-    //   this.git = simpleGitModule.simpleGit(this.workingDir)
-    // }
-    // catch {
-    //   // SimpleGit not available, fallback to exec methods only
-    // }
+    try {
+      const simpleGitModule = await import('simple-git')
+      this.git = simpleGitModule.simpleGit(this.workingDir)
+    }
+    catch {
+      // SimpleGit not available, fallback to exec methods only
+      console.warn('SimpleGit not available, using exec fallbacks only')
+    }
   }
 
   // =============================================================================
@@ -717,10 +717,123 @@ export class GitOperations {
 
   async pushTags(remote = 'origin'): Promise<void> {
     try {
-      exec(`git push ${remote} --tags`)
+      if (this.git) {
+        await this.git.pushTags(remote)
+      }
+      else {
+        exec(`git push ${remote} --tags`)
+      }
     }
     catch (error) {
       throw this.createGitError('Failed to push tags', error)
+    }
+  }
+
+  // =============================================================================
+  // GitHub Integration (via CLI)
+  // =============================================================================
+
+  async createPullRequest(options: PullRequestOptions): Promise<string> {
+    try {
+      const currentBranch = await this.getCurrentBranch()
+      const title = options.title || `${currentBranch}: Ready for review`
+
+      // Use dynamic import for execa to avoid bundling issues
+      const { execa } = await import('execa')
+
+      const args = [
+        'pr',
+        'create',
+        '--title',
+        title,
+        '--body',
+        options.body || '',
+      ]
+
+      if (options.labels?.length) {
+        args.push('--label', options.labels.join(','))
+      }
+
+      if (options.assignees?.length) {
+        args.push('--assignee', options.assignees.join(','))
+      }
+
+      if (options.reviewers?.length) {
+        args.push('--reviewer', options.reviewers.join(','))
+      }
+
+      const result = await execa('gh', args)
+      const prUrl = result.stdout.trim()
+
+      // Enable auto-merge if requested
+      if (options.autoMerge) {
+        await execa('gh', ['pr', 'merge', '--auto', '--squash'])
+      }
+
+      return prUrl
+    }
+    catch (error) {
+      throw this.createGitError('Failed to create pull request', error)
+    }
+  }
+
+  async mergePullRequest(prNumber: string, method = 'squash'): Promise<void> {
+    try {
+      const { execa } = await import('execa')
+      await execa('gh', ['pr', 'merge', prNumber, `--${method}`])
+    }
+    catch (error) {
+      throw this.createGitError(`Failed to merge PR #${prNumber}`, error)
+    }
+  }
+
+  async closePullRequest(prNumber: string): Promise<void> {
+    try {
+      const { execa } = await import('execa')
+      await execa('gh', ['pr', 'close', prNumber])
+    }
+    catch (error) {
+      throw this.createGitError(`Failed to close PR #${prNumber}`, error)
+    }
+  }
+
+  // =============================================================================
+  // Cleanup Operations
+  // =============================================================================
+
+  async cleanupFeatureBranch(branchName: string, deleteBranch = true): Promise<void> {
+    try {
+      // Switch to main branch
+      await this.switchBranch('main')
+
+      // Pull latest changes
+      if (this.git) {
+        await this.git.pull('origin', 'main')
+      }
+      else {
+        exec('git pull origin main')
+      }
+
+      // Delete feature branch if requested
+      if (deleteBranch) {
+        await this.deleteBranch(branchName)
+
+        // Delete remote branch
+        try {
+          if (this.git) {
+            await this.git.push('origin', branchName, ['--delete'])
+          }
+          else {
+            exec(`git push origin --delete ${branchName}`, { ignoreErrors: true })
+          }
+        }
+        catch {
+          // Ignore if remote branch doesn't exist
+        }
+      }
+    }
+    catch (error) {
+      throw this.createGitError(`Failed to cleanup branch: ${branchName}`, error)
     }
   }
 

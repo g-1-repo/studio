@@ -81,6 +81,11 @@
       "import": "./dist/node/git-utils.js",
       "require": "./dist/node/git-utils.cjs"
     },
+    "./node/git-operations": {
+      "types": "./dist/node/git-operations.d.ts",
+      "import": "./dist/node/git-operations.js",
+      "require": "./dist/node/git-operations.cjs"
+    },
     "./node/prompt-utils": {
       "types": "./dist/node/prompt-utils.d.ts",
       "import": "./dist/node/prompt-utils.js",
@@ -202,6 +207,10 @@
     "@modelcontextprotocol/sdk": "^1.20.1",
     "@paralleldrive/cuid2": "^3.1.0",
     "nanoid": "^5.1.6"
+  },
+  "optionalDependencies": {
+    "simple-git": "^4.0.0",
+    "execa": "^9.1.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.0.0",
