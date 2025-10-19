@@ -20,12 +20,12 @@ vi.mock('@g-1/util/node', () => ({
 
 vi.mock('../core/git-store.js', () => ({
   GitStore: class MockGitStore {
-    async getCurrentVersion() { return '1.0.0' }
+    async getCurrentVersionFromGit() { return '1.0.0' }
     async getCurrentBranch() { return 'main' }
     async hasUncommittedChanges() { return false }
   },
   createGitStore: vi.fn(() => new (class MockGitStore {
-    async getCurrentVersion() { return '1.0.0' }
+    async getCurrentVersionFromGit() { return '1.0.0' }
     async getCurrentBranch() { return 'main' }
     async hasUncommittedChanges() { return false }
   })()),

@@ -6,7 +6,7 @@ import process from 'node:process'
 import { GitOperations } from '@g-1/util/node'
 
 export class GitStore extends GitOperations {
-  constructor(private workingDir: string = process.cwd()) {
+  constructor(workingDir: string = process.cwd()) {
     super(workingDir)
   }
 
@@ -28,7 +28,7 @@ export class GitStore extends GitOperations {
   // Workflow-Specific Version Management Extensions
   // =============================================================================
 
-  async getCurrentVersion(): Promise<string> {
+  async getCurrentVersionFromGit(): Promise<string> {
     try {
       // First try to get version from latest git tag (workflow-specific approach)
       const { execa } = await import('execa')
@@ -41,7 +41,7 @@ export class GitStore extends GitOperations {
       }
 
       // Fallback to package.json
-      const packageJson = await import(`${this.workingDir}/package.json`, {
+      const packageJson = await import(`${process.cwd()}/package.json`, {
         assert: { type: 'json' },
       })
       return packageJson.default.version || '0.0.0'

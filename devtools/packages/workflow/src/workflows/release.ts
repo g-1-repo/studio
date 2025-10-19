@@ -106,7 +106,7 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
 
     if (hasChanges) {
       const changedFiles = await git.getChangedFiles()
-      const changesList = changedFiles.map(file => `    ${file}`).join('\n')
+      const changesList = changedFiles.map((file: string) => `    ${file}`).join('\n')
 
       process.stdout.write('\n')
       process.stdout.write('╔═══════════════════════════════════════════════════════╗\n')
@@ -404,8 +404,8 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
           helpers.setOutput('Determining semantic version bump...')
 
           // Analyze commits for version bump
-          const hasBreaking = commits.some(c => c.breaking)
-          const hasFeatures = commits.some(c => c.type === 'feat')
+          const hasBreaking = commits.some((c: any) => c.breaking)
+          const hasFeatures = commits.some((c: any) => c.type === 'feat')
 
           if (hasBreaking) {
             versionBump = 'major'

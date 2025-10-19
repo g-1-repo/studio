@@ -26,19 +26,19 @@ describe('gitStore', () => {
   })
 
   describe('workflow-specific methods', () => {
-    it('should have getCurrentVersion method', () => {
-      expect(typeof gitStore.getCurrentVersion).toBe('function')
+    it('should have getCurrentVersionFromGit method', () => {
+      expect(typeof gitStore.getCurrentVersionFromGit).toBe('function')
     })
 
     it('should return version string', async () => {
       // This will fallback to 0.0.0 since no git setup
-      const version = await gitStore.getCurrentVersion()
+      const version = await gitStore.getCurrentVersionFromGit()
       expect(typeof version).toBe('string')
       expect(version).toMatch(/^\d+\.\d+\.\d+$/) // Should be semver format
     })
 
     it('should have basic workflow methods', () => {
-      expect(typeof gitStore.getCurrentVersion).toBe('function')
+      expect(typeof gitStore.getCurrentVersionFromGit).toBe('function')
     })
   })
 
