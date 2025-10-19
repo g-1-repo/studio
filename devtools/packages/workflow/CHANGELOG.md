@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0] - 2025-10-19
+
+### Features
+
+- add GitHub Actions workflow for npm publishing
+
+
 ## [3.0.4] - 2025-10-19
 
 
