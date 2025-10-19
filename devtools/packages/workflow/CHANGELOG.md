@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.10] - 2025-10-19
+
+### Bug Fixes
+
+- update GitHub Actions workflow for proper npm publishing
+
+
 ## [3.3.9] - 2025-10-19
 
 ### Other Changes
