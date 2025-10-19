@@ -572,13 +572,26 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
 
             const git = createGitOperations()
 
-            helpers.setOutput('Pushing commits...')
-            await git.push()
+            try {
+              helpers.setOutput('Pushing commits...')
+              await git.push()
 
-            helpers.setOutput('Pushing tags...')
-            await git.pushTags()
+              helpers.setOutput('Pushing tags...')
+              await git.pushTags()
 
-            helpers.setTitle('Push to remote - ✅ Complete')
+              helpers.setTitle('Push to remote - ✅ Complete')
+            }
+            catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error)
+              if (errorMessage.includes('verify your email') || errorMessage.includes('Could not read from remote')) {
+                helpers.setTitle('Push to remote - ⚠️ Failed: Email verification required')
+                helpers.setOutput('Please verify your email at https://github.com/settings/emails')
+              }
+              else {
+                helpers.setTitle('Push to remote - ⚠️ Push failed (continuing)')
+                helpers.setOutput(`Error: ${errorMessage.slice(0, 100)}...`)
+              }
+            }
           },
         },
       ],
