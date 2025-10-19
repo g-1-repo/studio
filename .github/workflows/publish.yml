@@ -18,6 +18,7 @@ jobs:
           
       - name: Install dependencies
         run: bun install
+        working-directory: devtools/packages/workflow
         
       - name: Build workflow package
         run: bun run build
@@ -26,6 +27,9 @@ jobs:
       - name: Run tests
         run: bun run test
         working-directory: devtools/packages/workflow
+        
+      - name: Setup npm authentication
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
         
       - name: Publish to npm
         run: bun publish --access public
