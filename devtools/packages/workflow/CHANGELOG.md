@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.1] - 2025-10-19
+
+### Bug Fixes
+
+- resolve TypeScript errors in lint parsing logic
+- improve auto-fix linting to properly handle ESLint exit codes
+
+
 ## [3.2.0] - 2025-10-19
 
 ### Features
