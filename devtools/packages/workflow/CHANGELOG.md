@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.0] - 2025-10-19
+
+### Features
+
+- improve GitHub Actions workflow monitoring with better error handling
+- add GitHub Actions workflow for npm publishing
+
+
 ## [3.1.0] - 2025-10-19
 
 ### Features
