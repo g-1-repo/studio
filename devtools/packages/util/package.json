@@ -152,8 +152,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "g1-util-mcp": "mcp-server/server.js",
-    "g1-warp": "dist/node/warp/cli.js"
+    "g1-util-mcp": "mcp-server/server.js"
   },
   "files": [
     "README.md",

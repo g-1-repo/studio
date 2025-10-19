@@ -187,14 +187,3 @@ export const createMultiTargetConfig = (targets = []) => {
   }))
 }
 
-// Export all configurations
-export {
-  createBaseConfig,
-  createLibraryConfig,
-  createCLIConfig,
-  createWorkerConfig,
-  createTestConfig,
-  createDevConfig,
-  createProdConfig,
-  createMultiTargetConfig
-}
