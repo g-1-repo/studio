@@ -141,7 +141,10 @@ export class GitOperations {
     }
     catch {
       // SimpleGit not available, fallback to exec methods only
-      console.warn('SimpleGit not available, using exec fallbacks only')
+      // Only show warning in verbose mode to avoid noise
+      if (process.env.WORKFLOW_VERBOSE === 'true') {
+        console.warn('SimpleGit not available, using exec fallbacks only')
+      }
     }
   }
 
