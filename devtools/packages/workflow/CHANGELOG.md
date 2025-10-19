@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.5] - 2025-10-19
+
+### Other Changes
+
+- chore: simplify GitHub Actions to use Node.js instead of Bun
+
+
 ## [3.3.4] - 2025-10-19
 
 ### Bug Fixes
