@@ -7,6 +7,7 @@ export default defineConfig([
     entry: ['src/index.ts'],
     platform: 'node',
     target: 'node18',
+    dts: false, // Temporarily disable DTS to unblock CLI
     external: [
       'listr2', 
       'commander', 
@@ -27,6 +28,8 @@ export default defineConfig([
     entry: ['src/cli.ts'],
     platform: 'node',
     target: 'node18',
+    splitting: false,  // Ensure single executable file
+    dts: false, // Temporarily disable DTS to unblock CLI
     external: [
       'listr2',
       'commander', 

@@ -2,19 +2,7 @@
  * Git Store - Workflow-specific Git operations extending @g-1/util GitOperations
  */
 
-// Temporary mock for testing - in production this would import from @g-1/util/node
-class MockGitOperations {
-  constructor(public workingDir: string = process.cwd()) {}
-  async getCurrentBranch() { return 'main' }
-  async hasUncommittedChanges() { return false }
-  async getChangedFiles() { return [] }
-  // Add more methods that tests expect
-  async isGitRepository() { return true }
-  async getRemoteUrl() { return 'https://github.com/test/repo.git' }
-  async commit() { return 'abc123' }
-  async push() { return true }
-}
-const GitOperations = MockGitOperations
+import { GitOperations } from '@g-1/util/node'
 import type {
   BranchOptions,
   CommitInfo,

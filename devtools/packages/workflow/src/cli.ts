@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * G1 Workflow CLI - Enterprise release automation
  */

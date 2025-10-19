@@ -4,15 +4,7 @@
 
 import type { ReleaseOptions, WorkflowStep } from '../types/index.js'
 import process from 'node:process'
-// Temporary mock for testing - in production this would import from @g-1/util/node
-function createGitOperations() {
-  return {
-    async hasUncommittedChanges() { return false },
-    async getChangedFiles() { return [] },
-    async stageFiles() { return true },
-    async commit() { return 'mock-hash' }
-  }
-}
+import { createGitOperations } from '@g-1/util/node'
 import chalk from 'chalk'
 import { execa } from 'execa'
 import * as semver from 'semver'
