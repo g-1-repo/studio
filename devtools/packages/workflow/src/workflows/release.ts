@@ -206,38 +206,56 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
             for (const [command, args] of lintCommands) {
               try {
                 helpers.setOutput(`Trying ${command} ${args.join(' ')}...`)
-                await execa(command, args, { stdio: 'pipe' })
-                helpers.setTitle(`Auto-fix linting issues - ✅ Fixed (${command})`)
-                commandWorked = true
-                break // Success! Exit early
-              }
-              catch (error) {
-                const errorOutput = error instanceof Error ? error.message : String(error)
-
-                // Check if it's a "script not found" or "command not found" error
-                if (errorOutput.includes('script not found')
-                  || errorOutput.includes('Missing script')
-                  || errorOutput.includes('command not found')
-                  || errorOutput.includes('not found')) {
-                  // Try next command
-                  _lastError = error
+                const result = await execa(command, args, { stdio: 'pipe', reject: false })
+                
+                if (result.exitCode === 0) {
+                  helpers.setTitle(`Auto-fix linting issues - ✅ Fixed (${command})`)
+                  commandWorked = true
+                  break // Success! Exit early
+                }
+                else if (result.exitCode === 1) {
+                  // ESLint returns 1 when there are linting errors, but the command ran successfully
+                  const stderr = result.stderr || ''
+                  const stdout = result.stdout || ''
+                  const combinedOutput = stderr + stdout
+                  
+                  // Check if it contains actual ESLint output (means command worked)
+                  if (combinedOutput.includes('error') || combinedOutput.includes('warning') || combinedOutput.includes('problem')) {
+                    // Extract number of issues if possible
+                    const errorMatch = combinedOutput.match(/(\d+)\s+error/)
+                    const warningMatch = combinedOutput.match(/(\d+)\s+warning/)
+                    const problemMatch = combinedOutput.match(/(\d+)\s+problem/)
+                    
+                    const errors = errorMatch ? parseInt(errorMatch[1]) : 0
+                    const warnings = warningMatch ? parseInt(warningMatch[1]) : 0
+                    const problems = problemMatch ? parseInt(problemMatch[1]) : errors + warnings
+                    
+                    if (problems > 0) {
+                      helpers.setTitle(`Auto-fix linting issues - ⚠️ ${problems} issues remain (${command})`)
+                      helpers.setOutput(`Found ${problems} linting issues that could not be auto-fixed`)
+                    } else {
+                      helpers.setTitle(`Auto-fix linting issues - ✅ Fixed (${command})`)
+                    }
+                    commandWorked = true
+                    break
+                  }
+                  else {
+                    // Command ran but produced unexpected output - try next command
+                    _lastError = new Error(`Unexpected output from ${command}: ${combinedOutput.slice(0, 100)}`)
+                    continue
+                  }
+                }
+                else {
+                  // Non-zero, non-1 exit code - likely command not found or other error
+                  const combinedOutput = `${result.stderr} ${result.stdout}`
+                  _lastError = new Error(`Command failed with exit code ${result.exitCode}: ${combinedOutput.slice(0, 100)}`)
                   continue
                 }
-
-                // If it's a linting failure (not a missing command), that's actually success
-                // because it means the command ran and tried to fix issues
-                if (errorOutput.includes('eslint')
-                  || errorOutput.includes('error')
-                  || errorOutput.includes('warning')
-                  || errorOutput.includes('problem')) {
-                  helpers.setTitle(`Auto-fix linting issues - ⚠️ Some issues remain (${command})`)
-                  helpers.setOutput('Lint command ran but some issues could not be auto-fixed')
-                  commandWorked = true
-                  break
-                }
-
-                // Store error and try next command
+              }
+              catch (error) {
+                // This catches ENOENT and other system errors (command not found, etc.)
                 _lastError = error
+                continue
               }
             }
 
@@ -781,20 +799,20 @@ export async function watchGitHubActions(repositoryName: string, tagName: string
                 '--json',
                 'name,state',
               ], { stdio: 'pipe' })
-              
+
               const workflows = JSON.parse(workflowsResult.stdout)
               hasPublishingWorkflows = workflows.some((workflow: any) => {
                 const name = workflow.name?.toLowerCase() || ''
                 return name.includes('publish') || name.includes('npm')
               })
-              
+
               if (!hasPublishingWorkflows) {
                 helpers.setTitle('Find publishing workflow - ⚠️ No publishing workflows found')
                 helpers.setOutput('No GitHub Actions workflows found that publish to npm')
                 return
               }
             }
-            catch (error) {
+            catch {
               helpers.setTitle('Find publishing workflow - ⚠️ Cannot check workflows')
               helpers.setOutput('Failed to check GitHub Actions workflows - GitHub CLI may not be configured')
               return
