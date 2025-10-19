@@ -126,11 +126,26 @@ export function exec(command: string, options: ExecOptions = {}): string {
 export class GitOperations {
   private git?: SimpleGit
   private workingDir: string
+  private gitRoot?: string
 
   constructor(workingDir: string = process.cwd()) {
     this.workingDir = workingDir
     // Lazy load SimpleGit to avoid dependency issues
     this.initializeSimpleGit()
+  }
+
+  private async getGitRoot(): Promise<string> {
+    if (this.gitRoot) {
+      return this.gitRoot
+    }
+    try {
+      this.gitRoot = exec('git rev-parse --show-toplevel', { silent: true, cwd: this.workingDir })
+      return this.gitRoot
+    }
+    catch {
+      this.gitRoot = this.workingDir
+      return this.gitRoot
+    }
   }
 
   private async initializeSimpleGit(): Promise<void> {
@@ -456,7 +471,8 @@ export class GitOperations {
           await this.git.add(files)
         }
         else {
-          exec(`git add ${files.join(' ')}`)
+          const gitRoot = await this.getGitRoot()
+          exec(`git -C "${gitRoot}" add ${files.map(f => `"${f}"`).join(' ')}`)
         }
       }
       else {
@@ -479,7 +495,8 @@ export class GitOperations {
         const result = await this.git.commit(message)
         return result.commit
       }
-      exec(`git commit -m "${message}"`)
+      const gitRoot = await this.getGitRoot()
+      exec(`git -C "${gitRoot}" commit -m "${message}"`)
       return exec('git rev-parse HEAD', { silent: true })
     }
     catch (error) {
