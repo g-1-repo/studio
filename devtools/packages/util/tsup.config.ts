@@ -32,8 +32,9 @@ export default defineConfig(
       'validation/core': 'src/validation/core.ts',
       'validation/web': 'src/validation/web.ts'
     },
-    platform: 'neutral',
-    target: 'es2022',
+    platform: 'node', // Change to node for better built-in handling
+    target: 'node18',
+    external: ['simple-git', 'execa'], // Keep optional deps external
     noExternal: ['nanoid', '@paralleldrive/cuid2'], // Bundle small dependencies
     splitting: true // Enable aggressive code splitting for tree-shaking
   })
