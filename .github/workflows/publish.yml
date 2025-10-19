@@ -18,7 +18,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
-        run: npm install --only=production
+        run: npm install --omit=dev --ignore-workspaces
         working-directory: devtools/packages/workflow
         
       - name: Build package
