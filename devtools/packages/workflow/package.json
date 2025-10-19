@@ -1,0 +1,92 @@
+{
+  "name": "@g-1/workflow",
+  "version": "2.19.6",
+  "description": "G1 Enterprise Workflow System. Badass, production-ready release automation that serves as the backbone for major development organizations. Features intelligent error recovery, beautiful UI, and enterprise-scale reliability.",
+  "license": "MIT",
+  "homepage": "https://github.com/g-1-repo/workflow#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g-1-repo/workflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/g-1-repo/workflow/issues"
+  },
+  "keywords": [
+    "workflow",
+    "release",
+    "automation",
+    "ci-cd",
+    "git",
+    "npm",
+    "github",
+    "enterprise",
+    "typescript"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    },
+    "./cli": {
+      "import": "./dist/cli.esm.js",
+      "require": "./dist/cli.js"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "workflow": "dist/cli.js"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "README.md",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "echo \"Warning: no test suite available\" && exit 0",
+    "test:watch": "echo \"Warning: no test suite available\" && exit 0",
+    "test:coverage": "echo \"Warning: no test suite available\" && exit 0",
+    "test:ci": "echo \"Warning: no test suite available\" && exit 0",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run clean && bun run build && bun run typecheck",
+    "release": "node dist/cli.js release",
+    "dev:cli": "tsup --watch && node dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@g-1/util": "workspace:*",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.1",
+    "conventional-commits-parser": "^6.2.0",
+    "cosmiconfig": "^9.0.0",
+    "enquirer": "^2.4.1",
+    "execa": "^9.6.0",
+    "listr2": "^9.0.4",
+    "ora": "^9.0.0",
+    "semver": "^7.7.3",
+    "simple-git": "^3.28.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.0.0",
+    "@types/node": "^24.8.1",
+    "@types/semver": "^7.7.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.38.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
