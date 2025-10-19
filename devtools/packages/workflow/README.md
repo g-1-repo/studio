@@ -5,7 +5,11 @@
 A badass, production-ready CLI tool that serves as the backbone for major development organizations. Built for teams that demand reliability, beautiful UX, and enterprise-scale automation.
 
 [![npm version](https://badge.fury.io/js/%40g-1%2Fworkflow.svg)](https://badge.fury.io/js/%40g-1%2Fworkflow)
+[![npm downloads](https://img.shields.io/npm/dm/@g-1/workflow.svg)](https://www.npmjs.com/package/@g-1/workflow)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@g-1/workflow?label=bundle%20size)](https://bundlephobia.com/package/@g-1/workflow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/g-1-repo/workflow/workflows/CI/badge.svg)](https://github.com/g-1-repo/workflow/actions)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 
 ## 🚀 Enterprise-Grade Features
 

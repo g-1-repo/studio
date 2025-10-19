@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // Cache directory for Vitest
+  cacheDir: 'node_modules/.vitest',
+  
   test: {
     globals: true,
     environment: 'node',
@@ -38,9 +41,7 @@ export default defineConfig({
     hookTimeout: 5000,
     // Better error reporting
     reporters: ['verbose'],
-    // Cache configuration
-    cache: {
-      dir: 'node_modules/.vitest'
-    }
+    // Cache configuration (updated to use cacheDir)
+    // Note: Vitest will write cache to cacheDir/vitest automatically
   },
 })
