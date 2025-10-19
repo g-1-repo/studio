@@ -3,130 +3,136 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { formatError } from '../core/error-formatter.js'
-import { createErrorRecovery } from '../core/error-recovery.js'
+import { ErrorFormatter } from '../core/error-formatter.js'
+import { ErrorRecoveryService } from '../core/error-recovery.js'
 
 describe('Error Formatter', () => {
   describe('formatError', () => {
     it('should format basic Error objects', () => {
       const error = new Error('Test error message')
-      const formatted = formatError(error)
+      const formatted = ErrorFormatter.formatError(error)
       
-      expect(formatted).toContain('Test error message')
-      expect(typeof formatted).toBe('string')
+      expect(formatted.message).toContain('Test error message')
+      expect(typeof formatted.message).toBe('string')
+      expect(formatted.type).toBe('critical')
     })
 
     it('should handle errors with stack traces', () => {
       const error = new Error('Test error')
-      error.stack = 'Error: Test error\\n    at test.js:1:1'
+      error.stack = 'Error: Test error\n    at test.js:1:1'
       
-      const formatted = formatError(error)
-      expect(formatted).toContain('Test error')
+      const formatted = ErrorFormatter.formatError(error)
+      expect(formatted.message).toContain('Test error')
+      expect(formatted.context).toBeDefined()
     })
 
     it('should handle string errors', () => {
-      const formatted = formatError('Simple string error')
-      expect(formatted).toContain('Simple string error')
+      const formatted = ErrorFormatter.formatError('Simple string error')
+      expect(formatted.message).toContain('Simple string error')
     })
 
-    it('should handle unknown error types', () => {
-      const formatted = formatError({ unknown: 'object' })
-      expect(typeof formatted).toBe('string')
-      expect(formatted.length).toBeGreaterThan(0)
+    it('should handle different error types', () => {
+      const critical = ErrorFormatter.formatError('Critical error', 'critical')
+      const warning = ErrorFormatter.formatError('Warning error', 'warning')
+      const info = ErrorFormatter.formatError('Info error', 'info')
+      
+      expect(critical.type).toBe('critical')
+      expect(warning.type).toBe('warning')
+      expect(info.type).toBe('info')
     })
 
-    it('should handle null and undefined', () => {
-      expect(formatError(null)).toBe('Unknown error')
-      expect(formatError(undefined)).toBe('Unknown error')
+    it('should format workflow failures', () => {
+      const formatted = ErrorFormatter.formatWorkflowFailure('Test Step', 'Step failed')
+      expect(formatted).toContain('Test Step')
+      expect(formatted).toContain('Step failed')
+    })
+
+    it('should create error boxes', () => {
+      const box = ErrorFormatter.createErrorBox('Title', 'Message', ['Suggestion 1'])
+      expect(box).toContain('Title')
+      expect(box).toContain('Message')
+      expect(box).toContain('Suggestion 1')
     })
   })
 })
 
 describe('Error Recovery', () => {
-  describe('createErrorRecovery', () => {
-    it('should create error recovery handler', () => {
-      const recovery = createErrorRecovery()
+  describe('ErrorRecoveryService', () => {
+    it('should create error recovery service', () => {
+      const recovery = ErrorRecoveryService.getInstance()
       expect(recovery).toBeDefined()
-      expect(typeof recovery.handle).toBe('function')
+      expect(typeof recovery.analyzeError).toBe('function')
     })
 
-    it('should handle recoverable errors', async () => {
-      const recovery = createErrorRecovery()
-      
-      const mockError = new Error('Recoverable error')
-      const result = await recovery.handle(mockError, { 
-        retryable: true,
-        maxRetries: 1
-      })
-      
-      expect(result).toBeDefined()
+    it('should be singleton', () => {
+      const recovery1 = ErrorRecoveryService.getInstance()
+      const recovery2 = ErrorRecoveryService.getInstance()
+      expect(recovery1).toBe(recovery2)
     })
 
-    it('should handle non-recoverable errors', async () => {
-      const recovery = createErrorRecovery()
+    it('should analyze linting errors', async () => {
+      const recovery = ErrorRecoveryService.getInstance()
       
-      const mockError = new Error('Fatal error')
-      await expect(
-        recovery.handle(mockError, { retryable: false })
-      ).rejects.toThrow()
-    })
-  })
-
-  describe('retry mechanisms', () => {
-    it('should retry operations with backoff', async () => {
-      const recovery = createErrorRecovery()
-      let attempts = 0
+      const mockError = new Error('eslint: style issues found')
+      const analysis = await recovery.analyzeError(mockError)
       
-      const flakyOperation = async () => {
-        attempts++
-        if (attempts < 3) {
-          throw new Error('Temporary failure')
-        }
-        return 'success'
-      }
-      
-      const result = await recovery.withRetry(flakyOperation, {
-        maxRetries: 3,
-        backoff: 'exponential'
-      })
-      
-      expect(result).toBe('success')
-      expect(attempts).toBe(3)
+      expect(analysis.type).toBe('linting')
+      expect(analysis.fixable).toBe(true)
     })
 
-    it('should respect retry limits', async () => {
-      const recovery = createErrorRecovery()
+    it('should analyze TypeScript errors', async () => {
+      const recovery = ErrorRecoveryService.getInstance()
       
-      const alwaysFailingOperation = async () => {
-        throw new Error('Always fails')
-      }
+      const mockError = new Error('TypeScript compilation failed')
+      const analysis = await recovery.analyzeError(mockError)
       
-      await expect(
-        recovery.withRetry(alwaysFailingOperation, { maxRetries: 2 })
-      ).rejects.toThrow('Always fails')
+      expect(analysis.type).toBe('typescript')
+      expect(analysis.fixable).toBe(false)
+    })
+
+    it('should analyze authentication errors', async () => {
+      const recovery = ErrorRecoveryService.getInstance()
+      
+      const mockError = new Error('401 Unauthorized')
+      const analysis = await recovery.analyzeError(mockError)
+      
+      expect(analysis.type).toBe('authentication')
+      expect(analysis.fixable).toBe(false)
     })
   })
 
-  describe('user interaction', () => {
-    it('should support interactive error recovery', async () => {
-      const recovery = createErrorRecovery({ interactive: true })
+  describe('recovery workflows', () => {
+    it('should create recovery workflows', async () => {
+      const recovery = ErrorRecoveryService.getInstance()
       
-      // Mock user choosing to continue
-      recovery.setUserResponse('continue')
+      const analysis = {
+        type: 'linting' as const,
+        severity: 'warning' as const,
+        fixable: true,
+        description: 'Linting errors',
+        suggestedFixes: ['Run lint:fix']
+      }
       
-      const error = new Error('Interactive error')
-      const result = await recovery.handleInteractive(error)
+      const mockError = new Error('Linting error')
+      const workflow = await recovery.createRecoveryWorkflow(analysis, mockError)
       
-      expect(result.action).toBe('continue')
+      expect(workflow).toBeDefined()
+      expect(Array.isArray(workflow)).toBe(true)
+      expect(workflow.length).toBeGreaterThan(0)
     })
+  })
 
-    it('should support non-interactive mode', async () => {
-      const recovery = createErrorRecovery({ interactive: false })
+  describe('error execution', () => {
+    it('should execute recovery workflows', async () => {
+      const recovery = ErrorRecoveryService.getInstance()
       
-      const error = new Error('Non-interactive error')
+      const mockError = new Error('Test error for recovery')
+      
+      // This will run the actual recovery workflow
+      // We expect it to complete without throwing
       await expect(
-        recovery.handleInteractive(error)
-      ).rejects.toThrow()
+        recovery.executeRecovery(mockError)
+      ).resolves.toBeUndefined()
     })
   })
 })

@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { TaskEngine } from '../core/task-engine.js'
+import { TaskEngine, createTaskEngine } from '../core/task-engine.js'
+import type { WorkflowStep } from '../types/index.js'
 
 describe('TaskEngine', () => {
   let taskEngine: TaskEngine
@@ -21,54 +22,69 @@ describe('TaskEngine', () => {
 
   describe('task execution', () => {
     it('should handle basic task execution', async () => {
-      const mockTask = {
+      const mockTask: WorkflowStep = {
         title: 'Test Task',
         task: vi.fn().mockResolvedValue(undefined)
       }
 
-      // Test that the TaskEngine can handle basic workflow structure
-      expect(() => taskEngine.createWorkflow([mockTask])).not.toThrow()
+      // Test that the TaskEngine can execute workflows
+      await expect(taskEngine.execute([mockTask])).resolves.toBeDefined()
     })
 
     it('should handle task with subtasks', async () => {
-      const mockSubtask = {
+      const mockSubtask: WorkflowStep = {
         title: 'Subtask',
         task: vi.fn().mockResolvedValue(undefined)
       }
 
-      const mockMainTask = {
+      const mockMainTask: WorkflowStep = {
         title: 'Main Task',
-        task: () => Promise.resolve([mockSubtask])
+        subtasks: [mockSubtask]
       }
 
-      expect(() => taskEngine.createWorkflow([mockMainTask])).not.toThrow()
+      await expect(taskEngine.execute([mockMainTask])).resolves.toBeDefined()
     })
   })
 
   describe('error handling', () => {
     it('should handle task execution errors gracefully', async () => {
-      const mockTask = {
+      const mockTask: WorkflowStep = {
         title: 'Failing Task',
         task: vi.fn().mockRejectedValue(new Error('Test error'))
       }
 
-      expect(() => taskEngine.createWorkflow([mockTask])).not.toThrow()
+      await expect(taskEngine.execute([mockTask])).rejects.toThrow('Test error')
     })
   })
 
-  describe('workflow creation', () => {
-    it('should create workflow from task definitions', () => {
-      const tasks = [
+  describe('workflow execution', () => {
+    it('should execute workflow from task definitions', async () => {
+      const tasks: WorkflowStep[] = [
         { title: 'Task 1', task: () => Promise.resolve() },
         { title: 'Task 2', task: () => Promise.resolve() }
       ]
 
-      const workflow = taskEngine.createWorkflow(tasks)
-      expect(workflow).toBeDefined()
+      const result = await taskEngine.execute(tasks)
+      expect(result).toBeDefined()
     })
 
-    it('should handle empty task array', () => {
-      expect(() => taskEngine.createWorkflow([])).not.toThrow()
+    it('should handle empty task array', async () => {
+      const result = await taskEngine.execute([])
+      expect(result).toBeDefined()
+    })
+  })
+
+  describe('factory function', () => {
+    it('should create TaskEngine via factory', () => {
+      const engine = createTaskEngine()
+      expect(engine).toBeDefined()
+      expect(engine).toBeInstanceOf(TaskEngine)
+    })
+
+    it('should accept options via factory', () => {
+      const engine = createTaskEngine({ concurrent: true, showTimer: false })
+      expect(engine).toBeDefined()
+      expect(engine).toBeInstanceOf(TaskEngine)
     })
   })
 })

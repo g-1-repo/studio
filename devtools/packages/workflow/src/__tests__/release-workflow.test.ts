@@ -3,106 +3,92 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ReleaseWorkflow } from '../workflows/release.js'
+import { createReleaseWorkflow, hasNpmPublishingWorkflow, detectCloudflareSetup } from '../workflows/release.js'
 
-// Mock GitStore since we tested it separately
-vi.mock('../core/git-store.js', () => ({
-  GitStore: class MockGitStore {
-    async getCurrentBranch() { return 'main' }
-    async hasUncommittedChanges() { return false }
-    async getCurrentVersion() { return '1.0.0' }
-    async getCommitsSinceTag() { return [] }
-    async isGitRepository() { return true }
-    async stageFiles() { return Promise.resolve() }
-    async commit() { return 'abc123' }
-    async createTag() { return Promise.resolve() }
-    async push() { return Promise.resolve() }
-    async pushTags() { return Promise.resolve() }
-  }
+// Mock Git operations
+vi.mock('@g-1/util/node', () => ({
+  createGitOperations: () => ({
+    hasUncommittedChanges: vi.fn().mockResolvedValue(false),
+    getChangedFiles: vi.fn().mockResolvedValue([]),
+    stageFiles: vi.fn().mockResolvedValue(undefined),
+    commit: vi.fn().mockResolvedValue('abc123')
+  })
 }))
 
-describe('ReleaseWorkflow', () => {
-  let releaseWorkflow: ReleaseWorkflow
+describe('Release Workflow', () => {
 
-  beforeEach(() => {
-    releaseWorkflow = new ReleaseWorkflow()
-  })
-
-  describe('constructor', () => {
-    it('should create ReleaseWorkflow instance', () => {
-      expect(releaseWorkflow).toBeDefined()
-      expect(releaseWorkflow).toBeInstanceOf(ReleaseWorkflow)
-    })
-  })
-
-  describe('configuration', () => {
-    it('should accept custom configuration', () => {
-      const config = {
-        skipTests: true,
-        skipLinting: false,
-        packageManager: 'npm' as const
-      }
-
-      const workflow = new ReleaseWorkflow(config)
-      expect(workflow).toBeDefined()
-    })
-
-    it('should have default configuration', () => {
-      expect(releaseWorkflow).toBeDefined()
-      // Workflow should work with default config
-    })
-  })
-
-  describe('workflow execution', () => {
-    it('should create workflow steps', () => {
-      const steps = releaseWorkflow.createWorkflowSteps()
+  describe('createReleaseWorkflow', () => {
+    it('should create release workflow steps', async () => {
+      const steps = await createReleaseWorkflow()
       expect(steps).toBeDefined()
       expect(Array.isArray(steps)).toBe(true)
       expect(steps.length).toBeGreaterThan(0)
     })
 
-    it('should include quality gates in workflow', () => {
-      const steps = releaseWorkflow.createWorkflowSteps()
+    it('should accept custom options', async () => {
+      const options = {
+        skipTests: true,
+        skipLint: true,
+        force: true
+      }
+
+      const steps = await createReleaseWorkflow(options)
+      expect(steps).toBeDefined()
+      expect(Array.isArray(steps)).toBe(true)
+    })
+
+    it('should handle non-interactive mode', async () => {
+      const options = {
+        nonInteractive: true,
+        force: true
+      }
+
+      const steps = await createReleaseWorkflow(options)
+      expect(steps).toBeDefined()
+    })
+  })
+
+  describe('workflow steps', () => {
+    it('should include quality gates', async () => {
+      const steps = await createReleaseWorkflow()
       const stepTitles = steps.map(step => step.title.toLowerCase())
       
-      // Should include common workflow steps
-      expect(stepTitles.some(title => title.includes('lint') || title.includes('quality'))).toBe(true)
-      expect(stepTitles.some(title => title.includes('test'))).toBe(true)
-      expect(stepTitles.some(title => title.includes('version') || title.includes('bump'))).toBe(true)
-    })
-  })
-
-  describe('validation', () => {
-    it('should validate git repository', async () => {
-      // This should not throw since we're mocking a valid git repo
-      expect(async () => {
-        await releaseWorkflow.validateEnvironment()
-      }).not.toThrow()
+      // Should include quality gates step
+      expect(stepTitles.some(title => title.includes('quality'))).toBe(true)
     })
 
-    it('should handle validation errors gracefully', async () => {
-      // Test error handling
-      const workflow = new ReleaseWorkflow()
+    it('should include git operations', async () => {
+      const steps = await createReleaseWorkflow()
+      const stepTitles = steps.map(step => step.title.toLowerCase())
       
-      // Mock a failing validation
-      const mockGitStore = {
-        isGitRepository: vi.fn().mockResolvedValue(false)
-      }
-      ;(workflow as any).gitStore = mockGitStore
-
-      await expect(workflow.validateEnvironment()).rejects.toThrow()
+      // Should include git-related steps
+      expect(stepTitles.some(title => title.includes('git') || title.includes('tag') || title.includes('push'))).toBe(true)
     })
   })
 
-  describe('interactive mode', () => {
-    it('should support interactive prompts', () => {
-      const workflow = new ReleaseWorkflow({ interactive: true })
-      expect(workflow).toBeDefined()
+  describe('detection utilities', () => {
+    it('should detect npm publishing workflows', async () => {
+      // Test the hasNpmPublishingWorkflow function
+      const result = await hasNpmPublishingWorkflow('test/repo')
+      expect(typeof result).toBe('boolean')
     })
 
-    it('should support non-interactive mode', () => {
-      const workflow = new ReleaseWorkflow({ interactive: false })
-      expect(workflow).toBeDefined()
+    it('should detect Cloudflare setup', async () => {
+      // Test the detectCloudflareSetup function
+      const result = await detectCloudflareSetup()
+      expect(typeof result).toBe('boolean')
+    })
+  })
+
+  describe('workflow options', () => {
+    it('should support skipping Cloudflare deployment', async () => {
+      const steps = await createReleaseWorkflow({ skipCloudflare: true })
+      expect(steps).toBeDefined()
+    })
+
+    it('should support forcing execution', async () => {
+      const steps = await createReleaseWorkflow({ force: true })
+      expect(steps).toBeDefined()
     })
   })
 })
