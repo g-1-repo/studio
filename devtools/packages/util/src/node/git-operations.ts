@@ -108,7 +108,8 @@ export function exec(command: string, options: ExecOptions = {}): string {
       stdio: options.silent ? 'pipe' : 'inherit',
       cwd: options.cwd,
     })
-    return result ? result.toString().trim() : ''
+    // Only trim trailing whitespace to preserve git status format
+    return result ? result.toString().replace(/\s+$/, '') : ''
   }
   catch (error: any) {
     if (!options.ignoreErrors) {
@@ -146,6 +147,13 @@ export class GitOperations {
       this.gitRoot = this.workingDir
       return this.gitRoot
     }
+  }
+
+  private async getRelativePathFromGitRoot(filePath: string): Promise<string> {
+    const gitRoot = await this.getGitRoot()
+    const path = await import('node:path')
+    const absolutePath = path.resolve(this.workingDir, filePath)
+    return path.relative(gitRoot, absolutePath)
   }
 
   private async initializeSimpleGit(): Promise<void> {
@@ -236,11 +244,23 @@ export class GitOperations {
     try {
       if (this.git) {
         const status = await this.git.status()
-        return status.files.map((file: any) => file.path)
+        const gitRoot = await this.getGitRoot()
+        const path = await import('node:path')
+        // Convert SimpleGit paths (relative to working dir) to git-root-relative paths
+        return status.files.map((file: any) => {
+          const absolutePath = path.resolve(this.workingDir, file.path)
+          return path.relative(gitRoot, absolutePath)
+        })
       }
-      const changedFiles = exec('git diff --name-only HEAD', { silent: true }).split('\n').filter(Boolean)
-      const stagedFiles = exec('git diff --cached --name-only', { silent: true }).split('\n').filter(Boolean)
-      return [...new Set([...changedFiles, ...stagedFiles])]
+      // Use git status --porcelain which consistently returns git-root-relative paths
+      const status = exec('git status --porcelain', { silent: true })
+      return status.split('\n')
+        .filter(Boolean)
+        .map(line => {
+          // Handle different status formats: "M  ", " M ", "??", "MM", etc.
+          // Status codes are in first 2 chars, filename starts at position 3
+          return line.slice(3).trim()
+        })
     }
     catch (error) {
       throw this.createGitError('Failed to get changed files', error)
@@ -468,7 +488,14 @@ export class GitOperations {
     try {
       if (files) {
         if (this.git) {
-          await this.git.add(files)
+          // Convert git-root-relative paths to working-dir-relative for SimpleGit
+          const gitRoot = await this.getGitRoot()
+          const path = await import('node:path')
+          const workingDirRelativePaths = files.map(f => {
+            const absolutePath = path.resolve(gitRoot, f)
+            return path.relative(this.workingDir, absolutePath)
+          })
+          await this.git.add(workingDirRelativePaths)
         }
         else {
           const gitRoot = await this.getGitRoot()
