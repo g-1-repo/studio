@@ -59,9 +59,28 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "bun run clean && bun run build && bun run typecheck",
+    "size-check": "bun run build && bundlesize",
+    "analyze": "bun run build && webpack-bundle-analyzer dist/index.js --no-open",
     "release": "node dist/cli.js release",
     "dev:cli": "tsup --watch && node dist/cli.js"
   },
+  "bundlesize": [
+    {
+      "path": "./dist/index.js",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "./dist/cli.js",
+      "maxSize": "100kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "./dist/chunks/*.js",
+      "maxSize": "15kb",
+      "compression": "gzip"
+    }
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -84,9 +103,11 @@
     "@types/node": "^24.8.1",
     "@types/semver": "^7.7.1",
     "@vitest/coverage-v8": "^3.2.4",
+    "bundlesize2": "^0.0.35",
     "eslint": "^9.38.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }

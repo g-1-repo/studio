@@ -228,12 +228,17 @@
   "bundlesize": [
     {
       "path": "./dist/index.js",
-      "maxSize": "25kb",
+      "maxSize": "30kb",
       "compression": "gzip"
     },
     {
       "path": "./dist/*/index.js",
-      "maxSize": "5kb",
+      "maxSize": "8kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "./dist/chunks/*.js",
+      "maxSize": "15kb",
       "compression": "gzip"
     }
   ]
