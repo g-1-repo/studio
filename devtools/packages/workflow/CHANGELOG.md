@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.3] - 2025-10-19
+
+### Bug Fixes
+
+- bundle SimpleGit and suppress warning messages
+
+
 ## [3.3.2] - 2025-10-19
 
 
