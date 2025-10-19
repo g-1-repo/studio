@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.6] - 2025-10-19
+
+### Other Changes
+
+- chore: replace workspace dependency with published npm version
+
+
 ## [3.3.5] - 2025-10-19
 
 ### Other Changes
