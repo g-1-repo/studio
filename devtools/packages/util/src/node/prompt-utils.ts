@@ -47,8 +47,8 @@ export interface ConfirmOptions {
  */
 export async function text(options: PromptOptions): Promise<string> {
   const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: process.stdin as NodeJS.ReadableStream,
+    output: process.stdout as NodeJS.WritableStream,
   })
 
   const defaultText = options.default ? ` (${options.default})` : ''
@@ -75,8 +75,8 @@ export async function text(options: PromptOptions): Promise<string> {
  */
 export async function confirm(options: ConfirmOptions): Promise<boolean> {
   const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: process.stdin as NodeJS.ReadableStream,
+    output: process.stdout as NodeJS.WritableStream,
   })
 
   const defaultText = options.default !== undefined
@@ -121,8 +121,8 @@ export async function select<T>(options: SelectOptions<T>): Promise<T> {
   })
 
   const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: process.stdin as NodeJS.ReadableStream,
+    output: process.stdout as NodeJS.WritableStream,
   })
 
   return new Promise((resolve) => {
@@ -160,8 +160,8 @@ export async function multiselect<T>(options: MultiSelectOptions<T>): Promise<T[
   })
 
   const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: process.stdin as NodeJS.ReadableStream,
+    output: process.stdout as NodeJS.WritableStream,
   })
 
   return new Promise((resolve) => {
@@ -214,8 +214,8 @@ export async function multiselect<T>(options: MultiSelectOptions<T>): Promise<T[
  */
 export async function password(options: PromptOptions): Promise<string> {
   const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
+    input: process.stdin as NodeJS.ReadableStream,
+    output: process.stdout as NodeJS.WritableStream,
   })
 
   // Hide input

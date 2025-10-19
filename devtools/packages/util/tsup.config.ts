@@ -36,7 +36,7 @@ export default defineConfig(
     target: 'node18',
     external: ['simple-git', 'execa'], // Keep optional deps external
     noExternal: ['nanoid', '@paralleldrive/cuid2'], // Bundle small dependencies
-    dts: false, // Temporarily disable DTS for CLI testing
+    dts: true, // Enable TypeScript declarations
     splitting: true // Enable aggressive code splitting for tree-shaking
   })
 )
