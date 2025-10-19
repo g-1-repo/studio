@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.3.8] - 2025-10-19
+
+### Other Changes
+
+- chore: commit changes before release
+- chore: commit changes before release
+- chore: use ignore-workspaces flag in GitHub Actions workflow
+
+
 ## [3.3.7] - 2025-10-19
 
 ### Other Changes

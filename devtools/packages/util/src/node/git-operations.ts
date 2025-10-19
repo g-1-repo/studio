@@ -135,7 +135,7 @@ export class GitOperations {
     this.initializeSimpleGit()
   }
 
-  private async getGitRoot(): Promise<string> {
+  async getGitRoot(): Promise<string> {
     if (this.gitRoot) {
       return this.gitRoot
     }

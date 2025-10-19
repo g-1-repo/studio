@@ -533,7 +533,13 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
             const git = createGitOperations()
 
             helpers.setOutput('Staging files...')
-            await git.stageFiles(['package.json', 'CHANGELOG.md'])
+            // Convert working directory relative paths to git-root relative paths
+            const path = await import('node:path')
+            const cwd = process.cwd()
+            const gitRoot = await git.getGitRoot()
+            const packageJsonPath = path.relative(gitRoot, path.resolve(cwd, 'package.json'))
+            const changelogPath = path.relative(gitRoot, path.resolve(cwd, 'CHANGELOG.md'))
+            await git.stageFiles([packageJsonPath, changelogPath])
 
             helpers.setOutput('Creating release commit...')
             const commitMessage = `chore: release v${ctx.version!.next}`
