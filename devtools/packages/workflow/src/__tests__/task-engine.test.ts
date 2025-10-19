@@ -2,37 +2,37 @@
  * Comprehensive TaskEngine test suite
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { TaskEngine } from '../core/task-engine.js'
 import type { WorkflowStep } from '../types/index.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { TaskEngine } from '../core/task-engine.js'
 
-describe('TaskEngine', () => {
+describe('taskEngine', () => {
   let taskEngine: TaskEngine
   let mockSteps: WorkflowStep[]
 
   beforeEach(() => {
     taskEngine = new TaskEngine({ showTimer: false })
-    
+
     mockSteps = [
       {
         title: 'Step 1',
-        task: vi.fn().mockResolvedValue({ success: true })
+        task: vi.fn().mockResolvedValue({ success: true }),
       },
       {
-        title: 'Step 2', 
+        title: 'Step 2',
         task: vi.fn().mockResolvedValue({ success: true }),
         subtasks: [
           {
             title: 'Subtask 2.1',
-            task: vi.fn().mockResolvedValue({ success: true })
-          }
-        ]
+            task: vi.fn().mockResolvedValue({ success: true }),
+          },
+        ],
       },
       {
         title: 'Step 3',
         task: vi.fn().mockResolvedValue({ success: true }),
-        skip: () => true // Should be skipped
-      }
+        skip: () => true, // Should be skipped
+      },
     ]
   })
 
@@ -43,10 +43,10 @@ describe('TaskEngine', () => {
     })
 
     it('should create TaskEngine with custom options', () => {
-      const engine = new TaskEngine({ 
+      const engine = new TaskEngine({
         showTimer: true,
         concurrent: false,
-        exitOnError: false
+        exitOnError: false,
       })
       expect(engine).toBeInstanceOf(TaskEngine)
     })
@@ -55,7 +55,7 @@ describe('TaskEngine', () => {
   describe('execute', () => {
     it('should execute all steps successfully', async () => {
       const result = await taskEngine.execute(mockSteps)
-      
+
       // Should return context object, not throw error
       expect(result).toBeDefined()
       expect(typeof result).toBe('object')
@@ -64,7 +64,7 @@ describe('TaskEngine', () => {
     it('should handle step failure', async () => {
       const failingStep: WorkflowStep = {
         title: 'Failing Step',
-        task: vi.fn().mockRejectedValue(new Error('Step failed'))
+        task: vi.fn().mockRejectedValue(new Error('Step failed')),
       }
 
       await expect(taskEngine.execute([failingStep])).rejects.toThrow('Step failed')
@@ -72,21 +72,21 @@ describe('TaskEngine', () => {
 
     it('should execute subtasks', async () => {
       const result = await taskEngine.execute([mockSteps[1]]) // Step with subtasks
-      
+
       expect(result).toBeDefined()
       // Note: listr2 handles subtasks differently, so direct task calls may not be captured
     })
 
     it('should skip steps based on skip condition', async () => {
       const result = await taskEngine.execute([mockSteps[2]]) // Step with skip: true
-      
+
       expect(result).toBeDefined()
       expect(mockSteps[2].task).not.toHaveBeenCalled()
     })
 
     it('should handle empty steps array', async () => {
       const result = await taskEngine.execute([])
-      
+
       expect(result).toBeDefined()
       expect(typeof result).toBe('object')
     })
@@ -98,15 +98,15 @@ describe('TaskEngine', () => {
           task: async (ctx) => {
             ctx.testValue = 'hello'
             return { success: true }
-          }
+          },
         },
         {
           title: 'Read Context',
           task: async (ctx) => {
             expect(ctx.testValue).toBe('hello')
             return { success: true }
-          }
-        }
+          },
+        },
       ]
 
       const result = await taskEngine.execute(contextSteps)
@@ -120,12 +120,12 @@ describe('TaskEngine', () => {
       const errorSteps: WorkflowStep[] = [
         {
           title: 'Error 1',
-          task: vi.fn().mockRejectedValue(new Error('First error'))
+          task: vi.fn().mockRejectedValue(new Error('First error')),
         },
         {
-          title: 'Error 2', 
-          task: vi.fn().mockRejectedValue(new Error('Second error'))
-        }
+          title: 'Error 2',
+          task: vi.fn().mockRejectedValue(new Error('Second error')),
+        },
       ]
 
       // With exitOnError: false, engine should not throw, but continue
@@ -138,12 +138,12 @@ describe('TaskEngine', () => {
       const errorSteps: WorkflowStep[] = [
         {
           title: 'Error 1',
-          task: vi.fn().mockRejectedValue(new Error('First error'))
+          task: vi.fn().mockRejectedValue(new Error('First error')),
         },
         {
           title: 'Should not run',
-          task: vi.fn().mockResolvedValue({ success: true })
-        }
+          task: vi.fn().mockResolvedValue({ success: true }),
+        },
       ]
 
       await expect(engine.execute(errorSteps)).rejects.toThrow('First error')
@@ -154,7 +154,7 @@ describe('TaskEngine', () => {
   describe('step validation', () => {
     it('should handle steps with missing task function', async () => {
       const invalidStep = {
-        title: 'Invalid Step'
+        title: 'Invalid Step',
         // Missing task function
       } as WorkflowStep
 
@@ -169,7 +169,7 @@ describe('TaskEngine', () => {
       const start = Date.now()
       await taskEngine.execute(mockSteps)
       const duration = Date.now() - start
-      
+
       expect(duration).toBeLessThan(1000) // Should complete in under 1 second
     })
   })

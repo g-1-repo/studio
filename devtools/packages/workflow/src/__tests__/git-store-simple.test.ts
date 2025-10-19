@@ -2,10 +2,10 @@
  * Simplified GitStore test suite
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { GitStore } from '../core/git-store.js'
 
-describe('GitStore', () => {
+describe('gitStore', () => {
   let gitStore: GitStore
 
   beforeEach(() => {

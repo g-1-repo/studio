@@ -14,10 +14,10 @@ export default defineConfig({
         'dist/**',
         '**/*.d.ts',
         '**/*.config.*',
-        'src/**/*.test.*'
-      ]
+        'src/**/*.test.*',
+      ],
     },
     testTimeout: 15000,
-    setupFiles: []
-  }
+    setupFiles: [],
+  },
 })

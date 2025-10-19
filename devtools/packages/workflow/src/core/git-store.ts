@@ -2,14 +2,8 @@
  * Git Store - Workflow-specific Git operations extending @g-1/util GitOperations
  */
 
-import { GitOperations } from '@g-1/util/node'
-import type {
-  BranchOptions,
-  CommitInfo,
-  GitError,
-  PullRequestOptions,
-} from '../types/index.js'
 import process from 'node:process'
+import { GitOperations } from '@g-1/util/node'
 
 export class GitStore extends GitOperations {
   constructor(private workingDir: string = process.cwd()) {

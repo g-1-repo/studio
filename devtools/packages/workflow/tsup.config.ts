@@ -1,5 +1,5 @@
 import { defineConfig } from 'tsup'
-import { createLibraryConfig, createCLIConfig } from '../shared/tsup.config.base.js'
+import { createCLIConfig, createLibraryConfig } from '../shared/tsup.config.base.js'
 
 export default defineConfig([
   // Library build
@@ -9,30 +9,8 @@ export default defineConfig([
     target: 'node18',
     dts: false, // Temporarily disable DTS to unblock CLI
     external: [
-      'listr2', 
-      'commander', 
-      'chalk', 
-      'ora', 
-      'enquirer', 
-      'execa', 
-      'simple-git',
-      'semver',
-      'conventional-commits-parser',
-      'cosmiconfig',
-      'zod'
-    ]
-  }),
-  
-  // CLI build  
-  createCLIConfig({
-    entry: ['src/cli.ts'],
-    platform: 'node',
-    target: 'node18',
-    splitting: false,  // Ensure single executable file
-    dts: false, // Temporarily disable DTS to unblock CLI
-    external: [
       'listr2',
-      'commander', 
+      'commander',
       'chalk',
       'ora',
       'enquirer',
@@ -41,7 +19,29 @@ export default defineConfig([
       'semver',
       'conventional-commits-parser',
       'cosmiconfig',
-      'zod'
-    ]
-  })
+      'zod',
+    ],
+  }),
+
+  // CLI build
+  createCLIConfig({
+    entry: ['src/cli.ts'],
+    platform: 'node',
+    target: 'node18',
+    splitting: false, // Ensure single executable file
+    dts: false, // Temporarily disable DTS to unblock CLI
+    external: [
+      'listr2',
+      'commander',
+      'chalk',
+      'ora',
+      'enquirer',
+      'execa',
+      'simple-git',
+      'semver',
+      'conventional-commits-parser',
+      'cosmiconfig',
+      'zod',
+    ],
+  }),
 ])
