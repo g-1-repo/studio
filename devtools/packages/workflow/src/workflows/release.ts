@@ -207,7 +207,7 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
               try {
                 helpers.setOutput(`Trying ${command} ${args.join(' ')}...`)
                 const result = await execa(command, args, { stdio: 'pipe', reject: false })
-                
+
                 if (result.exitCode === 0) {
                   helpers.setTitle(`Auto-fix linting issues - ✅ Fixed (${command})`)
                   commandWorked = true
@@ -218,22 +218,23 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
                   const stderr = result.stderr || ''
                   const stdout = result.stdout || ''
                   const combinedOutput = stderr + stdout
-                  
+
                   // Check if it contains actual ESLint output (means command worked)
                   if (combinedOutput.includes('error') || combinedOutput.includes('warning') || combinedOutput.includes('problem')) {
                     // Extract number of issues if possible
                     const errorMatch = combinedOutput.match(/(\d+)\s+error/)
                     const warningMatch = combinedOutput.match(/(\d+)\s+warning/)
                     const problemMatch = combinedOutput.match(/(\d+)\s+problem/)
-                    
-                    const errors = errorMatch ? parseInt(errorMatch[1]) : 0
-                    const warnings = warningMatch ? parseInt(warningMatch[1]) : 0
-                    const problems = problemMatch ? parseInt(problemMatch[1]) : errors + warnings
-                    
+
+                    const errors = errorMatch ? Number.parseInt(errorMatch[1]!) : 0
+                    const warnings = warningMatch ? Number.parseInt(warningMatch[1]!) : 0
+                    const problems = problemMatch ? Number.parseInt(problemMatch[1]!) : errors + warnings
+
                     if (problems > 0) {
                       helpers.setTitle(`Auto-fix linting issues - ⚠️ ${problems} issues remain (${command})`)
                       helpers.setOutput(`Found ${problems} linting issues that could not be auto-fixed`)
-                    } else {
+                    }
+                    else {
                       helpers.setTitle(`Auto-fix linting issues - ✅ Fixed (${command})`)
                     }
                     commandWorked = true
