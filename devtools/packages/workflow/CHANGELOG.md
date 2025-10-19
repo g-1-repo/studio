@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.0.1] - 2025-10-19
+
+### Bug Fixes
+
+- add missing createGitOperations mock to resolve test failures
+- resolve TypeScript errors in workflow and util packages
+- workflow CLI build and import issues
+
+### Other Changes
+
+- chore: update cli.ts
+- chore: complete TypeScript fixes in util package
+- chore: commit changes before release
+
+
 ## 3.0.0
 
 ### Major Changes
