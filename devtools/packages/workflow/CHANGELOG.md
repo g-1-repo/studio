@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.21] - 2025-10-20
+
+### Bug Fixes
+
+- improve push error handling to eliminate false warnings
+
+
 ## [3.3.20] - 2025-10-20
 
 ### Bug Fixes
