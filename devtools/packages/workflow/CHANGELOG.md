@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.13] - 2025-10-20
+
+### Other Changes
+
+- simplify: streamline GitHub Actions workflow to avoid memory issues
+
+
 ## [3.3.12] - 2025-10-20
 
 ### Other Changes
