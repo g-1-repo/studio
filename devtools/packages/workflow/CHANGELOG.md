@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.27] - 2025-10-20
+
+### Bug Fixes
+
+- push only specific new tags to avoid conflicts
+
+
 ## [3.3.26] - 2025-10-20
 
 
