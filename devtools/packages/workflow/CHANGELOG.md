@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.24] - 2025-10-20
+
+### Other Changes
+
+- improve tag handling to reduce redundant operations
+
+
 ## [3.3.23] - 2025-10-20
 
 ### Bug Fixes
