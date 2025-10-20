@@ -561,8 +561,22 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
 
             const git = createGitOperations()
 
+            // Check if tag already exists locally
+            try {
+              const existingTags = await git.getTags()
+              if (existingTags.includes(tagName)) {
+                helpers.setTitle(`Create git tag - ✅ ${tagName} (already exists)`)
+                ctx.tagAlreadyExists = true
+                return
+              }
+            }
+            catch {
+              // If we can't get tags, continue with creation
+            }
+
             helpers.setOutput(`Creating tag ${tagName}...`)
             await git.createTag(tagName, `Release ${ctx.version!.next}`)
+            ctx.tagAlreadyExists = false
 
             helpers.setTitle(`Create git tag - ✅ ${tagName}`)
           },
@@ -603,23 +617,27 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
               }
             }
 
-            // Push tags
-            try {
-              helpers.setOutput('Pushing tags...')
-              await git.pushTags()
-              tagsPushed = true
+            // Push tags (only if we created a new tag)
+            if (ctx.tagAlreadyExists) {
+              tagsPushed = true // Tag already exists, no need to push
+              helpers.setOutput('Tag already exists on remote, skipping tag push')
             }
-            catch (error) {
-              const errorMessage = error instanceof Error ? error.message : String(error)
-              if (errorMessage.includes('already exists') || errorMessage.includes('rejected')) {
-                tagsPushed = true // Tag already exists is fine
-                if (process.env.WORKFLOW_VERBOSE === 'true') {
-                  helpers.setOutput('Tags already exist on remote (continuing)')
-                }
+            else {
+              try {
+                helpers.setOutput('Pushing new tag...')
+                await git.pushTags()
+                tagsPushed = true
               }
-              else {
-                helpers.setTitle('Push to remote - ⚠️ Tag push failed (continuing)')
-                helpers.setOutput(`Error: ${errorMessage.slice(0, 100)}...`)
+              catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error)
+                if (errorMessage.includes('already exists') || errorMessage.includes('rejected')) {
+                  tagsPushed = true // Tag already exists is fine
+                  helpers.setOutput('Tag already exists on remote (continuing)')
+                }
+                else {
+                  helpers.setTitle('Push to remote - ⚠️ Tag push failed (continuing)')
+                  helpers.setOutput(`Error: ${errorMessage.slice(0, 100)}...`)
+                }
               }
             }
 

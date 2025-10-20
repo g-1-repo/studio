@@ -740,10 +740,20 @@ export class GitOperations {
   // Tag Management
   // =============================================================================
 
+  async getTags(): Promise<string[]> {
+    try {
+      const tags = exec('git tag -l', { silent: true })
+      return tags ? tags.split('\n').filter(Boolean) : []
+    }
+    catch (error) {
+      throw this.createGitError('Failed to get tags', error)
+    }
+  }
+
   async createTag(tagName: string, message?: string): Promise<void> {
     try {
       // Check if tag already exists
-      const existingTags = exec('git tag -l', { silent: true }).split('\n')
+      const existingTags = await this.getTags()
       if (existingTags.includes(tagName)) {
         throw new Error(`Tag ${tagName} already exists. Please use a different version or delete the existing tag.`)
       }
