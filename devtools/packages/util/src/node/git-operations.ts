@@ -773,6 +773,16 @@ export class GitOperations {
       }
     }
     catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      
+      // If tags already exist on remote, that's okay - just log and continue
+      if (errorMessage.includes('already exists') || errorMessage.includes('rejected')) {
+        if (process.env.WORKFLOW_VERBOSE === 'true') {
+          console.warn('Some tags already exist on remote, continuing...')
+        }
+        return
+      }
+      
       throw this.createGitError('Failed to push tags', error)
     }
   }
