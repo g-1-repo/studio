@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.14] - 2025-10-20
+
+### Bug Fixes
+
+- use Bun instead of npm for dependency installation
+
+
 ## [3.3.13] - 2025-10-20
 
 ### Other Changes
