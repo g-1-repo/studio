@@ -74,7 +74,7 @@
     },
     "packages/workflow": {
       "name": "@g-1/workflow",
-      "version": "3.3.6",
+      "version": "3.3.18",
       "bin": {
         "workflow": "dist/cli.js",
       },
