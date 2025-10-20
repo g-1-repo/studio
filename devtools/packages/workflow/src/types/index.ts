@@ -66,6 +66,19 @@ export interface WorkflowStep {
   skip?: boolean | string | ((ctx: WorkflowContext) => boolean | string | Promise<boolean | string>)
   retry?: number
   concurrent?: boolean
+  // Extensions for workflow system
+  id?: string
+  dependencies?: string[]
+  resources?: {
+    memory?: number
+    cpu?: number
+    duration?: number
+  }
+  hints?: {
+    batchable?: boolean
+    priority?: number
+    cacheable?: boolean
+  }
 }
 
 export interface TaskHelpers {
