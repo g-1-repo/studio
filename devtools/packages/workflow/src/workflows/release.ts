@@ -643,10 +643,20 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
 
             // Set final status
             if (commitsPushed && tagsPushed) {
-              helpers.setTitle('Push to remote - ✅ Complete')
+              if (ctx.tagAlreadyExists) {
+                helpers.setTitle('Push to remote - ✅ Commits pushed (tag already exists)')
+              }
+              else {
+                helpers.setTitle('Push to remote - ✅ Complete')
+              }
             }
             else if (commitsPushed) {
-              helpers.setTitle('Push to remote - ✅ Commits pushed (tags already exist)')
+              if (ctx.tagAlreadyExists) {
+                helpers.setTitle('Push to remote - ✅ Commits pushed (tag already exists)')
+              }
+              else {
+                helpers.setTitle('Push to remote - ✅ Commits pushed (tag failed)')
+              }
             }
             else if (tagsPushed) {
               helpers.setTitle('Push to remote - ✅ Tags pushed (commits up-to-date)')

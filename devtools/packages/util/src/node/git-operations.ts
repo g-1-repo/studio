@@ -779,7 +779,7 @@ export class GitOperations {
         await this.git.pushTags(remote)
       }
       else {
-        exec(`git push ${remote} --tags`)
+        exec(`git push ${remote} --tags`, { silent: true })
       }
     }
     catch (error) {
