@@ -773,9 +773,13 @@ export class GitOperations {
     }
   }
 
-  async pushTags(remote = 'origin'): Promise<void> {
+  async pushTags(remote = 'origin', specificTag?: string): Promise<void> {
     try {
-      if (this.git) {
+      if (specificTag) {
+        // Push only the specific tag to avoid conflicts with existing tags
+        exec(`git push ${remote} ${specificTag}`, { silent: true })
+      }
+      else if (this.git) {
         await this.git.pushTags(remote)
       }
       else {

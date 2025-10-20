@@ -624,8 +624,9 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
             }
             else {
               try {
+                const tagName = `v${ctx.version!.next}`
                 helpers.setOutput('Pushing new tag...')
-                await git.pushTags()
+                await git.pushTags('origin', tagName)
                 tagsPushed = true
               }
               catch (error) {
