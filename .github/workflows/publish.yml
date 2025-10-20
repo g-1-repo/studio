@@ -28,9 +28,17 @@ jobs:
         run: bun install
         working-directory: devtools
         
-      - name: Build all packages
-        run: bun run build
-        working-directory: devtools
+      - name: Build util package (dependency)
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          bun run build
+        working-directory: devtools/packages/util
+        
+      - name: Build workflow package
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          bun run build
+        working-directory: devtools/packages/workflow
         
       - name: Run tests
         run: bun run test
