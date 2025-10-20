@@ -24,11 +24,25 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
           
-      - name: Install dependencies (production only)
-        run: npm install --production --no-optional
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+        working-directory: devtools
+        
+      - name: Build util package
+        run: bun run build
+        working-directory: devtools/packages/util
+        
+      - name: Build workflow package  
+        run: bun run build
         working-directory: devtools/packages/workflow
         
-      - name: Publish to npm
+      - name: Publish util to npm
+        run: npm publish --access public
+        working-directory: devtools/packages/util
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Publish workflow to npm
         run: npm publish --access public
         working-directory: devtools/packages/workflow
         env:
