@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.15] - 2025-10-20
+
+### Bug Fixes
+
+- remove frozen-lockfile flag to allow dependency resolution
+
+
 ## [3.3.14] - 2025-10-20
 
 ### Bug Fixes
