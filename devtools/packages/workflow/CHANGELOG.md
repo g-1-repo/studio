@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.12] - 2025-10-20
+
+### Other Changes
+
+- optimize: improve GitHub Actions workflow memory usage
+
+
 ## [3.3.11] - 2025-10-20
 
 ### Bug Fixes
