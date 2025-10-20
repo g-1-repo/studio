@@ -35,7 +35,7 @@ jobs:
       - name: Update util package version
         run: |
           cd devtools/packages/util
-          npm version ${{ steps.version.outputs.RELEASE_VERSION }} --no-git-tag-version
+          node -e "const pkg = require('./package.json'); pkg.version = '${{ steps.version.outputs.RELEASE_VERSION }}'; require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');"
           echo "Updated util version to ${{ steps.version.outputs.RELEASE_VERSION }}"
           
       - name: Build util package
