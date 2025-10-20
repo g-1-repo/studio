@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.11] - 2025-10-20
+
+### Bug Fixes
+
+- update root GitHub Actions workflow and remove duplicate
+
+
 ## [3.3.10] - 2025-10-19
 
 ### Bug Fixes
