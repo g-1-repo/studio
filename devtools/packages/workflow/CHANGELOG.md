@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.19] - 2025-10-20
+
+### Other Changes
+
+- chore: update lockfile
+- Fix workflow: remove frozen lockfile requirement
+
+
 ## [3.3.18] - 2025-10-20
 
 ### Other Changes
