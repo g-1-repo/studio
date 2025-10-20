@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.4.0] - 2025-10-20
+
+### Features
+
+- complete performance optimization implementation
+- implement performance optimizations
+
+### Other Changes
+
+- chore: commit changes before release
+- chore: commit changes before release
+- chore: commit changes before release
+
+
 ## [3.3.28] - 2025-10-20
 
 
