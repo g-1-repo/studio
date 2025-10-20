@@ -3,13 +3,14 @@
   "version": "3.3.16",
   "description": "G1 Enterprise Workflow System. Badass, production-ready release automation that serves as the backbone for major development organizations. Features intelligent error recovery, beautiful UI, and enterprise-scale reliability.",
   "license": "MIT",
-  "homepage": "https://github.com/g-1-repo/workflow#readme",
+  "homepage": "https://github.com/g-1-repo/studio/tree/main/devtools/packages/workflow#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/g-1-repo/workflow.git"
+    "url": "git+https://github.com/g-1-repo/studio.git",
+    "directory": "devtools/packages/workflow"
   },
   "bugs": {
-    "url": "https://github.com/g-1-repo/workflow/issues"
+    "url": "https://github.com/g-1-repo/studio/issues"
   },
   "keywords": [
     "workflow",

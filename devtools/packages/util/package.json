@@ -5,13 +5,14 @@
   "description": "G1 Shared Utilities. The centralized library for common G1 business logic and utilities. Designed for high-performance and Cloudflare Workers compatibility. The single source of truth for shared functions across all products.",
   "author": "G1 <dev@golive.me>",
   "license": "MIT",
-  "homepage": "https://github.com/g-1-repo/util#readme",
+  "homepage": "https://github.com/g-1-repo/studio/tree/main/devtools/packages/util#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/g-1-repo/util.git"
+    "url": "git+https://github.com/g-1-repo/studio.git",
+    "directory": "devtools/packages/util"
   },
   "bugs": {
-    "url": "https://github.com/g-1-repo/util/issues"
+    "url": "https://github.com/g-1-repo/studio/issues"
   },
   "keywords": [
     "utils",
