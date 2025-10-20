@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.3.22] - 2025-10-20
+
+### Bug Fixes
+
+- improve GitHub Actions workflow version handling
+
+### Other Changes
+
+- chore: commit changes before release
+
+
 ## [3.3.21] - 2025-10-20
 
 ### Bug Fixes
