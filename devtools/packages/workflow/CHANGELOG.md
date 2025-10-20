@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.20] - 2025-10-20
+
+### Bug Fixes
+
+- handle existing remote tags gracefully in pushTags
+
+
 ## [3.3.19] - 2025-10-20
 
 ### Other Changes
