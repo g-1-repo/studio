@@ -28,6 +28,16 @@ jobs:
         run: bun install
         working-directory: devtools
         
+      - name: Get release version
+        id: version
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        
+      - name: Update util package version
+        run: |
+          cd devtools/packages/util
+          npm version ${{ steps.version.outputs.RELEASE_VERSION }} --no-git-tag-version
+          echo "Updated util version to ${{ steps.version.outputs.RELEASE_VERSION }}"
+          
       - name: Build util package
         run: bun run build
         working-directory: devtools/packages/util
@@ -36,14 +46,46 @@ jobs:
         run: bun run build
         working-directory: devtools/packages/workflow
         
+      - name: Check if util version exists on npm
+        id: util_check
+        run: |
+          if npm view @g-1/util@${{ steps.version.outputs.RELEASE_VERSION }} version 2>/dev/null; then
+            echo "EXISTS=true" >> $GITHUB_OUTPUT
+            echo "@g-1/util@${{ steps.version.outputs.RELEASE_VERSION }} already exists"
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+            echo "@g-1/util@${{ steps.version.outputs.RELEASE_VERSION }} does not exist, will publish"
+          fi
+          
       - name: Publish util to npm
+        if: steps.util_check.outputs.EXISTS == 'false'
         run: npm publish --access public
         working-directory: devtools/packages/util
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
+      - name: Skip util publish
+        if: steps.util_check.outputs.EXISTS == 'true'
+        run: echo "Skipping @g-1/util@${{ steps.version.outputs.RELEASE_VERSION }} - already published"
+          
+      - name: Check if workflow version exists on npm
+        id: workflow_check
+        run: |
+          if npm view @g-1/workflow@${{ steps.version.outputs.RELEASE_VERSION }} version 2>/dev/null; then
+            echo "EXISTS=true" >> $GITHUB_OUTPUT
+            echo "@g-1/workflow@${{ steps.version.outputs.RELEASE_VERSION }} already exists"
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+            echo "@g-1/workflow@${{ steps.version.outputs.RELEASE_VERSION }} does not exist, will publish"
+          fi
+          
       - name: Publish workflow to npm
+        if: steps.workflow_check.outputs.EXISTS == 'false'
         run: npm publish --access public
         working-directory: devtools/packages/workflow
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Skip workflow publish
+        if: steps.workflow_check.outputs.EXISTS == 'true'
+        run: echo "Skipping @g-1/workflow@${{ steps.version.outputs.RELEASE_VERSION }} - already published"
