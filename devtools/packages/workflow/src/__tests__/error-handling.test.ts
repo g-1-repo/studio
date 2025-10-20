@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { ErrorFormatter } from '../core/error-formatter.js'
-import { ErrorRecoveryService } from '../core/error-recovery.js'
+import { ErrorRecoveryService } from '../core/error-recovery'
 
 describe('error Formatter', () => {
   describe('formatError', () => {
