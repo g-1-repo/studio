@@ -24,15 +24,8 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
           
-      - name: Install dependencies
-        run: bun install
-        working-directory: devtools
-        
-      - name: Build package (if needed)
-        run: |
-          if [ -f "package.json" ] && grep -q '"build"' package.json; then
-            npm run build
-          fi
+      - name: Install dependencies (production only)
+        run: npm install --production --no-optional
         working-directory: devtools/packages/workflow
         
       - name: Publish to npm
