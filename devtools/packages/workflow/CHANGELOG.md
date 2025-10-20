@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.16] - 2025-10-20
+
+### Bug Fixes
+
+- skip build step and use production-only dependencies
+
+
 ## [3.3.15] - 2025-10-20
 
 ### Bug Fixes
