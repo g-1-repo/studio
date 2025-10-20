@@ -603,7 +603,7 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
               }
             }
 
-            // Push tags  
+            // Push tags
             try {
               helpers.setOutput('Pushing tags...')
               await git.pushTags()
