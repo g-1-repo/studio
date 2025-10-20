@@ -578,25 +578,63 @@ export async function createReleaseWorkflow(options: ReleaseOptions = {}): Promi
 
             const git = createGitOperations()
 
+            let commitsPushed = false
+            let tagsPushed = false
+
+            // Push commits
             try {
               helpers.setOutput('Pushing commits...')
               await git.push()
-
-              helpers.setOutput('Pushing tags...')
-              await git.pushTags()
-
-              helpers.setTitle('Push to remote - ✅ Complete')
+              commitsPushed = true
             }
             catch (error) {
               const errorMessage = error instanceof Error ? error.message : String(error)
               if (errorMessage.includes('verify your email') || errorMessage.includes('Could not read from remote')) {
                 helpers.setTitle('Push to remote - ⚠️ Failed: Email verification required')
                 helpers.setOutput('Please verify your email at https://github.com/settings/emails')
+                return
+              }
+              else if (errorMessage.includes('up-to-date') || errorMessage.includes('Everything up-to-date')) {
+                commitsPushed = true // Already up to date is fine
               }
               else {
-                helpers.setTitle('Push to remote - ⚠️ Push failed (continuing)')
+                helpers.setTitle('Push to remote - ⚠️ Commit push failed (continuing)')
                 helpers.setOutput(`Error: ${errorMessage.slice(0, 100)}...`)
               }
+            }
+
+            // Push tags  
+            try {
+              helpers.setOutput('Pushing tags...')
+              await git.pushTags()
+              tagsPushed = true
+            }
+            catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error)
+              if (errorMessage.includes('already exists') || errorMessage.includes('rejected')) {
+                tagsPushed = true // Tag already exists is fine
+                if (process.env.WORKFLOW_VERBOSE === 'true') {
+                  helpers.setOutput('Tags already exist on remote (continuing)')
+                }
+              }
+              else {
+                helpers.setTitle('Push to remote - ⚠️ Tag push failed (continuing)')
+                helpers.setOutput(`Error: ${errorMessage.slice(0, 100)}...`)
+              }
+            }
+
+            // Set final status
+            if (commitsPushed && tagsPushed) {
+              helpers.setTitle('Push to remote - ✅ Complete')
+            }
+            else if (commitsPushed) {
+              helpers.setTitle('Push to remote - ✅ Commits pushed (tags already exist)')
+            }
+            else if (tagsPushed) {
+              helpers.setTitle('Push to remote - ✅ Tags pushed (commits up-to-date)')
+            }
+            else {
+              helpers.setTitle('Push to remote - ⚠️ Push completed with warnings')
             }
           },
         },
