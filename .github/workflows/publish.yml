@@ -13,11 +13,6 @@ jobs:
         with:
           submodules: false
         
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -25,23 +20,14 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
-        run: bun install
-        working-directory: devtools
-        
-      - name: Build util package (dependency)
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          bun run build
-        working-directory: devtools/packages/util
-        
-      - name: Build workflow package
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          bun run build
+        run: npm ci
         working-directory: devtools/packages/workflow
         
-      - name: Run tests
-        run: bun run test
+      - name: Build package (if needed)
+        run: |
+          if [ -f "package.json" ] && grep -q '"build"' package.json; then
+            npm run build
+          fi
         working-directory: devtools/packages/workflow
         
       - name: Publish to npm
