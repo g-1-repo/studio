@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.25] - 2025-10-20
+
+### Bug Fixes
+
+- eliminate redundant error messages in push operations
+
+
 ## [3.3.24] - 2025-10-20
 
 ### Other Changes
