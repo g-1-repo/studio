@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.23] - 2025-10-20
+
+### Bug Fixes
+
+- use direct JSON modification for version updates
+
+
 ## [3.3.22] - 2025-10-20
 
 ### Bug Fixes
