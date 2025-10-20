@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.17] - 2025-10-20
+
+### Other Changes
+
+- Update repository URLs to point to g-1-repo/studio
+
+
 ## [3.3.16] - 2025-10-20
 
 ### Bug Fixes
