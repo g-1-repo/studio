@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.18] - 2025-10-20
+
+### Other Changes
+
+- Fix publish workflow to handle monorepo dependencies
+
+
 ## [3.3.17] - 2025-10-20
 
 ### Other Changes
