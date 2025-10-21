@@ -2,7 +2,6 @@
  * ReleaseWorkflow test suite
  */
 
-import type { ReleaseOptions } from '../types/index.js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createReleaseWorkflow } from '../workflows/release.js'
 
@@ -52,7 +51,7 @@ vi.mock('../core/git-store.js', () => ({
 }))
 
 describe('releaseWorkflow', () => {
-  let defaultOptions: ReleaseOptions
+  let defaultOptions: any
 
   beforeEach(() => {
     defaultOptions = {

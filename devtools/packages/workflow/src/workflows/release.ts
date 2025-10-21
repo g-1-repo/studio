@@ -8,7 +8,7 @@ import { createGitOperations } from '@g-1/util/node'
 import chalk from 'chalk'
 import { execa } from 'execa'
 import * as semver from 'semver'
-import { ErrorFormatter } from '../core/error-formatter.js'
+import { ErrorFormatter } from '@g-1/util/debug'
 
 // Detection functions (detectCloudflareSetup moved to exports below)
 

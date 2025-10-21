@@ -4,8 +4,8 @@
  * Main library exports for programmatic usage
  */
 
-export { ErrorFormatter } from './core/error-formatter.js'
-export type { FormattedError } from './core/error-formatter.js'
+export { ErrorFormatter } from '@g-1/util/debug'
+export type { FormattedError } from '@g-1/util/debug'
 export { ErrorRecoveryService } from './core/error-recovery.js'
 export type { ErrorAnalysis } from './core/error-recovery.js'
 // Core exports

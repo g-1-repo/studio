@@ -24,3 +24,6 @@ export {
   StructuredLogger,
   type TelemetryEvent,
 } from './structured-logger.js'
+
+export { ErrorFormatter } from './error-formatter.js'
+export type { FormattedError } from './error-formatter.js'
