@@ -30,7 +30,8 @@ export default defineConfig(
       'api/index': 'src/api/index.ts',
       'env/index': 'src/env/index.ts',
       'validation/core': 'src/validation/core.ts',
-      'validation/web': 'src/validation/web.ts'
+      'validation/web': 'src/validation/web.ts',
+      'workflow/index': 'src/workflow/index.ts'
     },
     platform: 'node', // Change to node for better built-in handling
     target: 'node18',

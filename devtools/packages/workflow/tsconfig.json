@@ -21,7 +21,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@g-1/util/*": ["../util/src/*"],
+      "@g-1/util": ["../util/src/index.ts"]
+    }
   },
   "include": [
     "src/**/*"

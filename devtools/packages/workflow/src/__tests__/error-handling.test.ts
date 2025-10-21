@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { ErrorFormatter } from '../core/error-formatter.js'
+import { ErrorFormatter } from '@g-1/util/debug'
 import { ErrorRecoveryService } from '../core/error-recovery'
 
 describe('error Formatter', () => {
