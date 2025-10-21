@@ -357,7 +357,7 @@ export class WarpWorkflowEnhancer {
         message: 'TypeScript configuration is valid',
       }
     }
-    catch (error) {
+    catch {
       return {
         success: false,
         message: 'Invalid tsconfig.json detected',

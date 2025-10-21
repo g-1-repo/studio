@@ -35,8 +35,8 @@ export interface WarpIntegrationResult {
  */
 export async function enhanceWorkflow(options: WarpIntegrationOptions = {}): Promise<WarpIntegrationResult> {
   const {
-    skipTypecheck = false,
-    skipLinking = false,
+    skipTypecheck: _skipTypecheck = false,
+    skipLinking: _skipLinking = false,
     silent = false,
     projectRoot = process.cwd(),
   } = options

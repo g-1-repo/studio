@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-// @ts-ignore - ESM import meta check
 /**
  * g1-warp CLI - WARP Development Workflow Enhancement
  *
@@ -43,7 +42,7 @@ async function main() {
       console.log(result.message)
       process.exit(result.success ? 0 : 1)
     }
-
+    // eslint-disable-next-line no-fallthrough
     case 'status':
       {
         const status = await getProjectStatus(projectRoot)
@@ -57,7 +56,7 @@ async function main() {
       console.log(passes ? 'TypeScript checks pass' : 'TypeScript checks fail')
       process.exit(passes ? 0 : 1)
     }
-
+    // eslint-disable-next-line no-fallthrough
     case '--help':
     case '-h':
     case 'help':
