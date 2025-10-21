@@ -11,20 +11,55 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import process from 'node:process'
 
+/**
+ * Information about the current project including G1-specific metadata.
+ */
 export interface ProjectInfo {
+  /** The project name from package.json */
   name: string
+  /** The project version from package.json */
   version: string
+  /** Whether this is a G1 project (has G1 dependencies or naming) */
   isG1Project: boolean
+  /** List of G1 dependencies that are present */
   hasG1Dependencies: string[]
+  /** List of G1 dependencies that are missing but expected */
   missingG1Dependencies: string[]
 }
 
+/**
+ * Result of an automated fix operation.
+ */
 export interface FixResult {
+  /** Whether the fix was successful */
   success: boolean
+  /** Human-readable message about the fix result */
   message: string
+  /** Optional detailed information about what was done */
   details?: string
 }
 
+/**
+ * WARP Workflow Enhancer - Automated G1 project setup and TypeScript validation.
+ * 
+ * This class provides automated enhancement capabilities for G1 projects, including:
+ * - Project analysis and G1 dependency detection
+ * - Automatic linking of G1 packages in development
+ * - TypeScript validation and error fixing
+ * - Common G1 project issue resolution
+ * 
+ * @example
+ * ```typescript
+ * const enhancer = new WarpWorkflowEnhancer('/path/to/project')
+ * const success = await enhancer.enhance()
+ * 
+ * if (success) {
+ *   console.log('Project enhanced successfully!')
+ * } else {
+ *   console.log('Enhancement failed - manual intervention required')
+ * }
+ * ```
+ */
 export class WarpWorkflowEnhancer {
   private projectRoot: string
   private projectInfo: ProjectInfo | null = null
@@ -33,7 +68,30 @@ export class WarpWorkflowEnhancer {
     this.projectRoot = resolve(projectRoot)
   }
 
+  /**
+   * Main enhancement method that analyzes and fixes common G1 project issues.
+   * 
+   * This method performs a comprehensive enhancement workflow:
+   * 1. Analyzes the project to detect G1 dependencies and configuration
+   * 2. Links missing G1 packages for development
+   * 3. Runs TypeScript type checking
+   * 4. Attempts automatic fixes for common issues
+   * 5. Provides manual fix guidance if automatic fixes fail
+   * 
+   * @returns Promise<boolean> - True if enhancement was successful, false if manual intervention is needed
+   * 
+   * @example
+   * ```typescript
+   * const enhancer = new WarpWorkflowEnhancer()
+   * const success = await enhancer.enhance()
+   * 
+   * if (!success) {
+   *   console.log('Manual fixes required - check the guidance above')
+   * }
+   * ```
+   */
   async enhance(): Promise<boolean> {
+
     console.log('🔧 WARP Workflow Enhancer - Initializing...')
     
     try {

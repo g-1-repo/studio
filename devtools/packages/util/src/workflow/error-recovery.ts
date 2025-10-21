@@ -9,19 +9,54 @@ import { ErrorFormatter } from '../debug/index.js'
 import type { WorkflowContext, WorkflowStep } from './task-engine.js'
 import { createTaskEngine } from './task-engine.js'
 
+/**
+ * Represents the analysis result of a workflow error, including classification,
+ * severity assessment, and suggested recovery actions.
+ */
 export interface ErrorAnalysis {
+  /** The category of error detected */
   type: 'linting' | 'typescript' | 'build' | 'authentication' | 'dependency' | 'unknown'
+  /** The severity level of the error */
   severity: 'critical' | 'warning' | 'minor'
+  /** Whether the error can be automatically fixed */
   fixable: boolean
+  /** Human-readable description of the error */
   description: string
+  /** Array of suggested fix actions */
   suggestedFixes: string[]
 }
 
+/**
+ * Singleton service for automated error recovery in G1 workflows.
+ * 
+ * This service analyzes workflow errors, classifies them by type and severity,
+ * and provides automated recovery workflows to fix common development issues
+ * like linting errors, TypeScript issues, build failures, and dependency problems.
+ * 
+ * @example
+ * ```typescript
+ * const recovery = ErrorRecoveryService.getInstance()
+ * 
+ * try {
+ *   // Some workflow operation that might fail
+ *   await runWorkflow()
+ * } catch (error) {
+ *   // Analyze and recover from the error
+ *   await recovery.executeRecovery(error)
+ * }
+ * ```
+ */
 export class ErrorRecoveryService {
+
   private static instance: ErrorRecoveryService
 
   private constructor() {}
 
+  /**
+   * Gets the singleton instance of the ErrorRecoveryService.
+   * 
+   * @returns The singleton ErrorRecoveryService instance
+   */
   static getInstance(): ErrorRecoveryService {
     if (!ErrorRecoveryService.instance) {
       ErrorRecoveryService.instance = new ErrorRecoveryService()
@@ -29,6 +64,24 @@ export class ErrorRecoveryService {
     return ErrorRecoveryService.instance
   }
 
+  /**
+   * Analyzes an error to determine its type, severity, and potential fixes.
+   * 
+   * This method examines the error message and stack trace to classify the error
+   * into categories like linting, TypeScript, build, authentication, or dependency issues.
+   * 
+   * @param error - The error to analyze
+   * @param _context - Optional workflow context (currently unused)
+   * @returns Promise<ErrorAnalysis> - Detailed analysis of the error
+   * 
+   * @example
+   * ```typescript
+   * const recovery = ErrorRecoveryService.getInstance()
+   * const analysis = await recovery.analyzeError(new Error('ESLint found 3 errors'))
+   * console.log(analysis.type) // 'linting'
+   * console.log(analysis.fixable) // true
+   * ```
+   */
   async analyzeError(error: Error, _context?: any): Promise<ErrorAnalysis> {
     const errorMessage = error.message.toLowerCase()
     const errorStack = error.stack?.toLowerCase() || ''
