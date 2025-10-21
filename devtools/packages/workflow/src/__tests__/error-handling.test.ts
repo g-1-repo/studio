@@ -2,8 +2,8 @@
  * Test suite for error handling components
  */
 
-import { describe, expect, it } from 'vitest'
 import { ErrorFormatter } from '@g-1/util/debug'
+import { describe, expect, it } from 'vitest'
 import { ErrorRecoveryService } from '../core/error-recovery'
 
 describe('error Formatter', () => {

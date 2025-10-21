@@ -4,6 +4,10 @@
     "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "paths": {
+      "@g-1/util/*": ["../util/src/*"],
+      "@g-1/util": ["../util/src/index.ts"]
+    },
     "resolveJsonModule": true,
     "types": ["node", "vitest/globals"],
     "allowImportingTsExtensions": true,
@@ -21,11 +25,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
-    "paths": {
-      "@g-1/util/*": ["../util/src/*"],
-      "@g-1/util": ["../util/src/index.ts"]
-    }
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*"

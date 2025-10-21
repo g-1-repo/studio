@@ -4,8 +4,6 @@
  * Main library exports for programmatic usage
  */
 
-export { ErrorFormatter } from '@g-1/util/debug'
-export type { FormattedError } from '@g-1/util/debug'
 export { ErrorRecoveryService } from './core/error-recovery.js'
 export type { ErrorAnalysis } from './core/error-recovery.js'
 // Core exports
@@ -30,9 +28,11 @@ export type {
   WorkflowError,
   WorkflowStep,
 } from './types/index.js'
-
 // Workflow exports
 export { createReleaseWorkflow, deployToCloudflare, detectCloudflareSetup, hasNpmPublishingWorkflow, watchGitHubActions } from './workflows/release.js'
+export { ErrorFormatter } from '@g-1/util/debug'
+
+export type { FormattedError } from '@g-1/util/debug'
 
 // Re-export consolidated Git operations from @g-1/util
 export { createGitOperations as createGitStore, GitOperations as GitStore } from '@g-1/util/node'
