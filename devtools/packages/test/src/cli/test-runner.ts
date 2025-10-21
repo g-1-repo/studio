@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import type { DatabaseProvider, Runtime } from '../types.js'
 import type { TestRunnerConfig } from './config.js'
 import { readdir, stat } from 'node:fs/promises'
