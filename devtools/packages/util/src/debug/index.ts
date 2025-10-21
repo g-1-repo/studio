@@ -6,6 +6,9 @@ export {
   prettyPrint as prettyPrintLegacy,
 } from './debug-utils.js'
 
+export { ErrorFormatter } from './error-formatter.js'
+
+export type { FormattedError } from './error-formatter.js'
 // Structured logger (new comprehensive API)
 export {
   createLogger,
@@ -24,6 +27,3 @@ export {
   StructuredLogger,
   type TelemetryEvent,
 } from './structured-logger.js'
-
-export { ErrorFormatter } from './error-formatter.js'
-export type { FormattedError } from './error-formatter.js'

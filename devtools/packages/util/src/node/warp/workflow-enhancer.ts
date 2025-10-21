@@ -1,14 +1,14 @@
 /**
  * WARP Workflow Enhancer
- * 
+ *
  * This utility automatically handles TypeScript checking and applies common fixes
- * for G1 projects. It's designed to be run by WARP before starting work or 
+ * for G1 projects. It's designed to be run by WARP before starting work or
  * generating code to ensure a clean development environment.
  */
 
 import { execSync, spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { resolve, join } from 'node:path'
+import { join, resolve } from 'node:path'
 import process from 'node:process'
 
 /**
@@ -41,18 +41,18 @@ export interface FixResult {
 
 /**
  * WARP Workflow Enhancer - Automated G1 project setup and TypeScript validation.
- * 
+ *
  * This class provides automated enhancement capabilities for G1 projects, including:
  * - Project analysis and G1 dependency detection
  * - Automatic linking of G1 packages in development
  * - TypeScript validation and error fixing
  * - Common G1 project issue resolution
- * 
+ *
  * @example
  * ```typescript
  * const enhancer = new WarpWorkflowEnhancer('/path/to/project')
  * const success = await enhancer.enhance()
- * 
+ *
  * if (success) {
  *   console.log('Project enhanced successfully!')
  * } else {
@@ -70,35 +70,34 @@ export class WarpWorkflowEnhancer {
 
   /**
    * Main enhancement method that analyzes and fixes common G1 project issues.
-   * 
+   *
    * This method performs a comprehensive enhancement workflow:
    * 1. Analyzes the project to detect G1 dependencies and configuration
    * 2. Links missing G1 packages for development
    * 3. Runs TypeScript type checking
    * 4. Attempts automatic fixes for common issues
    * 5. Provides manual fix guidance if automatic fixes fail
-   * 
+   *
    * @returns Promise<boolean> - True if enhancement was successful, false if manual intervention is needed
-   * 
+   *
    * @example
    * ```typescript
    * const enhancer = new WarpWorkflowEnhancer()
    * const success = await enhancer.enhance()
-   * 
+   *
    * if (!success) {
    *   console.log('Manual fixes required - check the guidance above')
    * }
    * ```
    */
   async enhance(): Promise<boolean> {
-
     console.log('🔧 WARP Workflow Enhancer - Initializing...')
-    
+
     try {
       // Step 1: Analyze project
       this.projectInfo = await this.analyzeProject()
       console.log(`📊 Detected: ${this.projectInfo.name} v${this.projectInfo.version}`)
-      
+
       if (!this.projectInfo.isG1Project) {
         console.log('ℹ️  Not a G1 project - running basic typecheck only')
         return await this.runTypecheck()
@@ -118,7 +117,7 @@ export class WarpWorkflowEnhancer {
       // Step 3: Run typecheck
       console.log('🔍 Running TypeScript type checking...')
       const typecheckResult = await this.runTypecheck()
-      
+
       if (typecheckResult) {
         console.log('✅ All TypeScript checks passed!')
         return true
@@ -127,7 +126,7 @@ export class WarpWorkflowEnhancer {
       // Step 4: Attempt automatic fixes
       console.log('🛠️  TypeScript errors detected - attempting automatic fixes...')
       const fixResult = await this.attemptAutomaticFixes()
-      
+
       if (fixResult.success) {
         console.log('✅ Automatic fixes applied successfully!')
         // Re-run typecheck to confirm
@@ -142,8 +141,8 @@ export class WarpWorkflowEnhancer {
       console.log('📋 Automatic fixes could not resolve all issues.')
       this.provideManualFixGuidance()
       return false
-
-    } catch (error) {
+    }
+    catch (error) {
       console.error('💥 Workflow enhancer encountered an error:', error)
       return false
     }
@@ -151,7 +150,7 @@ export class WarpWorkflowEnhancer {
 
   private async analyzeProject(): Promise<ProjectInfo> {
     const packageJsonPath = join(this.projectRoot, 'package.json')
-    
+
     if (!existsSync(packageJsonPath)) {
       throw new Error('No package.json found in project root')
     }
@@ -159,18 +158,18 @@ export class WarpWorkflowEnhancer {
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
     const allDeps = {
       ...packageJson.dependencies,
-      ...packageJson.devDependencies
+      ...packageJson.devDependencies,
     }
 
     const g1Dependencies = [
       '@g-1/test',
-      '@g-1/workflow', 
-      '@g-1/util'
+      '@g-1/workflow',
+      '@g-1/util',
     ]
 
     const hasG1Dependencies = g1Dependencies.filter(dep => allDeps[dep])
-    const missingG1Dependencies = g1Dependencies.filter(dep => 
-      allDeps[dep] && !this.isPackageLinked(dep)
+    const missingG1Dependencies = g1Dependencies.filter(dep =>
+      allDeps[dep] && !this.isPackageLinked(dep),
     )
 
     return {
@@ -178,19 +177,20 @@ export class WarpWorkflowEnhancer {
       version: packageJson.version || '0.0.0',
       isG1Project: packageJson.name?.startsWith('@g-1/') || hasG1Dependencies.length > 0,
       hasG1Dependencies,
-      missingG1Dependencies
+      missingG1Dependencies,
     }
   }
 
   private isPackageLinked(packageName: string): boolean {
     try {
-      const result = execSync(`bun pm ls ${packageName}`, { 
-        encoding: 'utf8', 
+      const result = execSync(`bun pm ls ${packageName}`, {
+        encoding: 'utf8',
         stdio: 'pipe',
-        cwd: this.projectRoot
+        cwd: this.projectRoot,
       })
       return result.includes('link:')
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -210,19 +210,20 @@ export class WarpWorkflowEnhancer {
 
       try {
         // Register the package as linkable
-        execSync('bun link', { 
-          cwd: pkgPath, 
-          stdio: 'pipe' 
+        execSync('bun link', {
+          cwd: pkgPath,
+          stdio: 'pipe',
         })
-        
+
         // Link it to current project
-        execSync(`bun link @g-1/${pkg}`, { 
-          cwd: this.projectRoot, 
-          stdio: 'pipe' 
+        execSync(`bun link @g-1/${pkg}`, {
+          cwd: this.projectRoot,
+          stdio: 'pipe',
         })
-        
+
         linkedPackages.push(`@g-1/${pkg}`)
-      } catch (error) {
+      }
+      catch (error) {
         failedPackages.push(`@g-1/${pkg}`)
         console.log(`⚠️  Failed to link @g-1/${pkg}:`, (error as Error).message)
       }
@@ -231,7 +232,7 @@ export class WarpWorkflowEnhancer {
     if (linkedPackages.length > 0) {
       const result: FixResult = {
         success: true,
-        message: `Linked packages: ${linkedPackages.join(', ')}`
+        message: `Linked packages: ${linkedPackages.join(', ')}`,
       }
       if (failedPackages.length > 0) {
         result.details = `Failed: ${failedPackages.join(', ')}`
@@ -242,7 +243,7 @@ export class WarpWorkflowEnhancer {
     return {
       success: false,
       message: 'No packages could be linked',
-      details: `Failed packages: ${failedPackages.join(', ')}`
+      details: `Failed packages: ${failedPackages.join(', ')}`,
     }
   }
 
@@ -250,14 +251,14 @@ export class WarpWorkflowEnhancer {
     return new Promise((resolve) => {
       const child = spawn('bun', ['run', 'typecheck'], {
         cwd: this.projectRoot,
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
 
       let output = ''
       child.stdout?.on('data', (data) => {
         output += data.toString()
       })
-      
+
       child.stderr?.on('data', (data) => {
         output += data.toString()
       })
@@ -265,7 +266,8 @@ export class WarpWorkflowEnhancer {
       child.on('close', (code) => {
         if (code === 0) {
           resolve(true)
-        } else {
+        }
+        else {
           if (output.trim()) {
             console.log('📝 TypeScript output:')
             console.log(output)
@@ -285,51 +287,54 @@ export class WarpWorkflowEnhancer {
     const fixes: Array<() => Promise<FixResult>> = [
       () => this.fixMissingDependencies(),
       () => this.fixTypescriptConfig(),
-      () => this.regenerateTypes()
+      () => this.regenerateTypes(),
     ]
 
     const results: FixResult[] = []
-    
+
     for (const fix of fixes) {
       try {
         const result = await fix()
         results.push(result)
         if (result.success) {
           console.log(`✅ ${result.message}`)
-        } else {
+        }
+        else {
           console.log(`⚠️  ${result.message}`)
         }
-      } catch (error) {
+      }
+      catch (error) {
         results.push({
           success: false,
-          message: `Fix failed: ${(error as Error).message}`
+          message: `Fix failed: ${(error as Error).message}`,
         })
       }
     }
 
     const successfulFixes = results.filter(r => r.success)
-    
+
     return {
       success: successfulFixes.length > 0,
       message: `Applied ${successfulFixes.length} fixes successfully`,
-      details: results.map(r => r.message).join('; ')
+      details: results.map(r => r.message).join('; '),
     }
   }
 
   private async fixMissingDependencies(): Promise<FixResult> {
     try {
-      execSync('bun install', { 
-        cwd: this.projectRoot, 
-        stdio: 'pipe' 
+      execSync('bun install', {
+        cwd: this.projectRoot,
+        stdio: 'pipe',
       })
       return {
         success: true,
-        message: 'Reinstalled dependencies'
+        message: 'Reinstalled dependencies',
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         success: false,
-        message: `Failed to install dependencies: ${(error as Error).message}`
+        message: `Failed to install dependencies: ${(error as Error).message}`,
       }
     }
   }
@@ -337,11 +342,11 @@ export class WarpWorkflowEnhancer {
   private async fixTypescriptConfig(): Promise<FixResult> {
     // Check if tsconfig.json exists and is valid
     const tsconfigPath = join(this.projectRoot, 'tsconfig.json')
-    
+
     if (!existsSync(tsconfigPath)) {
       return {
         success: false,
-        message: 'No tsconfig.json found'
+        message: 'No tsconfig.json found',
       }
     }
 
@@ -349,12 +354,13 @@ export class WarpWorkflowEnhancer {
       JSON.parse(readFileSync(tsconfigPath, 'utf8'))
       return {
         success: true,
-        message: 'TypeScript configuration is valid'
+        message: 'TypeScript configuration is valid',
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         success: false,
-        message: 'Invalid tsconfig.json detected'
+        message: 'Invalid tsconfig.json detected',
       }
     }
   }
@@ -364,7 +370,7 @@ export class WarpWorkflowEnhancer {
     if (!this.projectInfo?.name.includes('core')) {
       return {
         success: false,
-        message: 'Not applicable for this project type'
+        message: 'Not applicable for this project type',
       }
     }
 
@@ -372,37 +378,38 @@ export class WarpWorkflowEnhancer {
       // Check if auth schema regeneration is needed
       const authSchemaPath = join(this.projectRoot, 'src/db/auth.schema.ts')
       if (existsSync(authSchemaPath)) {
-        execSync('bun run auth:update', { 
-          cwd: this.projectRoot, 
-          stdio: 'pipe' 
+        execSync('bun run auth:update', {
+          cwd: this.projectRoot,
+          stdio: 'pipe',
         })
         return {
           success: true,
-          message: 'Regenerated auth schema types'
+          message: 'Regenerated auth schema types',
         }
       }
 
       // Check if Cloudflare types need regeneration
       const wranglerConfig = existsSync(join(this.projectRoot, 'wrangler.jsonc'))
       if (wranglerConfig) {
-        execSync('bun run cf-typegen', { 
-          cwd: this.projectRoot, 
-          stdio: 'pipe' 
+        execSync('bun run cf-typegen', {
+          cwd: this.projectRoot,
+          stdio: 'pipe',
         })
         return {
           success: true,
-          message: 'Regenerated Cloudflare types'
+          message: 'Regenerated Cloudflare types',
         }
       }
 
       return {
         success: false,
-        message: 'No type generation needed'
+        message: 'No type generation needed',
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         success: false,
-        message: `Type regeneration failed: ${(error as Error).message}`
+        message: `Type regeneration failed: ${(error as Error).message}`,
       }
     }
   }

@@ -14,13 +14,13 @@ import * as semver from 'semver'
 
 /**
  * Checks if the repository has an npm publishing workflow configured in GitHub Actions.
- * 
+ *
  * This function first checks local .github/workflows directory for workflow files,
  * then falls back to GitHub CLI to query remote workflows if local files aren't found.
- * 
+ *
  * @param repositoryName - The GitHub repository name in format "owner/repo"
  * @returns Promise<boolean> - True if npm publishing workflow is detected
- * 
+ *
  * @example
  * ```typescript
  * const hasWorkflow = await hasNpmPublishingWorkflow('g-1-repo/studio')
@@ -89,12 +89,12 @@ export async function hasNpmPublishingWorkflow(repositoryName: string): Promise<
 
 /**
  * Detects if Cloudflare Workers configuration is present in the current project.
- * 
+ *
  * Checks for the presence of wrangler configuration files (wrangler.toml, wrangler.json, or wrangler.jsonc)
  * in the current working directory.
- * 
+ *
  * @returns Promise<boolean> - True if Cloudflare configuration is found
- * 
+ *
  * @example
  * ```typescript
  * const hasCloudflare = await detectCloudflareSetup()
@@ -129,11 +129,11 @@ export async function detectCloudflareSetup(): Promise<boolean> {
 /**
  * Creates a comprehensive release workflow that handles Git operations, version bumping,
  * changelog generation, building, deployment, and GitHub release creation.
- * 
+ *
  * The workflow includes quality gates (linting, type checking, testing), Git operations
  * (tagging, pushing), building, optional Cloudflare deployment, and GitHub release creation
  * that triggers npm publishing via GitHub Actions.
- * 
+ *
  * @param options - Configuration options for the release workflow
  * @param options.skipCloudflare - Skip Cloudflare deployment step
  * @param options.skipLint - Skip linting quality gate
@@ -143,7 +143,7 @@ export async function detectCloudflareSetup(): Promise<boolean> {
  * @param options.nonInteractive - Run without user prompts
  * @param options.type - Version bump type ('major', 'minor', 'patch')
  * @returns Promise<WorkflowStep[]> - Array of workflow steps to execute
- * 
+ *
  * @example
  * ```typescript
  * const workflow = await createReleaseWorkflow({
@@ -151,7 +151,7 @@ export async function detectCloudflareSetup(): Promise<boolean> {
  *   type: 'minor',
  *   dryRun: false
  * })
- * 
+ *
  * // Execute with task engine
  * const taskEngine = createTaskEngine()
  * await taskEngine.execute(workflow)
@@ -969,14 +969,14 @@ function generateReleaseNotes(commits: any[], version: string): string {
 
 /**
  * Monitors GitHub Actions workflows triggered by a release tag and tracks npm publishing progress.
- * 
+ *
  * This function watches for publishing workflows triggered by the release, monitors their execution,
  * and verifies that the package is successfully published to npm. It provides real-time feedback
  * and error recovery suggestions.
- * 
+ *
  * @param repositoryName - The GitHub repository name in format "owner/repo"
  * @param tagName - The git tag that triggered the release (e.g., "v1.2.3")
- * 
+ *
  * @example
  * ```typescript
  * // After creating a GitHub release
@@ -1321,13 +1321,13 @@ async function getFailureLogs(repositoryName: string, runId: string | number): P
 
 /**
  * Deploys the current project to Cloudflare Workers using Wrangler CLI.
- * 
+ *
  * This function executes the Cloudflare deployment process with proper error handling
  * and user-friendly error messages for common deployment issues like authentication
  * problems or missing configuration.
- * 
+ *
  * @throws {Error} When deployment fails due to configuration or authentication issues
- * 
+ *
  * @example
  * ```typescript
  * try {

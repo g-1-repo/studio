@@ -5,8 +5,8 @@ import type { WorkflowContext, WorkflowStep } from './task-engine.js'
  */
 
 import { Buffer } from 'node:buffer'
-import { CacheManager } from './cache-manager.js'
 import { ErrorFormatter } from '../debug/index.js'
+import { CacheManager } from './cache-manager.js'
 import { ParallelExecutor } from './parallel-executor.js'
 
 // Lazy load heavy dependencies
@@ -71,7 +71,8 @@ export class OptimizedErrorRecoveryService {
   async analyzeError(error: Error, _context?: WorkflowContext): Promise<ErrorAnalysis> {
     const hash = this.computeErrorHash(error)
     const cached = this.errorCache.get(hash)
-    if (cached) return cached
+    if (cached)
+      return cached
 
     const message = `${error.name}: ${error.message}`
     let type: ErrorAnalysis['type'] = 'unknown'

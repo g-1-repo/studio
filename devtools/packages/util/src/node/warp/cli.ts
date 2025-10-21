@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 
 // @ts-ignore - ESM import meta check
+/**
+ * g1-warp CLI - WARP Development Workflow Enhancement
+ *
+ * Command-line interface for WARP workflow enhancement utilities.
+ * Provides commands for enhancing development environments across G1 projects.
+ */
+
+import process from 'node:process'
+import { enhanceWorkflow, getProjectStatus, quickTypecheck } from './integration'
+
 if (typeof import.meta !== 'undefined' && import.meta.url) {
   // ESM environment
   const isMain = import.meta.url === `file://${process.argv[1]}`
@@ -10,7 +20,8 @@ if (typeof import.meta !== 'undefined' && import.meta.url) {
       process.exit(1)
     })
   }
-} else {
+}
+else {
   // CommonJS fallback
   if (require.main === module) {
     main().catch((error) => {
@@ -20,49 +31,39 @@ if (typeof import.meta !== 'undefined' && import.meta.url) {
   }
 }
 
-/**
- * g1-warp CLI - WARP Development Workflow Enhancement
- * 
- * Command-line interface for WARP workflow enhancement utilities.
- * Provides commands for enhancing development environments across G1 projects.
- */
-
-import { enhanceWorkflow, getProjectStatus, quickTypecheck } from './integration'
-import process from 'node:process'
-
 async function main() {
   const command = process.argv[2]
   const projectRoot = process.argv[3]
 
   switch (command) {
     case 'enhance':
-      {
-        const options = projectRoot ? { projectRoot } : {}
-        const result = await enhanceWorkflow(options)
-        console.log(result.message)
-        process.exit(result.success ? 0 : 1)
-      }
-    
+    {
+      const options = projectRoot ? { projectRoot } : {}
+      const result = await enhanceWorkflow(options)
+      console.log(result.message)
+      process.exit(result.success ? 0 : 1)
+    }
+
     case 'status':
       {
         const status = await getProjectStatus(projectRoot)
         console.log(JSON.stringify(status, null, 2))
       }
       break
-    
+
     case 'typecheck':
-      {
-        const passes = await quickTypecheck(projectRoot)
-        console.log(passes ? 'TypeScript checks pass' : 'TypeScript checks fail')
-        process.exit(passes ? 0 : 1)
-      }
-    
+    {
+      const passes = await quickTypecheck(projectRoot)
+      console.log(passes ? 'TypeScript checks pass' : 'TypeScript checks fail')
+      process.exit(passes ? 0 : 1)
+    }
+
     case '--help':
     case '-h':
     case 'help':
       showHelp()
       return
-    
+
     default:
       console.error(`Unknown command: ${command}`)
       showHelp()
@@ -93,4 +94,3 @@ Examples:
 For more information, visit: https://github.com/g-1-repo/util
 `)
 }
-

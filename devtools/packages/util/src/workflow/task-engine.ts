@@ -2,7 +2,7 @@
  * Shared Task Engine - Native listr2 integration
  */
 
-import type { ListrContext, ListrTask, ListrRenderer } from 'listr2'
+import type { ListrContext, ListrRenderer, ListrTask } from 'listr2'
 import chalk from 'chalk'
 import { Listr } from 'listr2'
 import { ErrorFormatter } from '../debug/index.js'

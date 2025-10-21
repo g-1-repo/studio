@@ -1,15 +1,15 @@
 /**
  * WARP Integration Utility
- * 
+ *
  * This module provides functions that WARP can call to automatically enhance
  * the development workflow. It should be imported and used by WARP before
  * performing code generation or other development tasks.
  */
 
-import { WarpWorkflowEnhancer } from './workflow-enhancer'
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { WarpWorkflowEnhancer } from './workflow-enhancer'
 
 export interface WarpIntegrationOptions {
   skipTypecheck?: boolean
@@ -38,7 +38,7 @@ export async function enhanceWorkflow(options: WarpIntegrationOptions = {}): Pro
     skipTypecheck = false,
     skipLinking = false,
     silent = false,
-    projectRoot = process.cwd()
+    projectRoot = process.cwd(),
   } = options
 
   if (!silent) {
@@ -51,18 +51,19 @@ export async function enhanceWorkflow(options: WarpIntegrationOptions = {}): Pro
 
     return {
       success,
-      message: success 
-        ? 'Workflow enhancement completed successfully' 
+      message: success
+        ? 'Workflow enhancement completed successfully'
         : 'Workflow enhancement completed with issues',
       details: {
         projectAnalyzed: true,
         typecheckPassed: success,
         packagesLinked: 0, // This would be tracked by the enhancer
-        fixesApplied: 0,   // This would be tracked by the enhancer
-        errorCount: success ? 0 : 1
-      }
+        fixesApplied: 0, // This would be tracked by the enhancer
+        errorCount: success ? 0 : 1,
+      },
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       success: false,
       message: `Workflow enhancement failed: ${(error as Error).message}`,
@@ -71,8 +72,8 @@ export async function enhanceWorkflow(options: WarpIntegrationOptions = {}): Pro
         typecheckPassed: false,
         packagesLinked: 0,
         fixesApplied: 0,
-        errorCount: 1
-      }
+        errorCount: 1,
+      },
     }
   }
 }
@@ -82,12 +83,13 @@ export async function enhanceWorkflow(options: WarpIntegrationOptions = {}): Pro
  */
 export async function quickTypecheck(projectRoot: string = process.cwd()): Promise<boolean> {
   try {
-    execSync('bun run typecheck', { 
-      cwd: projectRoot, 
-      stdio: 'pipe' 
+    execSync('bun run typecheck', {
+      cwd: projectRoot,
+      stdio: 'pipe',
     })
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -97,17 +99,18 @@ export async function quickTypecheck(projectRoot: string = process.cwd()): Promi
  */
 export function isG1Project(projectRoot: string = process.cwd()): boolean {
   const packageJsonPath = join(projectRoot, 'package.json')
-  
+
   if (!existsSync(packageJsonPath)) {
     return false
   }
 
   try {
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
-    return packageJson.name?.startsWith('@g-1/') || 
-           Object.keys({ ...packageJson.dependencies, ...packageJson.devDependencies })
-             .some(dep => dep.startsWith('@g-1/'))
-  } catch {
+    return packageJson.name?.startsWith('@g-1/')
+      || Object.keys({ ...packageJson.dependencies, ...packageJson.devDependencies })
+        .some(dep => dep.startsWith('@g-1/'))
+  }
+  catch {
     return false
   }
 }
@@ -123,17 +126,18 @@ export async function getProjectStatus(projectRoot: string = process.cwd()): Pro
 }> {
   const isG1 = isG1Project(projectRoot)
   const typecheckPasses = await quickTypecheck(projectRoot)
-  
+
   // Check for linked packages
   let hasLinkedPackages = false
   try {
-    const result = execSync('bun pm ls', { 
-      encoding: 'utf8', 
+    const result = execSync('bun pm ls', {
+      encoding: 'utf8',
       stdio: 'pipe',
-      cwd: projectRoot
+      cwd: projectRoot,
     })
     hasLinkedPackages = result.includes('link:@g-1/')
-  } catch {
+  }
+  catch {
     // Ignore errors in package listing
   }
 
@@ -141,7 +145,7 @@ export async function getProjectStatus(projectRoot: string = process.cwd()): Pro
     isG1Project: isG1,
     typecheckPasses,
     hasLinkedPackages,
-    needsEnhancement: isG1 && (!typecheckPasses || !hasLinkedPackages)
+    needsEnhancement: isG1 && (!typecheckPasses || !hasLinkedPackages),
   }
 }
 
@@ -154,7 +158,7 @@ export const WarpIntegrationPoints = {
    */
   beforeCodeWork: async (projectRoot?: string): Promise<WarpIntegrationResult> => {
     const status = await getProjectStatus(projectRoot)
-    
+
     if (status.needsEnhancement) {
       const options: WarpIntegrationOptions = {}
       if (projectRoot) {
@@ -162,7 +166,7 @@ export const WarpIntegrationPoints = {
       }
       return await enhanceWorkflow(options)
     }
-    
+
     return {
       success: true,
       message: 'No workflow enhancement needed',
@@ -171,8 +175,8 @@ export const WarpIntegrationPoints = {
         typecheckPassed: status.typecheckPasses,
         packagesLinked: status.hasLinkedPackages ? 1 : 0,
         fixesApplied: 0,
-        errorCount: 0
-      }
+        errorCount: 0,
+      },
     }
   },
 
@@ -181,10 +185,10 @@ export const WarpIntegrationPoints = {
    */
   afterCodeWork: async (projectRoot?: string): Promise<WarpIntegrationResult> => {
     const typecheckPasses = await quickTypecheck(projectRoot)
-    
+
     if (!typecheckPasses) {
       const options: WarpIntegrationOptions = {
-        skipLinking: true // Don't re-link packages, just fix types
+        skipLinking: true, // Don't re-link packages, just fix types
       }
       if (projectRoot) {
         options.projectRoot = projectRoot
@@ -200,8 +204,8 @@ export const WarpIntegrationPoints = {
         typecheckPassed: true,
         packagesLinked: 0,
         fixesApplied: 0,
-        errorCount: 0
-      }
+        errorCount: 0,
+      },
     }
   },
 
@@ -210,11 +214,11 @@ export const WarpIntegrationPoints = {
    */
   onTypescriptError: async (projectRoot?: string): Promise<WarpIntegrationResult> => {
     const options: WarpIntegrationOptions = {
-      silent: false // Show output to help debug
+      silent: false, // Show output to help debug
     }
     if (projectRoot) {
       options.projectRoot = projectRoot
     }
     return await enhanceWorkflow(options)
-  }
+  },
 }

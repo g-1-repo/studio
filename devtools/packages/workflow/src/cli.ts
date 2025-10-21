@@ -2,7 +2,7 @@
  * G1 Workflow CLI - Enterprise release automation
  */
 
-import type { ReleaseOptions } from './types/index.js'
+import type { ReleaseOptions, WorkflowContext } from './types/index.js'
 import process from 'node:process'
 import chalk from 'chalk'
 import { program } from 'commander'
@@ -67,7 +67,7 @@ program
       })
 
       // Execute workflow
-      const context = await taskEngine.execute(steps)
+      const context = await taskEngine.execute(steps) as WorkflowContext
 
       // Success summary
       console.log()

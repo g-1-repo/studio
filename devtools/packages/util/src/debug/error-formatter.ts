@@ -3,6 +3,7 @@
  */
 
 import chalk, { Chalk } from 'chalk'
+
 const noColor = typeof process !== 'undefined' && typeof process.env !== 'undefined' && (process.env.NO_COLOR !== undefined || process.env.FORCE_COLOR === '0')
 const ch = new Chalk({ level: noColor ? 0 : chalk.level })
 

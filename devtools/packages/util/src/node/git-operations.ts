@@ -256,7 +256,7 @@ export class GitOperations {
       const status = exec('git status --porcelain', { silent: true })
       return status.split('\n')
         .filter(Boolean)
-        .map(line => {
+        .map((line) => {
           // Handle different status formats: "M  ", " M ", "??", "MM", etc.
           // Status codes are in first 2 chars, filename starts at position 3
           return line.slice(3).trim()
@@ -491,7 +491,7 @@ export class GitOperations {
           // Convert git-root-relative paths to working-dir-relative for SimpleGit
           const gitRoot = await this.getGitRoot()
           const path = await import('node:path')
-          const workingDirRelativePaths = files.map(f => {
+          const workingDirRelativePaths = files.map((f) => {
             const absolutePath = path.resolve(gitRoot, f)
             return path.relative(this.workingDir, absolutePath)
           })
@@ -788,7 +788,7 @@ export class GitOperations {
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      
+
       // If tags already exist on remote, that's okay - just log and continue
       if (errorMessage.includes('already exists') || errorMessage.includes('rejected')) {
         if (process.env.WORKFLOW_VERBOSE === 'true') {
@@ -796,7 +796,7 @@ export class GitOperations {
         }
         return
       }
-      
+
       throw this.createGitError('Failed to push tags', error)
     }
   }

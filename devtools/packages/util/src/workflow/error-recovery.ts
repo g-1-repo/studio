@@ -2,11 +2,11 @@
  * Shared Automated Error Recovery Service - Intelligent workflow error fixing
  */
 
+import type { WorkflowContext, WorkflowStep } from './task-engine.js'
 import chalk from 'chalk'
 import { execa } from 'execa'
-import { ErrorFormatter } from '../debug/index.js'
 
-import type { WorkflowContext, WorkflowStep } from './task-engine.js'
+import { ErrorFormatter } from '../debug/index.js'
 import { createTaskEngine } from './task-engine.js'
 
 /**
@@ -28,15 +28,15 @@ export interface ErrorAnalysis {
 
 /**
  * Singleton service for automated error recovery in G1 workflows.
- * 
+ *
  * This service analyzes workflow errors, classifies them by type and severity,
  * and provides automated recovery workflows to fix common development issues
  * like linting errors, TypeScript issues, build failures, and dependency problems.
- * 
+ *
  * @example
  * ```typescript
  * const recovery = ErrorRecoveryService.getInstance()
- * 
+ *
  * try {
  *   // Some workflow operation that might fail
  *   await runWorkflow()
@@ -47,14 +47,13 @@ export interface ErrorAnalysis {
  * ```
  */
 export class ErrorRecoveryService {
-
   private static instance: ErrorRecoveryService
 
   private constructor() {}
 
   /**
    * Gets the singleton instance of the ErrorRecoveryService.
-   * 
+   *
    * @returns The singleton ErrorRecoveryService instance
    */
   static getInstance(): ErrorRecoveryService {
@@ -66,14 +65,14 @@ export class ErrorRecoveryService {
 
   /**
    * Analyzes an error to determine its type, severity, and potential fixes.
-   * 
+   *
    * This method examines the error message and stack trace to classify the error
    * into categories like linting, TypeScript, build, authentication, or dependency issues.
-   * 
+   *
    * @param error - The error to analyze
    * @param _context - Optional workflow context (currently unused)
    * @returns Promise<ErrorAnalysis> - Detailed analysis of the error
-   * 
+   *
    * @example
    * ```typescript
    * const recovery = ErrorRecoveryService.getInstance()
