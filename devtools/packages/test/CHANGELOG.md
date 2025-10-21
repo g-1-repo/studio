@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.4] - 2025-10-21
+
+### Other Changes
+
+- chore: commit changes before release
+- chore: release v2.0.3
+- chore: commit changes before release
+- chore: release v2.1.1
+- chore: commit changes before release
+
+
 ## [2.0.3] - 2025-10-21
 
 ### Other Changes
