@@ -1,5 +1,12 @@
 # @g-1/util
 
+## [2.1.1] - 2025-10-21
+
+### Other Changes
+
+- chore: commit changes before release
+
+
 ## [2.1.0] - 2025-10-21
 
 ### Features
