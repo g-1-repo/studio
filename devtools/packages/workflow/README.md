@@ -25,6 +25,18 @@ A badass, production-ready CLI tool that serves as the backbone for major develo
 - **Smart GitHub Actions Monitoring**: Real-time job tracking with automated npm verification
 - **Crash-Proof Execution**: Interactive prompts moved upfront, comprehensive error handling
 
+#### Optimized Error Recovery
+
+The optimized error recovery service is centralized in `@g-1/util/workflow` for reusability and performance.
+
+```ts
+import { OptimizedErrorRecoveryService } from '@g-1/util/workflow'
+
+const recovery = new OptimizedErrorRecoveryService()
+const workflow = recovery.createRecoveryWorkflow('build')
+await recovery.executeWorkflow(workflow)
+```
+
 ### ⚡ **Multi-Platform Support & Compatibility**
 - **Bun-First Architecture**: Optimized for bun with npm/npx fallbacks for maximum compatibility
 - **Multi-Deployment Pipeline**: GitHub releases, npm publishing, and Cloudflare Workers

@@ -73,6 +73,15 @@ bun run workflow       # Show workflow status
 bun run demo          # Show library capabilities demo
 ```
 
+#### CI Publishing via GitHub Releases
+- Create a tag `vX.Y.Z` and publish a GitHub Release
+- CI sets package versions to `X.Y.Z` and publishes if new
+
+```bash
+# Example using GitHub CLI
+gh release create v3.5.0 --title "v3.5.0" --notes "Release notes"
+```
+
 ## Architecture Overview
 
 ### Module Structure

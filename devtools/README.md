@@ -71,6 +71,19 @@ bun run changeset:version
 bun run release
 ```
 
+#### CI Publishing (recommended)
+
+Publishing is automated via GitHub Releases and the `publish.yml` workflow:
+
+- Create a release tag in the form `vX.Y.Z`
+- CI sets `@g-1/util` and `@g-1/workflow` versions to `X.Y.Z`
+- CI builds and publishes packages if that version is not on npm
+
+```bash
+# Using GitHub CLI
+gh release create v3.5.0 --title "v3.5.0" --notes "Release notes here"
+```
+
 ## Architecture
 
 ### Package Dependencies
