@@ -1,5 +1,20 @@
 # @g-1/util
 
+## [2.1.0] - 2025-10-21
+
+### Features
+
+- centralize optimized error recovery in util/workflow; add cache/parallel helpers\ndocs: add publishing guidance and prepare docs optimization
+
+### Other Changes
+
+- chore: commit changes before release
+- docs: add comprehensive JSDoc comments to key functions and classes
+- docs: update changelog for v1.2.0 documentation improvements
+- docs: streamline publishing via GitHub Releases; document optimized error recovery usage
+- Merge branch 'feature/shared-utils-migration'
+
+
 ## 2.0.0
 
 ### Major Changes
