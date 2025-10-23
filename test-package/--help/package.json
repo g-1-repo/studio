@@ -1,0 +1,37 @@
+{
+  "name": "--help",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A G1 API project built with @g-1/core",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "db:studio": "drizzle-kit studio",
+    "lint": "eslint .",
+    "lint:fix": "bun run lint --fix",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@g-1/core": "^1.15.8",
+    "hono": "^4.10.1",
+    "drizzle-orm": "^0.44.6",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.0.0",
+    "@cloudflare/workers-types": "^4.20251014.0",
+    "@types/node": "^24.8.1",
+    "drizzle-kit": "^0.31.5",
+    "eslint": "^9.38.0",
+    "typescript": "^5.6.3",
+    "vitest": "~3.2.4",
+    "wrangler": "4.43.0"
+  }
+}

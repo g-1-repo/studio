@@ -1,0 +1,58 @@
+name: Auto Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+
+jobs:
+  auto-merge:
+    name: Auto Merge PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if PR is ready for auto-merge
+        id: check
+        run: |
+          # Check if PR has auto-merge label or is from dependabot
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}" == "true" ]] ||
+             [[ "${{ github.event.pull_request.user.login }}" == "dependabot[bot]" ]]; then
+            echo "eligible=true" >> $GITHUB_OUTPUT
+          else
+            echo "eligible=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Enable auto-merge for eligible PRs
+        if: steps.check.outputs.eligible == 'true'
+        run: |
+          # Wait for CI checks to pass
+          gh pr checks ${{ github.event.pull_request.number }} --watch --timeout 600
+
+          # Check if PR has required approvals (configure this based on your repo settings)
+          APPROVALS=$(gh pr view ${{ github.event.pull_request.number }} --json reviewDecision -q '.reviewDecision')
+
+          if [[ "$APPROVALS" == "APPROVED" ]] || [[ "${{ github.event.pull_request.user.login }}" == "dependabot[bot]" ]]; then
+            echo "✅ All conditions met - enabling auto-merge"
+            gh pr merge ${{ github.event.pull_request.number }} --squash --auto
+          else
+            echo "⏳ Waiting for approvals"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on successful auto-merge setup
+        if: steps.check.outputs.eligible == 'true'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "🤖 Auto-merge enabled. This PR will be automatically merged once all checks pass and required approvals are obtained."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

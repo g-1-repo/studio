@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-api-project",
+  "main": "src/app.ts",
+  "compatibility_date": "2025-07-12",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "placement": {
+    "mode": "smart"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my_api_project",
+      "database_id": "1b557af4-67a9-4a21-ae7b-565905afb285",
+      "migrations_dir": "./src/db/migrations",
+      "migrations_table": "__drizzle_migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "MY_API_PROJECT_KV_AUTH",
+      "id": "55142d37cdd143e89c5b5b4e26d9e2f2"
+    }
+  ],
+  "dev": {
+    "port": 8787
+  }
+}

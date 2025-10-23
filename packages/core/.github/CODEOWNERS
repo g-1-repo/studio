@@ -1,0 +1,18 @@
+# Global code owners for the repository
+# These users/teams will be automatically requested for review on all PRs
+
+# Default owners for everything in the repo
+* @g-1-repo/studio-maintainers
+
+# Package management files
+package.json @g-1-repo/studio-maintainers
+package-lock.json @g-1-repo/studio-maintainers
+bun.lockb @g-1-repo/studio-maintainers
+
+# GitHub Actions and workflows
+.github/ @g-1-repo/studio-maintainers
+
+# Configuration files
+*.config.js @g-1-repo/studio-maintainers
+*.config.ts @g-1-repo/studio-maintainers
+tsconfig.json @g-1-repo/studio-maintainers

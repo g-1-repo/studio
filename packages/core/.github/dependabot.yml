@@ -1,0 +1,46 @@
+version: 2
+updates:
+  # Update npm dependencies
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/New_York
+    open-pull-requests-limit: 10
+    assignees:
+      - g-1-repo/studio-maintainers
+    commit-message:
+      prefix: deps
+      prefix-development: deps-dev
+      include: scope
+    labels:
+      - dependencies
+      - auto-merge
+    allow:
+      - dependency-type: all
+    ignore:
+      # Ignore major version updates for stable dependencies
+      - dependency-name: hono
+        update-types: ['version-update:semver-major']
+      - dependency-name: drizzle-orm
+        update-types: ['version-update:semver-major']
+      - dependency-name: better-auth
+        update-types: ['version-update:semver-major']
+
+  # Update GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:30'
+      timezone: America/New_York
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+      include: scope
+    labels:
+      - github-actions
+      - auto-merge
