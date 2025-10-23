@@ -1,0 +1,32 @@
+# Bun configuration for G1 Studio API Framework
+
+[install]
+# Use exact versions for reproducible builds
+exact = true
+
+# Enable frozen lockfile by default for CI/production
+frozen = false
+
+# Cache directory (optional, Bun will use default if not specified)
+# cache = ".bun-cache"
+
+# Registry configuration
+registry = "https://registry.npmjs.org"
+
+# Workspace configuration
+auto = true
+
+[install.scopes]
+# Configure scoped registries if needed
+# "@g1-studio" = "https://registry.npmjs.org"
+
+[test]
+# Test configuration
+preload = ["./packages/core/test/setup.ts"]
+
+[run]
+# Enable shell expansion for scripts
+shell = true
+
+# Set environment for scripts
+env = "development"

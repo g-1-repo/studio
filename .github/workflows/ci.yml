@@ -36,12 +36,11 @@ jobs:
     if: needs.changes.outputs.packages == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '18'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
 
   typecheck:
     runs-on: ubuntu-latest
@@ -49,12 +48,11 @@ jobs:
     if: needs.changes.outputs.packages == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '18'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run typecheck
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
 
   test:
     runs-on: ubuntu-latest
@@ -62,15 +60,14 @@ jobs:
     if: needs.changes.outputs.packages == 'true'
     strategy:
       matrix:
-        node-version: [18, 20]
+        bun-version: [latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test
+          bun-version: ${{ matrix.bun-version }}
+      - run: bun install --frozen-lockfile
+      - run: bun run test
 
   build:
     runs-on: ubuntu-latest
@@ -78,12 +75,11 @@ jobs:
     if: needs.changes.outputs.packages == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '18'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -98,23 +94,21 @@ jobs:
     if: needs.changes.outputs.test-package == 'true' || needs.changes.outputs.core == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '18'
-          cache: 'npm'
-      - run: npm ci
+          bun-version: latest
+      - run: bun install --frozen-lockfile
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-      - run: npm run test --workspace=test-package
+      - run: bun run --filter=test-package test
 
   security:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '18'
-          cache: 'npm'
-      - run: npm audit --audit-level=moderate
+          bun-version: latest
+      - run: bun audit

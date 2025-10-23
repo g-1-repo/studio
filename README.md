@@ -19,8 +19,8 @@ A high-performance, enterprise-grade TypeScript API framework monorepo built for
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm 8+
+- Bun 1.0+ 
+- Node.js 18+ (for compatibility)
 
 ### Quick Start
 
@@ -30,49 +30,49 @@ git clone https://github.com/g1-studio/api-framework.git
 cd api-framework
 
 # Install dependencies
-npm install
+bun install
 
 # Build all packages
-npm run build
+bun run build
 
 # Run development server
-npm run dev
+bun run dev
 
 # Run tests
-npm run test
+bun run test
 ```
 
 ### Workspace Commands
 
 ```bash
 # Install dependencies for all packages
-npm install
+bun install
 
 # Build all packages
-npm run build
+bun run build
 
 # Run tests across all packages
-npm run test
+bun run test
 
 # Lint all packages
-npm run lint
+bun run lint
 
 # Type check all packages
-npm run typecheck
+bun run typecheck
 
 # Clean all build artifacts
-npm run clean
+bun run clean
 ```
 
 ### Working with Individual Packages
 
 ```bash
 # Run commands in specific workspace
-npm run dev --workspace=@g-1/core
-npm run test --workspace=test-package
+bun run --filter=@g-1/core dev
+bun run --filter=test-package test
 
 # Add dependencies to specific package
-npm install lodash --workspace=@g-1/core
+bun add lodash --cwd packages/core
 ```
 
 ## 🔄 Release Management
@@ -83,7 +83,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 
 ```bash
 # Add a changeset for your changes
-npm run changeset
+bun run changeset
 
 # Follow the prompts to describe your changes
 # This creates a markdown file in .changeset/
@@ -113,13 +113,13 @@ api-framework/
 
 ```bash
 # Run all tests
-npm run test
+bun run test
 
 # Run tests for specific package
-npm run test --workspace=@g-1/core
+bun run --filter=@g-1/core test
 
 # Run integration tests
-npm run test --workspace=test-package
+bun run --filter=test-package test
 ```
 
 ## 📝 Contributing
@@ -128,7 +128,7 @@ npm run test --workspace=test-package
 2. Create a feature branch
 3. Make your changes
 4. Add tests for new functionality
-5. Create a changeset: `npm run changeset`
+5. Create a changeset: `bun run changeset`
 6. Submit a pull request
 
 ## 📄 License
