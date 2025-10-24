@@ -17,8 +17,8 @@ export const ZOD_ERROR_CODES = {
 }
 
 export const notFoundSchema = createMessageObjectSchema(getStatusPhrase(NOT_FOUND))
-export const internalServerErrorSchema = createMessageObjectSchema(getStatusPhrase(INTERNAL_SERVER_ERROR))
-
-export const conflictSchema = createMessageObjectSchema(
-  getStatusPhrase(CONFLICT),
+export const internalServerErrorSchema = createMessageObjectSchema(
+  getStatusPhrase(INTERNAL_SERVER_ERROR)
 )
+
+export const conflictSchema = createMessageObjectSchema(getStatusPhrase(CONFLICT))

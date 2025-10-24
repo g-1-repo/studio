@@ -27,71 +27,83 @@ export const users = sqliteTable('users', {
   displayUsername: text('display_username'),
 })
 
-export const sessions = sqliteTable('sessions', {
-  id: text('id').primaryKey(),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  token: text('token').notNull().unique(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  timezone: text('timezone'),
-  city: text('city'),
-  country: text('country'),
-  region: text('region'),
-  regionCode: text('region_code'),
-  colo: text('colo'),
-  latitude: text('latitude'),
-  longitude: text('longitude'),
-  impersonatedBy: text('impersonated_by'),
-  activeOrganizationId: text('active_organization_id'),
-}, t => ({
-  idxUserId: index('sessions_user_id_idx').on(t.userId),
-}))
+export const sessions = sqliteTable(
+  'sessions',
+  {
+    id: text('id').primaryKey(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    token: text('token').notNull().unique(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    timezone: text('timezone'),
+    city: text('city'),
+    country: text('country'),
+    region: text('region'),
+    regionCode: text('region_code'),
+    colo: text('colo'),
+    latitude: text('latitude'),
+    longitude: text('longitude'),
+    impersonatedBy: text('impersonated_by'),
+    activeOrganizationId: text('active_organization_id'),
+  },
+  t => ({
+    idxUserId: index('sessions_user_id_idx').on(t.userId),
+  })
+)
 
-export const accounts = sqliteTable('accounts', {
-  id: text('id').primaryKey(),
-  accountId: text('account_id').notNull(),
-  providerId: text('provider_id').notNull(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  accessToken: text('access_token'),
-  refreshToken: text('refresh_token'),
-  idToken: text('id_token'),
-  accessTokenExpiresAt: integer('access_token_expires_at', {
-    mode: 'timestamp',
-  }),
-  refreshTokenExpiresAt: integer('refresh_token_expires_at', {
-    mode: 'timestamp',
-  }),
-  scope: text('scope'),
-  password: text('password'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-}, t => ({
-  idxProviderAccount: index('accounts_provider_account_idx').on(t.providerId, t.accountId),
-  idxUserId: index('accounts_user_id_idx').on(t.userId),
-}))
+export const accounts = sqliteTable(
+  'accounts',
+  {
+    id: text('id').primaryKey(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: integer('access_token_expires_at', {
+      mode: 'timestamp',
+    }),
+    refreshTokenExpiresAt: integer('refresh_token_expires_at', {
+      mode: 'timestamp',
+    }),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  t => ({
+    idxProviderAccount: index('accounts_provider_account_idx').on(t.providerId, t.accountId),
+    idxUserId: index('accounts_user_id_idx').on(t.userId),
+  })
+)
 
-export const verifications = sqliteTable('verifications', {
-  id: text('id').primaryKey(),
-  identifier: text('identifier').notNull(),
-  value: text('value').notNull(),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
-}, t => ({
-  idxIdentifier: index('verifications_identifier_idx').on(t.identifier),
-  idxExpiresAt: index('verifications_expires_at_idx').on(t.expiresAt),
-}))
+export const verifications = sqliteTable(
+  'verifications',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(
+      () => /* @__PURE__ */ new Date()
+    ),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(
+      () => /* @__PURE__ */ new Date()
+    ),
+  },
+  t => ({
+    idxIdentifier: index('verifications_identifier_idx').on(t.identifier),
+    idxExpiresAt: index('verifications_expires_at_idx').on(t.expiresAt),
+  })
+)
 
 export const organizations = sqliteTable('organizations', {
   id: text('id').primaryKey(),
@@ -102,23 +114,27 @@ export const organizations = sqliteTable('organizations', {
   metadata: text('metadata'),
 })
 
-export const members = sqliteTable('members', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id')
-    .notNull()
-    .references(() => organizations.id, { onDelete: 'cascade' }),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  // Organization-specific role with enum constraint
-  role: text('role', { enum: Object.values(ORGANIZATION_ROLES) as [string, ...string[]] })
-    .default(ORGANIZATION_ROLES.MEMBER)
-    .notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-}, t => ({
-  idxOrgUser: index('members_org_user_idx').on(t.organizationId, t.userId),
-  idxUser: index('members_user_idx').on(t.userId),
-}))
+export const members = sqliteTable(
+  'members',
+  {
+    id: text('id').primaryKey(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Organization-specific role with enum constraint
+    role: text('role', { enum: Object.values(ORGANIZATION_ROLES) as [string, ...string[]] })
+      .default(ORGANIZATION_ROLES.MEMBER)
+      .notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  t => ({
+    idxOrgUser: index('members_org_user_idx').on(t.organizationId, t.userId),
+    idxUser: index('members_user_idx').on(t.userId),
+  })
+)
 
 export const invitations = sqliteTable('invitations', {
   id: text('id').primaryKey(),

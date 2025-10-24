@@ -15,11 +15,7 @@ export class DatabaseNotFoundError extends NotFoundError {
 /**
  * Take the first result from a query or throw an error if not found
  */
-export function takeFirstOrThrow<T>(
-  results: T[],
-  table: string,
-  identifier?: string | number,
-): T {
+export function takeFirstOrThrow<T>(results: T[], table: string, identifier?: string | number): T {
   if (results.length === 0) {
     throw new DatabaseNotFoundError(table, identifier)
   }
@@ -72,7 +68,7 @@ export function createPaginationResult<T>(
   data: T[],
   total: number,
   page: number = 1,
-  limit: number = 10,
+  limit: number = 10
 ): PaginationResult<T> {
   const offset = calculateOffset(page, limit)
   const totalPages = Math.ceil(total / limit)
@@ -130,7 +126,10 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 /**
  * Calculate retry delay with exponential backoff
  */
-export function calculateRetryDelay(attempt: number, config: RetryConfig = DEFAULT_RETRY_CONFIG): number {
+export function calculateRetryDelay(
+  attempt: number,
+  config: RetryConfig = DEFAULT_RETRY_CONFIG
+): number {
   const delay = config.baseDelay * config.backoffFactor ** (attempt - 1)
   return Math.min(delay, config.maxDelay)
 }
@@ -147,15 +146,14 @@ export function sleep(ms: number): Promise<void> {
  */
 export async function retryOperation<T>(
   operation: () => Promise<T>,
-  config: RetryConfig = DEFAULT_RETRY_CONFIG,
+  config: RetryConfig = DEFAULT_RETRY_CONFIG
 ): Promise<T> {
   let lastError: Error | undefined
 
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await operation()
-    }
-    catch (error) {
+    } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
 
       if (attempt === config.maxAttempts) {
@@ -174,17 +172,16 @@ export async function retryOperation<T>(
  * Check if an error is a database constraint violation
  */
 export function isConstraintViolation(error: unknown): boolean {
-  if (!(error instanceof Error))
-    return false
+  if (!(error instanceof Error)) return false
 
   const message = error.message.toLowerCase()
   return (
-    message.includes('unique constraint')
-    || message.includes('foreign key constraint')
-    || message.includes('check constraint')
-    || message.includes('not null constraint')
-    || message.includes('duplicate key')
-    || message.includes('violates')
+    message.includes('unique constraint') ||
+    message.includes('foreign key constraint') ||
+    message.includes('check constraint') ||
+    message.includes('not null constraint') ||
+    message.includes('duplicate key') ||
+    message.includes('violates')
   )
 }
 
@@ -192,15 +189,14 @@ export function isConstraintViolation(error: unknown): boolean {
  * Check if an error is a database connection error
  */
 export function isConnectionError(error: unknown): boolean {
-  if (!(error instanceof Error))
-    return false
+  if (!(error instanceof Error)) return false
 
   const message = error.message.toLowerCase()
   return (
-    message.includes('connection')
-    || message.includes('timeout')
-    || message.includes('network')
-    || message.includes('econnrefused')
-    || message.includes('enotfound')
+    message.includes('connection') ||
+    message.includes('timeout') ||
+    message.includes('network') ||
+    message.includes('econnrefused') ||
+    message.includes('enotfound')
   )
 }

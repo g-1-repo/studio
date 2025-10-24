@@ -1,11 +1,10 @@
 import type { PaginationResult } from '@g-1/core'
-import type { EarlyAccessRequest } from '../../../db/tables/early-access-request.table'
-import type { Environment } from '../../../env'
 import { BaseRepository, createPaginationResult } from '@g-1/core'
-
 import { count, desc, eq } from 'drizzle-orm'
 import { createDb } from '../../../db'
+import type { EarlyAccessRequest } from '../../../db/tables/early-access-request.table'
 import { earlyAccessRequestsTable } from '../../../db/tables/early-access-request.table'
+import type { Environment } from '../../../env'
 
 /* -------------------------------------------------------------------------- */
 /*                                    Types                                   */
@@ -28,15 +27,19 @@ type Create = Pick<EarlyAccessRequest, 'email'>
  */
 export class EarlyAccessRequestsRepository extends BaseRepository {
   // Override getDb to use templates-specific createDb with schema
-  protected getDb(env: Environment): any {
+  protected getDb(env: Environment): ReturnType<typeof createDb> {
     // Create a cache key based on environment
     const cacheKey = `${env.CLOUDFLARE_ACCOUNT_ID || 'default'}-${env.CLOUDFLARE_DATABASE_ID || 'default'}`
 
     if (!BaseRepository.dbCache.has(cacheKey)) {
-      BaseRepository.dbCache.set(cacheKey, createDb(env) as any)
+      BaseRepository.dbCache.set(cacheKey, createDb(env))
     }
 
-    return BaseRepository.dbCache.get(cacheKey)!
+    const db = BaseRepository.dbCache.get(cacheKey)
+    if (!db) {
+      throw new Error('Failed to get database instance from cache')
+    }
+    return db
   }
 
   /**
@@ -45,10 +48,10 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async getAll(env: Environment): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         return await db.select().from(earlyAccessRequestsTable)
       },
-      'getAll',
+      'getAll'
     )
   }
 
@@ -58,11 +61,15 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async findOneByEmail(email: string, env: Environment): Promise<EarlyAccessRequest | undefined> {
     return this.executeQuery(
       env,
-      async (db) => {
-        const row = await db.select().from(earlyAccessRequestsTable).where(eq(earlyAccessRequestsTable.email, email)).limit(1)
+      async db => {
+        const row = await db
+          .select()
+          .from(earlyAccessRequestsTable)
+          .where(eq(earlyAccessRequestsTable.email, email))
+          .limit(1)
         return row[0] || null
       },
-      'findOneByEmail',
+      'findOneByEmail'
     )
   }
 
@@ -72,11 +79,11 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async create(data: Create, env: Environment): Promise<EarlyAccessRequest> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         const [result] = await db.insert(earlyAccessRequestsTable).values(data).returning()
         return result
       },
-      'create',
+      'create'
     )
   }
 
@@ -86,11 +93,13 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async remove(id: string, env: Environment): Promise<void> {
     return this.executeQuery(
       env,
-      async (db) => {
-        const result = await db.delete(earlyAccessRequestsTable).where(eq(earlyAccessRequestsTable.id, id))
-        return { meta: { changes: (result as any).changes || 0 } }
+      async db => {
+        const result = await db
+          .delete(earlyAccessRequestsTable)
+          .where(eq(earlyAccessRequestsTable.id, id))
+        return { meta: { changes: (result as { changes?: number }).changes || 0 } }
       },
-      'remove',
+      'remove'
     )
   }
 
@@ -101,13 +110,10 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async createBatch(data: Create[], env: Environment): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
-      async (db) => {
-        return await db
-          .insert(earlyAccessRequestsTable)
-          .values(data)
-          .returning()
+      async db => {
+        return await db.insert(earlyAccessRequestsTable).values(data).returning()
       },
-      'createBatch',
+      'createBatch'
     )
   }
 
@@ -115,14 +121,16 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
    * OPTIMIZATION: Get paginated early access requests for large datasets
    * Uses standardized pagination from @g-1/util
    */
-  async getAllPaginated(env: Environment, page = 1, limit = 50): Promise<PaginationResult<EarlyAccessRequest>> {
+  async getAllPaginated(
+    env: Environment,
+    page = 1,
+    limit = 50
+  ): Promise<PaginationResult<EarlyAccessRequest>> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         // Get total count first
-        const totalCountResult = await db
-          .select({ count: count() })
-          .from(earlyAccessRequestsTable)
+        const totalCountResult = await db.select({ count: count() }).from(earlyAccessRequestsTable)
         const totalCount = Number(totalCountResult[0].count)
 
         // Get items with manual pagination calculation
@@ -146,7 +154,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
           },
         }
       },
-      'getAllPaginated',
+      'getAllPaginated'
     )
   }
 
@@ -157,11 +165,11 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async getCount(env: Environment): Promise<number> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         const result = await db.select({ count: count() }).from(earlyAccessRequestsTable)
         return Number(result[0].count)
       },
-      'getCount',
+      'getCount'
     )
   }
 
@@ -171,14 +179,14 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async emailExists(email: string, env: Environment): Promise<boolean> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         const result = await db
           .select({ count: count() })
           .from(earlyAccessRequestsTable)
           .where(eq(earlyAccessRequestsTable.email, email))
         return Number(result[0].count) > 0
       },
-      'emailExists',
+      'emailExists'
     )
   }
 
@@ -188,14 +196,14 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   async getRecent(env: Environment, limit = 10): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
-      async (db) => {
+      async db => {
         return await db
           .select()
           .from(earlyAccessRequestsTable)
           .orderBy(desc(earlyAccessRequestsTable.createdAt))
           .limit(limit)
       },
-      'getRecent',
+      'getRecent'
     )
   }
 }

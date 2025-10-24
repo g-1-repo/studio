@@ -1,11 +1,11 @@
-import type { Environment } from '../env'
-
 // import { env } from "cloudflare:workers";
 import { drizzle } from 'drizzle-orm/d1'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import type { Environment } from '../env'
 
 import * as schema from './schema'
 
-export function createDb(env: Environment): any {
+export function createDb(env: Environment): DrizzleD1Database<typeof schema> {
   if (!env.DB) {
     throw new Error('Database binding (DB) is not available in environment')
   }

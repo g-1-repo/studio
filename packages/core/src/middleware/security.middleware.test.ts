@@ -1,6 +1,6 @@
-import type { AppBindings } from '../lib/types'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AppBindings } from '../lib/types'
 import {
   enhancedSecurityHeaders,
   inputSanitization,
@@ -41,15 +41,22 @@ describe('security Middleware', () => {
       mockKV.get.mockResolvedValue(null)
       mockKV.put.mockResolvedValue(undefined)
 
-      app.use('*', rateLimitOptimized({
-        windowMs: 60000,
-        maxRequests: 10,
-      }))
+      app.use(
+        '*',
+        rateLimitOptimized({
+          windowMs: 60000,
+          maxRequests: 10,
+        })
+      )
       app.get('/test', c => c.text('OK'))
 
-      const res = await app.request('/test', {
-        headers: { 'cf-connecting-ip': '127.0.0.1' },
-      }, mockEnv)
+      const res = await app.request(
+        '/test',
+        {
+          headers: { 'cf-connecting-ip': '127.0.0.1' },
+        },
+        mockEnv
+      )
 
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('OK')
@@ -57,15 +64,22 @@ describe('security Middleware', () => {
 
     it('should throw error when KV store is not available', async () => {
       const appWithoutKV = new Hono<AppBindings>()
-      appWithoutKV.use('*', rateLimitOptimized({
-        windowMs: 60000,
-        maxRequests: 10,
-      }))
+      appWithoutKV.use(
+        '*',
+        rateLimitOptimized({
+          windowMs: 60000,
+          maxRequests: 10,
+        })
+      )
       appWithoutKV.get('/test', c => c.text('OK'))
 
-      const res = await appWithoutKV.request('/test', {
-        headers: { 'cf-connecting-ip': '127.0.0.1' },
-      }, {})
+      const res = await appWithoutKV.request(
+        '/test',
+        {
+          headers: { 'cf-connecting-ip': '127.0.0.1' },
+        },
+        {}
+      )
 
       expect(res.status).toBe(500)
     })
@@ -76,11 +90,14 @@ describe('security Middleware', () => {
 
       const customKeyGenerator = vi.fn().mockReturnValue('custom-key')
 
-      app.use('*', rateLimitOptimized({
-        windowMs: 60000,
-        maxRequests: 10,
-        keyGenerator: customKeyGenerator,
-      }))
+      app.use(
+        '*',
+        rateLimitOptimized({
+          windowMs: 60000,
+          maxRequests: 10,
+          keyGenerator: customKeyGenerator,
+        })
+      )
       app.get('/test', c => c.text('OK'))
 
       await app.request('/test', {}, mockEnv)
@@ -91,11 +108,14 @@ describe('security Middleware', () => {
 
   describe('requestValidation', () => {
     it('should allow valid requests', async () => {
-      app.use('*', requestValidation({
-        maxBodySize: 1024,
-        allowedContentTypes: ['application/json'],
-        requireContentType: true,
-      }))
+      app.use(
+        '*',
+        requestValidation({
+          maxBodySize: 1024,
+          allowedContentTypes: ['application/json'],
+          requireContentType: true,
+        })
+      )
       app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
@@ -111,10 +131,13 @@ describe('security Middleware', () => {
     })
 
     it('should reject requests with invalid content type', async () => {
-      app.use('*', requestValidation({
-        allowedContentTypes: ['application/json'],
-        requireContentType: true,
-      }))
+      app.use(
+        '*',
+        requestValidation({
+          allowedContentTypes: ['application/json'],
+          requireContentType: true,
+        })
+      )
       app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
@@ -129,9 +152,12 @@ describe('security Middleware', () => {
     })
 
     it('should reject requests exceeding max body size', async () => {
-      app.use('*', requestValidation({
-        maxBodySize: 10,
-      }))
+      app.use(
+        '*',
+        requestValidation({
+          maxBodySize: 10,
+        })
+      )
       app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
@@ -168,16 +194,16 @@ describe('security Middleware', () => {
       const res = await app.request('/test')
 
       const csp = res.headers.get('Content-Security-Policy')
-      expect(csp).toContain('default-src \'none\'')
-      expect(csp).toContain('frame-ancestors \'none\'')
-      expect(csp).toContain('base-uri \'none\'')
+      expect(csp).toContain("default-src 'none'")
+      expect(csp).toContain("frame-ancestors 'none'")
+      expect(csp).toContain("base-uri 'none'")
     })
   })
 
   describe('inputSanitization', () => {
     it('should sanitize request body', async () => {
       app.use('*', inputSanitization())
-      app.post('/test', async (c) => {
+      app.post('/test', async c => {
         const body = await c.req.json()
         return c.json(body)
       })
@@ -258,15 +284,22 @@ describe('security Middleware', () => {
       mockKV.get.mockResolvedValue(null)
       mockKV.put.mockResolvedValue(undefined)
 
-      app.use('*', simpleRateLimit({
-        windowMs: 60000,
-        limit: 5,
-      }))
+      app.use(
+        '*',
+        simpleRateLimit({
+          windowMs: 60000,
+          limit: 5,
+        })
+      )
       app.get('/test', c => c.text('OK'))
 
-      const res = await app.request('/test', {
-        headers: { 'cf-connecting-ip': '127.0.0.1' },
-      }, mockEnv)
+      const res = await app.request(
+        '/test',
+        {
+          headers: { 'cf-connecting-ip': '127.0.0.1' },
+        },
+        mockEnv
+      )
 
       expect(res.status).toBe(200)
     })
@@ -277,11 +310,14 @@ describe('security Middleware', () => {
 
       const customKeyGenerator = vi.fn().mockReturnValue('custom-key')
 
-      app.use('*', simpleRateLimit({
-        windowMs: 60000,
-        limit: 5,
-        keyGenerator: customKeyGenerator,
-      }))
+      app.use(
+        '*',
+        simpleRateLimit({
+          windowMs: 60000,
+          limit: 5,
+          keyGenerator: customKeyGenerator,
+        })
+      )
       app.get('/test', c => c.text('OK'))
 
       await app.request('/test', {}, mockEnv)
@@ -293,16 +329,23 @@ describe('security Middleware', () => {
       mockKV.get.mockResolvedValue('6') // Simulate exceeding limit
       mockKV.put.mockResolvedValue(undefined)
 
-      app.use('*', simpleRateLimit({
-        windowMs: 60000,
-        limit: 5,
-        message: 'Custom rate limit message',
-      }))
+      app.use(
+        '*',
+        simpleRateLimit({
+          windowMs: 60000,
+          limit: 5,
+          message: 'Custom rate limit message',
+        })
+      )
       app.get('/test', c => c.text('OK'))
 
-      const res = await app.request('/test', {
-        headers: { 'cf-connecting-ip': '127.0.0.1' },
-      }, mockEnv)
+      const res = await app.request(
+        '/test',
+        {
+          headers: { 'cf-connecting-ip': '127.0.0.1' },
+        },
+        mockEnv
+      )
 
       expect(res.status).toBe(429)
       const body = await res.json()

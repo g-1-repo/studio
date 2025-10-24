@@ -138,10 +138,10 @@ export class Logger {
   /**
    * Log a table-like structure
    */
-  table(data: Array<{ key: string, value: string }>): void {
+  table(data: Array<{ key: string; value: string }>): void {
     const maxKeyLength = Math.max(...data.map(item => item.key.length))
 
-    data.forEach((item) => {
+    data.forEach(item => {
       const paddedKey = item.key.padEnd(maxKeyLength)
       console.log(`${chalk.gray(paddedKey)} : ${item.value}`)
     })

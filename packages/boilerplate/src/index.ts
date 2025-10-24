@@ -1,6 +1,14 @@
-import type { Context, Next } from 'hono'
-import { configureOpenAPI, createRouter, enhancedSecurityHeaders, notFound, onError, requestValidation, simpleRateLimit } from '@g-1/core'
+import {
+  configureOpenAPI,
+  createRouter,
+  enhancedSecurityHeaders,
+  notFound,
+  onError,
+  requestValidation,
+  simpleRateLimit,
+} from '@g-1/core'
 import { generateUUID } from '@g-1/util'
+import type { Context, Next } from 'hono'
 import { contextStorage } from 'hono/context-storage'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
@@ -24,22 +32,24 @@ const CORS_OPTS = {
 // Request validation configuration
 const REQUEST_VALIDATION_OPTS = {
   maxSize: 10 * 1024 * 1024, // 10MB
-  allowedContentTypes: ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data'],
+  allowedContentTypes: [
+    'application/json',
+    'application/x-www-form-urlencoded',
+    'multipart/form-data',
+  ],
 }
 
 // Environment parsing middleware
 app.use((c: Context, next: Next) => {
-  if (c.req.path.startsWith('/__test__/'))
-    return next()
+  if (c.req.path.startsWith('/__test__/')) return next()
 
   const isTest = process.env.NODE_ENV === 'test'
   if (isTest && c.env) {
     const processEnvOnly = Object.fromEntries(
-      Object.entries(process.env).filter(([key]) => !(key in c.env)),
+      Object.entries(process.env).filter(([key]) => !(key in c.env))
     )
     c.env = parseEnv(Object.assign({}, processEnvOnly, c.env))
-  }
-  else {
+  } else {
     c.env = parseEnv(Object.assign(c.env || {}, process.env))
   }
   return next()
@@ -57,17 +67,23 @@ const isTest = process.env.NODE_ENV === 'test'
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 if (!isTest) {
-  app.use('/api/*', simpleRateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: isDevelopment ? 1000 : 100,
-    message: 'Too many API requests from this IP, please try again later.',
-  }))
+  app.use(
+    '/api/*',
+    simpleRateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: isDevelopment ? 1000 : 100,
+      message: 'Too many API requests from this IP, please try again later.',
+    })
+  )
 
-  app.use('/api/auth/*', simpleRateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: isDevelopment ? 200 : 20,
-    message: 'Too many authentication requests from this IP, please try again later.',
-  }))
+  app.use(
+    '/api/auth/*',
+    simpleRateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: isDevelopment ? 200 : 20,
+      message: 'Too many authentication requests from this IP, please try again later.',
+    })
+  )
 }
 
 // Logging (disabled in test for performance)

@@ -7,7 +7,7 @@ export class EmailChangeRequestEmail extends LayoutEmailTemplate {
     private readonly url: string,
     private readonly username: string,
     private readonly name: string,
-    private readonly newEmail: string,
+    private readonly newEmail: string
   ) {
     super(config)
   }
@@ -44,7 +44,7 @@ export class EmailChangeRequestEmail extends LayoutEmailTemplate {
       
       ${this.components.alert(
         `Once you've confirmed the update, all future emails from ${this.config.brand.name} will be sent to your new email address.`,
-        'info',
+        'info'
       )}
       
       <p>

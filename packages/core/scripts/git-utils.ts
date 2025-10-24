@@ -57,8 +57,7 @@ async function main() {
       changeType: analysis.changeType,
       changesCount: analysis.changesList.length,
     })
-  }
-  catch (error) {
+  } catch (error) {
     logger.error('Git operation failed', error instanceof Error ? error : new Error(String(error)))
     process.exit(1)
   }

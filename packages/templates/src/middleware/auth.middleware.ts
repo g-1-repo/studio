@@ -3,7 +3,7 @@ import { createMiddleware } from 'hono/factory'
 import { createAuth } from '../auth'
 
 export const authManagement: MiddlewareHandler = createMiddleware(async (c, next) => {
-  const auth = createAuth(c.env, (c.req.raw as any).cf || {})
+  const auth = createAuth(c.env, (c.req.raw as { cf?: unknown }).cf || {})
   c.set('auth', auth)
   return await next()
 })

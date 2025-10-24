@@ -14,9 +14,8 @@ declare global {
 }
 
 function ensureBox(): TestEmail[] {
-  const g = globalThis as any
-  if (!g.__TEST_EMAIL_OUTBOX__)
-    g.__TEST_EMAIL_OUTBOX__ = []
+  const g = globalThis as unknown as { __TEST_EMAIL_OUTBOX__?: TestEmail[] }
+  if (!g.__TEST_EMAIL_OUTBOX__) g.__TEST_EMAIL_OUTBOX__ = []
   return g.__TEST_EMAIL_OUTBOX__ as TestEmail[]
 }
 

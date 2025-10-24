@@ -10,10 +10,6 @@ class MockRepository extends BaseRepository {
 
 // Test implementation of BaseService
 class TestService extends BaseService {
-  constructor(repository: BaseRepository) {
-    super(repository)
-  }
-
   // Expose protected methods for testing
   testValidateRequiredFields(data: Record<string, unknown>, requiredFields: string[]) {
     return this.validateRequiredFields(data, requiredFields)
@@ -27,7 +23,7 @@ class TestService extends BaseService {
     return this.validateAndNormalizeEmail(data)
   }
 
-  testValidatePagination(params: { page?: number, limit?: number }) {
+  testValidatePagination(params: { page?: number; limit?: number }) {
     return this.validatePagination(params)
   }
 
@@ -39,7 +35,11 @@ class TestService extends BaseService {
     return this.handleConflictError(message, details)
   }
 
-  testEnsureNotExists<T>(entity: T | null | undefined, message: string, details?: Record<string, unknown>) {
+  testEnsureNotExists<T>(
+    entity: T | null | undefined,
+    message: string,
+    details?: Record<string, unknown>
+  ) {
     return this.ensureNotExists(entity, message, details)
   }
 
@@ -145,7 +145,7 @@ describe('baseService', () => {
         'user123@domain123.org',
       ]
 
-      validEmails.forEach((email) => {
+      validEmails.forEach(email => {
         const result = service.testValidateEmail(email)
         expect(result.success).toBe(true)
       })
@@ -160,7 +160,7 @@ describe('baseService', () => {
         'double@@domain.com',
       ]
 
-      invalidEmails.forEach((email) => {
+      invalidEmails.forEach(email => {
         const result = service.testValidateEmail(email)
         expect(result.success).toBe(false)
       })
@@ -250,8 +250,9 @@ describe('baseService', () => {
         error: new ValidationError('Test validation error'),
       }
 
-      expect(() => service.testHandleValidationError(validation, { field: 'test' }))
-        .toThrow(ValidationError)
+      expect(() => service.testHandleValidationError(validation, { field: 'test' })).toThrow(
+        ValidationError
+      )
     })
 
     it('should throw ValidationError when no specific error provided', () => {
@@ -259,15 +260,15 @@ describe('baseService', () => {
         success: false,
       }
 
-      expect(() => service.testHandleValidationError(validation))
-        .toThrow('Validation failed')
+      expect(() => service.testHandleValidationError(validation)).toThrow('Validation failed')
     })
   })
 
   describe('handleConflictError', () => {
     it('should throw ConflictError with details', () => {
-      expect(() => service.testHandleConflictError('Resource already exists', { id: 123 }))
-        .toThrow(ConflictError)
+      expect(() => service.testHandleConflictError('Resource already exists', { id: 123 })).toThrow(
+        ConflictError
+      )
     })
   })
 
@@ -275,9 +276,7 @@ describe('baseService', () => {
     it('should not throw when entity does not exist', () => {
       const service = new TestService(mockRepository)
 
-      expect(() => service.testEnsureNotExists(null, 'Entity already exists'))
-        .not
-        .toThrow()
+      expect(() => service.testEnsureNotExists(null, 'Entity already exists')).not.toThrow()
     })
   })
 
@@ -285,27 +284,24 @@ describe('baseService', () => {
     it('should throw ValidationError when entity does not exist', () => {
       const service = new TestService(mockRepository)
 
-      expect(() => service.testEnsureExists(null))
-        .toThrow(ValidationError)
+      expect(() => service.testEnsureExists(null)).toThrow(ValidationError)
 
-      expect(() => service.testEnsureExists(undefined))
-        .toThrow(ValidationError)
+      expect(() => service.testEnsureExists(undefined)).toThrow(ValidationError)
     })
 
     it('should throw ValidationError with custom message', () => {
       const service = new TestService(mockRepository)
 
-      expect(() => service.testEnsureExists(undefined, 'Custom not found message'))
-        .toThrow('Custom not found message')
+      expect(() => service.testEnsureExists(undefined, 'Custom not found message')).toThrow(
+        'Custom not found message'
+      )
     })
 
     it('should not throw when entity exists', () => {
       const service = new TestService(mockRepository)
       const entity = { id: 1, name: 'test' }
 
-      expect(() => service.testEnsureExists(entity))
-        .not
-        .toThrow()
+      expect(() => service.testEnsureExists(entity)).not.toThrow()
     })
 
     it('should assert entity type correctly', () => {

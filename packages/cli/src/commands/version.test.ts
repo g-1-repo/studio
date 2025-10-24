@@ -64,7 +64,7 @@ describe('version Command', () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project')
 
     // Mock console.log for JSON output
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { })
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Mock import.meta.url
     Object.defineProperty(import.meta, 'url', {
@@ -178,8 +178,8 @@ describe('version Command', () => {
         dependencies: {
           '@g-1/core': '^1.2.3',
           '@g-1/testing': '^1.0.0',
-          'express': '^4.18.0',
-          'vitest': '^0.34.0',
+          express: '^4.18.0',
+          vitest: '^0.34.0',
         },
       }
 
@@ -241,7 +241,9 @@ describe('version Command', () => {
       const versionInfo = await gatherVersionInfo(false)
       displayVersionInfo(versionInfo, false, mockLogger as any)
 
-      expect(mockLogger.info).toHaveBeenCalledWith('💡 Use --all flag to see detailed version information')
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        '💡 Use --all flag to see detailed version information'
+      )
     })
   })
 
@@ -314,12 +316,12 @@ describe('version Command', () => {
         dependencies: {
           '@g-1/core': '^2.0.0',
           '@g-1/utils': '^1.5.0',
-          'lodash': '^4.17.21',
-          'express': '^4.18.0',
+          lodash: '^4.17.21',
+          express: '^4.18.0',
         },
         devDependencies: {
           '@g-1/testing': '^1.2.0',
-          'vitest': '^0.34.0',
+          vitest: '^0.34.0',
         },
       }
 

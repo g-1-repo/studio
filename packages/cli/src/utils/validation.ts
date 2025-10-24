@@ -1,6 +1,6 @@
 import path from 'node:path'
-import validateNpmPackageName from 'validate-npm-package-name'
 import fs from 'fs-extra'
+import validateNpmPackageName from 'validate-npm-package-name'
 
 /**
  * Validation result interface
@@ -137,8 +137,7 @@ export function validateDirectory(dirPath: string): ValidationResult {
       valid: true,
       message: '',
     }
-  }
-  catch (error) {
+  } catch (error) {
     return {
       valid: false,
       message: `Error checking directory: ${error instanceof Error ? error.message : 'Unknown error'}`,

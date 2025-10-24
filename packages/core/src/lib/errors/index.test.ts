@@ -228,7 +228,7 @@ describe('error Exports', () => {
         new ServiceUnavailableError('Service unavailable error'),
       ]
 
-      errors.forEach((error) => {
+      errors.forEach(error => {
         expect(error).toBeInstanceOf(Error)
         expect(error).toBeInstanceOf(AppError)
         expect(error.name).toBeDefined()

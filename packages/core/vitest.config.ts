@@ -16,14 +16,16 @@ export default defineWorkersProject(async () => {
   try {
     const entries = await readdir(migrationsPath)
     const sqlFiles = entries.filter(f => f.endsWith('.sql')).sort()
-    const contents = await Promise.all(sqlFiles.map(f => readFile(path.join(migrationsPath, f), 'utf8')))
-    MIGRATION_STATEMENTS = contents.flatMap(content => content
-      .split(/--?>\s*statement-breakpoint\s*/g)
-      .map(s => s.trim())
-      .filter(Boolean),
+    const contents = await Promise.all(
+      sqlFiles.map(f => readFile(path.join(migrationsPath, f), 'utf8'))
     )
-  }
-  catch (e) {
+    MIGRATION_STATEMENTS = contents.flatMap(content =>
+      content
+        .split(/--?>\s*statement-breakpoint\s*/g)
+        .map(s => s.trim())
+        .filter(Boolean)
+    )
+  } catch (e) {
     console.error('[vitest] migrations read error:', (e as Error).message)
     MIGRATION_STATEMENTS = []
   }
@@ -40,7 +42,7 @@ export default defineWorkersProject(async () => {
       alias: {
         '@': path.resolve(__dirname, './src'),
         // Test-only stubs to avoid Node internals in Workers runtime
-        'pino': path.resolve(__dirname, './test/stubs/pino.ts'),
+        pino: path.resolve(__dirname, './test/stubs/pino.ts'),
         'pino-abstract-transport': path.resolve(__dirname, './test/stubs/empty.ts'),
         'pino-pretty': path.resolve(__dirname, './test/stubs/empty.ts'),
         'hono-pino': path.resolve(__dirname, './test/stubs/hono-pino.ts'),

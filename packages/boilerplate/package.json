@@ -1,7 +1,7 @@
 {
   "name": "@g-1/boilerplate",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Clean boilerplate application using the @g-1/core framework",
   "keywords": [
     "api",
@@ -21,8 +21,12 @@
     "db:migrate:prod": "wrangler d1 migrations apply MY_API_PROJECT_DB",
     "db:studio": "drizzle-kit studio",
     "auth:generate": "bun run src/auth/generate-secret.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "cf:login": "wrangler auth login",
@@ -35,11 +39,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.7.3",
     "@cloudflare/workers-types": "^4.20241218.0",
     "@types/node": "^22.10.1",
     "drizzle-kit": "^0.30.0",
-    "eslint": "^9.16.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "wrangler": "^3.94.0"

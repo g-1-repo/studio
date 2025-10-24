@@ -11,9 +11,12 @@ vi.mock('chalk', () => ({
     red: vi.fn(text => `red(${text})`),
     gray: vi.fn(text => `gray(${text})`),
     cyan: vi.fn(text => `cyan(${text})`),
-    bold: Object.assign(vi.fn(text => `bold(${text})`), {
-      cyan: vi.fn(text => `bold.cyan(${text})`),
-    }),
+    bold: Object.assign(
+      vi.fn(text => `bold(${text})`),
+      {
+        cyan: vi.fn(text => `bold.cyan(${text})`),
+      }
+    ),
     dim: vi.fn(text => `dim(${text})`),
   },
 }))

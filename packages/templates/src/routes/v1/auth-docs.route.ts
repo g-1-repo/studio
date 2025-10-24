@@ -223,7 +223,7 @@ const authDocsRoute = createRoute({
   },
 })
 
-app.openapi(authDocsRoute, (c) => {
+app.openapi(authDocsRoute, c => {
   return c.json(authDocsSchema)
 })
 

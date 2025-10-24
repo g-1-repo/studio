@@ -53,7 +53,7 @@ export default {
       alias: {
         '@': './src',
         // Test-only stubs to avoid Node internals in Workers runtime
-        'pino': './test/stubs/pino.ts',
+        pino: './test/stubs/pino.ts',
         'pino-abstract-transport': './test/stubs/empty.ts',
         'pino-pretty': './test/stubs/empty.ts',
         'hono-pino': './test/stubs/hono-pino.ts',

@@ -1,4 +1,16 @@
-import { CONFLICT, conflictSchema, createErrorSchema, cuid2ParamsSchema, jsonContent, jsonContentRequired, NO_CONTENT, NOT_FOUND, notFoundSchema, OK, UNPROCESSABLE_ENTITY } from '@g-1/core'
+import {
+  CONFLICT,
+  conflictSchema,
+  createErrorSchema,
+  cuid2ParamsSchema,
+  jsonContent,
+  jsonContentRequired,
+  NO_CONTENT,
+  NOT_FOUND,
+  notFoundSchema,
+  OK,
+  UNPROCESSABLE_ENTITY,
+} from '@g-1/core'
 import { createRoute } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { insertEarlyAccessRequestSchema, selectEarlyAccessRequestsSchema } from '../../../db/schema'
@@ -12,7 +24,7 @@ export const getAll = createRoute({
   responses: {
     [OK]: jsonContent(
       z.array(selectEarlyAccessRequestsSchema),
-      'The list of early access requests',
+      'The list of early access requests'
     ),
   },
 })
@@ -22,23 +34,17 @@ export const create = createRoute({
   method: 'post',
   tags,
   request: {
-    body: jsonContentRequired(
-      insertEarlyAccessRequestSchema,
-      'The early access request to create',
-    ),
+    body: jsonContentRequired(insertEarlyAccessRequestSchema, 'The early access request to create'),
   },
   responses: {
-    [OK]: jsonContent(
-      selectEarlyAccessRequestsSchema,
-      'The created early access request',
-    ),
+    [OK]: jsonContent(selectEarlyAccessRequestsSchema, 'The created early access request'),
     [UNPROCESSABLE_ENTITY]: jsonContent(
       createErrorSchema(insertEarlyAccessRequestSchema),
-      'The validation error(s)',
+      'The validation error(s)'
     ),
     [CONFLICT]: jsonContent(
       conflictSchema,
-      'An early access request with this email already exists.',
+      'An early access request with this email already exists.'
     ),
   },
 })
@@ -55,14 +61,8 @@ export const remove = createRoute({
     [NO_CONTENT]: {
       description: 'Early access request deleted',
     },
-    [NOT_FOUND]: jsonContent(
-      notFoundSchema,
-      'Early access request not found',
-    ),
-    [UNPROCESSABLE_ENTITY]: jsonContent(
-      createErrorSchema(cuid2ParamsSchema),
-      'Invalid id error',
-    ),
+    [NOT_FOUND]: jsonContent(notFoundSchema, 'Early access request not found'),
+    [UNPROCESSABLE_ENTITY]: jsonContent(createErrorSchema(cuid2ParamsSchema), 'Invalid id error'),
   },
 })
 

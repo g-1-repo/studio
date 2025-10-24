@@ -1,11 +1,6 @@
-import type { TemplateConfig } from '../../core/template-config.interface'
 import { LayoutEmailTemplate } from '../base/layout.template'
 
 export class EarlyAccessEmail extends LayoutEmailTemplate {
-  constructor(config: TemplateConfig) {
-    super(config)
-  }
-
   subject(): string {
     return 'Thanks for requesting early access!'
   }
@@ -20,8 +15,8 @@ export class EarlyAccessEmail extends LayoutEmailTemplate {
       </p>
       
       ${this.components.alert(
-        'We\'ll be reviewing early access requests and will send you an invitation soon. Keep an eye on your inbox!',
-        'info',
+        "We'll be reviewing early access requests and will send you an invitation soon. Keep an eye on your inbox!",
+        'info'
       )}
       
       <p>

@@ -2,8 +2,8 @@
  * Database connection factory for Drizzle ORM with Cloudflare D1
  */
 
-import type { Environment } from '../env'
 import { drizzle } from 'drizzle-orm/d1'
+import type { Environment } from '../env'
 
 export interface DatabaseConfig {
   database: D1Database
@@ -27,8 +27,7 @@ export const db = {
     try {
       await database.prepare('SELECT 1').first()
       return true
-    }
-    catch {
+    } catch {
       return false
     }
   },

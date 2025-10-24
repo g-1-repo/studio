@@ -6,11 +6,7 @@ export class AppError extends Error {
   public readonly isOperational: boolean
   public readonly timestamp: string
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    isOperational: boolean = true,
-  ) {
+  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
     super(message)
     this.name = this.constructor.name
     this.statusCode = statusCode
@@ -26,7 +22,15 @@ export class AppError extends Error {
   /**
    * Convert error to JSON for API responses
    */
-  toJSON(): { error: { name: string, message: string, statusCode: number, timestamp: string, isOperational: boolean } } {
+  toJSON(): {
+    error: {
+      name: string
+      message: string
+      statusCode: number
+      timestamp: string
+      isOperational: boolean
+    }
+  } {
     return {
       error: {
         name: this.name,

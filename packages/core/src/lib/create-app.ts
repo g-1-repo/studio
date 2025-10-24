@@ -1,7 +1,6 @@
-import type { Schema } from 'hono'
-
-import type { AppBindings, AppOpenAPI } from './types'
 import { OpenAPIHono } from '@hono/zod-openapi'
+import type { Schema } from 'hono'
+import type { AppBindings, AppOpenAPI } from './types'
 
 // Core framework function to create a router
 export function createRouter<S extends Schema = Schema>(): AppOpenAPI<S> {
@@ -14,7 +13,7 @@ export function createRouter<S extends Schema = Schema>(): AppOpenAPI<S> {
             success: false,
             error: result.error.flatten(),
           },
-          422,
+          422
         )
       }
     },

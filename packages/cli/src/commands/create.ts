@@ -1,10 +1,10 @@
 import path from 'node:path'
 import { Command } from 'commander'
 import inquirer from 'inquirer'
-import { logger } from '../utils/logger.js'
-import { validateProjectName } from '../utils/validation.js'
 import { createProject } from '../generators/project.js'
 import type { CreateProjectOptions } from '../types/index.js'
+import { logger } from '../utils/logger.js'
+import { validateProjectName } from '../utils/validation.js'
 
 export const createCommand = new Command('create')
   .description('Create a new G1 API project')
@@ -38,7 +38,12 @@ export const createCommand = new Command('create')
       }
 
       // Validate project name
-      const nameValidation = validateProjectName(projectName!)
+      if (!projectName) {
+        logger.error('Project name is required')
+        process.exit(1)
+      }
+      
+      const nameValidation = validateProjectName(projectName)
       if (!nameValidation.valid) {
         logger.error(nameValidation.message)
         process.exit(1)
@@ -46,7 +51,10 @@ export const createCommand = new Command('create')
 
       // Get additional options through prompts if not provided
       const templateChoices = [
-        { name: 'API Server - Full-featured API with auth, database, and middleware', value: 'api' },
+        {
+          name: 'API Server - Full-featured API with auth, database, and middleware',
+          value: 'api',
+        },
         { name: 'Minimal API - Basic API structure with minimal dependencies', value: 'minimal' },
         { name: 'Plugin - Create a G1 framework plugin', value: 'plugin' },
       ]
@@ -84,10 +92,10 @@ export const createCommand = new Command('create')
 
       // Merge options with answers
       const createOptions: CreateProjectOptions = {
-        name: projectName!,
+        name: projectName,
         template: answers.template || options.template,
         directory: options.directory || process.cwd(),
-        packageManager: answers.packageManager || options.packageManager,
+        packageManager: answers.packageManager || options.packageManager || 'bun',
         git: options.git,
         install: options.install,
         typescript: options.typescript,
@@ -97,11 +105,14 @@ export const createCommand = new Command('create')
 
       // Show configuration summary
       logger.subheader('📋 Project Configuration')
+      const targetDirectory = createOptions.directory || process.cwd()
+      const packageManager = createOptions.packageManager || 'bun'
+      
       logger.table([
         { key: 'Project Name', value: createOptions.name },
         { key: 'Template', value: createOptions.template },
-        { key: 'Directory', value: path.resolve(createOptions.directory!, createOptions.name) },
-        { key: 'Package Manager', value: createOptions.packageManager! },
+        { key: 'Directory', value: path.resolve(targetDirectory, createOptions.name) },
+        { key: 'Package Manager', value: packageManager },
         { key: 'TypeScript', value: createOptions.typescript ? 'Yes' : 'No' },
         { key: 'ESLint', value: createOptions.eslint ? 'Yes' : 'No' },
         { key: 'Prettier', value: createOptions.prettier ? 'Yes' : 'No' },
@@ -131,22 +142,24 @@ export const createCommand = new Command('create')
 
       // Show next steps
       logger.subheader('🚀 Next Steps')
-      const projectPath = path.resolve(createOptions.directory!, createOptions.name)
+      const projectDirectory = createOptions.directory || process.cwd()
+      const projectPath = path.resolve(projectDirectory, createOptions.name)
       const relativeProjectPath = path.relative(process.cwd(), projectPath)
 
       logger.listItem(`cd ${relativeProjectPath}`)
 
       if (!createOptions.install) {
-        logger.listItem(`${createOptions.packageManager} install`)
+        logger.listItem(`${packageManager} install`)
       }
 
-      logger.listItem(`${createOptions.packageManager} run dev`)
+      logger.listItem(`${packageManager} run dev`)
       logger.newLine()
 
       logger.info('Happy coding! 🎯')
-    }
-    catch (error) {
-      logger.error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } catch (error) {
+      logger.error(
+        `Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
       process.exit(1)
     }
   })

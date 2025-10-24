@@ -1,5 +1,5 @@
-import type { EmailData, EmailProvider } from './email-provider.interface'
 import { Resend } from 'resend'
+import type { EmailData, EmailProvider } from './email-provider.interface'
 
 export class ResendProvider implements EmailProvider {
   private resend: Resend
@@ -31,11 +31,10 @@ export class ResendProvider implements EmailProvider {
       }
 
       return { id: result.data?.id ?? 'unknown' }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('ResendProvider send failed:', error)
       throw new Error(
-        `Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }

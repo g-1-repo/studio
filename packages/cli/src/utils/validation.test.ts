@@ -24,15 +24,9 @@ describe('cLI Validation Utilities', () => {
 
   describe('validateProjectName', () => {
     it('should validate correct project names', () => {
-      const validNames = [
-        'my-project',
-        'my_project',
-        'myproject',
-        'my-awesome-api',
-        'project123',
-      ]
+      const validNames = ['my-project', 'my_project', 'myproject', 'my-awesome-api', 'project123']
 
-      validNames.forEach((name) => {
+      validNames.forEach(name => {
         const result = validateProjectName(name)
         expect(result.valid).toBe(true)
         expect(result.message).toBe('')
@@ -42,7 +36,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject empty or whitespace-only names', () => {
       const invalidNames = ['', '   ', '\t', '\n']
 
-      invalidNames.forEach((name) => {
+      invalidNames.forEach(name => {
         const result = validateProjectName(name)
         expect(result.valid).toBe(false)
         expect(result.message).toBe('Project name cannot be empty')
@@ -52,7 +46,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject names starting with . or _', () => {
       const invalidNames = ['.project', '_project', '.hidden-project']
 
-      invalidNames.forEach((name) => {
+      invalidNames.forEach(name => {
         const result = validateProjectName(name)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('name cannot start with')
@@ -70,7 +64,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject reserved names', () => {
       const reservedNames = ['node_modules', 'favicon.ico']
 
-      reservedNames.forEach((name) => {
+      reservedNames.forEach(name => {
         const result = validateProjectName(name)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('blacklisted')
@@ -80,7 +74,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject names with invalid characters', () => {
       const invalidNames = ['my project', 'my@project', 'my#project', 'MY-PROJECT']
 
-      invalidNames.forEach((name) => {
+      invalidNames.forEach(name => {
         const result = validateProjectName(name)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('Invalid project name')
@@ -92,10 +86,8 @@ describe('cLI Validation Utilities', () => {
     it('should validate when directory does not exist', () => {
       // Mock parent directory to exist, target directory to not exist
       mockFs.existsSync.mockImplementation((path: string) => {
-        if (path === '/path/to/new')
-          return true // parent exists
-        if (path === '/path/to/new/project')
-          return false // target doesn't exist
+        if (path === '/path/to/new') return true // parent exists
+        if (path === '/path/to/new/project') return false // target doesn't exist
         return false
       })
 
@@ -147,7 +139,7 @@ describe('cLI Validation Utilities', () => {
     const availableTemplates = ['api', 'minimal', 'full-stack', 'microservice']
 
     it('should validate existing templates', () => {
-      availableTemplates.forEach((template) => {
+      availableTemplates.forEach(template => {
         const result = validateTemplate(template, availableTemplates)
         expect(result.valid).toBe(true)
         expect(result.message).toBe('')
@@ -157,7 +149,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject non-existent templates', () => {
       const invalidTemplates = ['invalid', 'nonexistent', 'custom']
 
-      invalidTemplates.forEach((template) => {
+      invalidTemplates.forEach(template => {
         const result = validateTemplate(template, availableTemplates)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('Invalid template')
@@ -177,7 +169,7 @@ describe('cLI Validation Utilities', () => {
     it('should validate supported package managers', () => {
       const validManagers = ['npm', 'yarn', 'pnpm', 'bun']
 
-      validManagers.forEach((pm) => {
+      validManagers.forEach(pm => {
         const result = validatePackageManager(pm)
         expect(result.valid).toBe(true)
         expect(result.message).toBe('')
@@ -187,7 +179,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject unsupported package managers', () => {
       const invalidManagers = ['pip', 'composer', 'cargo', 'invalid']
 
-      invalidManagers.forEach((pm) => {
+      invalidManagers.forEach(pm => {
         const result = validatePackageManager(pm)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('Invalid package manager')
@@ -200,7 +192,7 @@ describe('cLI Validation Utilities', () => {
     it('should validate supported generator types', () => {
       const validTypes = ['route', 'middleware', 'plugin', 'model', 'service']
 
-      validTypes.forEach((type) => {
+      validTypes.forEach(type => {
         const result = validateGeneratorType(type)
         expect(result.valid).toBe(true)
         expect(result.message).toBe('')
@@ -210,7 +202,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject unsupported generator types', () => {
       const invalidTypes = ['component', 'page', 'invalid', 'custom']
 
-      invalidTypes.forEach((type) => {
+      invalidTypes.forEach(type => {
         const result = validateGeneratorType(type)
         expect(result.valid).toBe(false)
         expect(result.message).toContain('Invalid generator type')
@@ -231,7 +223,7 @@ describe('cLI Validation Utilities', () => {
         '$special',
       ]
 
-      validIdentifiers.forEach((identifier) => {
+      validIdentifiers.forEach(identifier => {
         const result = validateIdentifier(identifier)
         expect(result.valid).toBe(true)
         expect(result.message).toBe('')
@@ -248,7 +240,7 @@ describe('cLI Validation Utilities', () => {
     it('should reject identifiers starting with numbers', () => {
       const invalidIdentifiers = ['123func', '9variable', '0class']
 
-      invalidIdentifiers.forEach((identifier) => {
+      invalidIdentifiers.forEach(identifier => {
         const result = validateIdentifier(identifier)
         expect(result.valid).toBe(false)
         expect(result.message).toBe('Identifier cannot start with a number')
@@ -264,10 +256,12 @@ describe('cLI Validation Utilities', () => {
         'my.function',
       ]
 
-      invalidIdentifiers.forEach((identifier) => {
+      invalidIdentifiers.forEach(identifier => {
         const result = validateIdentifier(identifier)
         expect(result.valid).toBe(false)
-        expect(result.message).toBe('Identifier can only contain letters, numbers, underscore, and dollar sign')
+        expect(result.message).toBe(
+          'Identifier can only contain letters, numbers, underscore, and dollar sign'
+        )
       })
     })
 
@@ -288,7 +282,7 @@ describe('cLI Validation Utilities', () => {
         'default',
       ]
 
-      reservedWords.forEach((word) => {
+      reservedWords.forEach(word => {
         const result = validateIdentifier(word)
         expect(result.valid).toBe(false)
         expect(result.message).toBe('Identifier cannot be a JavaScript reserved word')

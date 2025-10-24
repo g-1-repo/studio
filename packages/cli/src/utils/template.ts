@@ -1,6 +1,6 @@
 import path from 'node:path'
-import Mustache from 'mustache'
 import fs from 'fs-extra'
+import Mustache from 'mustache'
 import type { TemplateVariables } from '../types/index.js'
 
 /**
@@ -15,7 +15,7 @@ export function renderTemplate(template: string, variables: TemplateVariables): 
  */
 export async function renderTemplateFile(
   templatePath: string,
-  variables: TemplateVariables,
+  variables: TemplateVariables
 ): Promise<string> {
   const template = await fs.readFile(templatePath, 'utf-8')
   return renderTemplate(template, variables)
@@ -28,12 +28,12 @@ export async function renderTemplateToFile(
   template: string,
   outputPath: string,
   variables: TemplateVariables,
-  options: { overwrite?: boolean } = {},
+  options: { overwrite?: boolean } = {}
 ): Promise<void> {
   const { overwrite = false } = options
 
   // Check if file exists and overwrite is not allowed
-  if (!overwrite && await fs.pathExists(outputPath)) {
+  if (!overwrite && (await fs.pathExists(outputPath))) {
     throw new Error(`File already exists: ${outputPath}`)
   }
 
@@ -55,7 +55,7 @@ export async function copyTemplateFiles(
   options: {
     overwrite?: boolean
     filter?: (src: string, dest: string) => boolean
-  } = {},
+  } = {}
 ): Promise<void> {
   const { overwrite = false, filter } = options
 
@@ -68,7 +68,7 @@ export async function copyTemplateFiles(
     }
 
     // Check if destination exists and overwrite is disabled
-    if (!overwrite && await fs.pathExists(dest)) {
+    if (!overwrite && (await fs.pathExists(dest))) {
       return
     }
 
@@ -81,8 +81,7 @@ export async function copyTemplateFiles(
       for (const file of files) {
         await copyFile(path.join(src, file), path.join(dest, file))
       }
-    }
-    else {
+    } else {
       const content = await fs.readFile(src, 'utf-8')
 
       // Check if file should be templated (has .mustache extension or contains mustache syntax)
@@ -91,8 +90,7 @@ export async function copyTemplateFiles(
       if (shouldTemplate) {
         const rendered = renderTemplate(content, variables)
         await fs.writeFile(dest.replace('.mustache', ''), rendered)
-      }
-      else {
+      } else {
         await fs.copy(src, dest)
       }
     }
@@ -107,11 +105,8 @@ export async function copyTemplateFiles(
 export async function getAvailableTemplates(templatesDir: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(templatesDir, { withFileTypes: true })
-    return entries
-      .filter(entry => entry.isDirectory())
-      .map(entry => entry.name)
-  }
-  catch {
+    return entries.filter(entry => entry.isDirectory()).map(entry => entry.name)
+  } catch {
     return []
   }
 }
@@ -139,7 +134,7 @@ export async function validateTemplatePath(templatePath: string): Promise<{
     for (const file of requiredFiles) {
       const filePath = path.join(templatePath, file)
 
-      if (!await fs.pathExists(filePath)) {
+      if (!(await fs.pathExists(filePath))) {
         return {
           valid: false,
           message: `Template missing required file: ${file}`,
@@ -151,8 +146,7 @@ export async function validateTemplatePath(templatePath: string): Promise<{
       valid: true,
       message: 'Valid template',
     }
-  }
-  catch (error) {
+  } catch (error) {
     return {
       valid: false,
       message: `Cannot access template: ${error instanceof Error ? error.message : 'Unknown error'}`,

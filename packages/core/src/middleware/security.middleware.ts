@@ -1,9 +1,7 @@
-import type { MiddlewareHandler } from 'hono'
-
-import type { AppBindings } from '../lib/types'
+import type { Context, MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
-
 import { HTTPException } from 'hono/http-exception'
+import type { AppBindings } from '../lib/types'
 
 /**
  * Enhanced security middleware with better performance and comprehensive protection
@@ -15,19 +13,24 @@ import { HTTPException } from 'hono/http-exception'
 export function rateLimitOptimized(options: {
   windowMs: number
   maxRequests: number
-  keyGenerator?: (c: any) => string
+  keyGenerator?: (c: Context<AppBindings>) => string
   skipSuccessfulRequests?: boolean
   skipFailedRequests?: boolean
 }): MiddlewareHandler<AppBindings> {
-  const { windowMs, maxRequests, keyGenerator, skipSuccessfulRequests = false, skipFailedRequests = false } = options
+  const {
+    windowMs,
+    maxRequests,
+    keyGenerator,
+    skipSuccessfulRequests = false,
+    skipFailedRequests = false,
+  } = options
 
   return createMiddleware(async (c, next) => {
     // Generate rate limit key with better performance
     let key: string
     if (keyGenerator) {
       key = keyGenerator(c)
-    }
-    else {
+    } else {
       const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown'
       const user = c.get('user')
       key = user ? `rate_limit:user:${user.id}` : `rate_limit:ip:${ip}`
@@ -53,12 +56,12 @@ export function rateLimitOptimized(options: {
         kv.get(historyKey),
       ])
 
-      const currentCount = currentCountStr ? Number.parseInt(currentCountStr) : 0
+      const currentCount = currentCountStr ? Number.parseInt(currentCountStr, 10) : 0
       const history = historyStr ? JSON.parse(historyStr) : []
 
       // Clean old entries from history
-      const validHistory = history.filter((entry: { timestamp: number }) =>
-        entry.timestamp > windowStart,
+      const validHistory = history.filter(
+        (entry: { timestamp: number }) => entry.timestamp > windowStart
       )
 
       // Calculate total requests in window
@@ -71,19 +74,23 @@ export function rateLimitOptimized(options: {
         c.header('X-RateLimit-Reset', (now + windowMs).toString())
         c.header('Retry-After', Math.ceil(windowMs / 1000).toString())
 
-        return c.json({
-          error: 'Rate limit exceeded',
-          message: `Too many requests. Limit: ${maxRequests} per ${Math.round(windowMs / 1000)} seconds`,
-          retryAfter: Math.ceil(windowMs / 1000),
-        }, 429)
+        return c.json(
+          {
+            error: 'Rate limit exceeded',
+            message: `Too many requests. Limit: ${maxRequests} per ${Math.round(windowMs / 1000)} seconds`,
+            retryAfter: Math.ceil(windowMs / 1000),
+          },
+          429
+        )
       }
 
       // Continue with request
       await next()
 
       // Only count requests that match criteria
-      const shouldCount = (!skipSuccessfulRequests || c.res.status >= 400)
-        && (!skipFailedRequests || c.res.status < 400)
+      const shouldCount =
+        (!skipSuccessfulRequests || c.res.status >= 400) &&
+        (!skipFailedRequests || c.res.status < 400)
 
       if (shouldCount) {
         // Update counters
@@ -103,8 +110,7 @@ export function rateLimitOptimized(options: {
       c.header('X-RateLimit-Limit', maxRequests.toString())
       c.header('X-RateLimit-Remaining', Math.max(0, maxRequests - totalRequests - 1).toString())
       c.header('X-RateLimit-Reset', (now + windowMs).toString())
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Rate limiting error:', error)
       // Fail open - continue request on rate limiting errors
       await next()
@@ -120,7 +126,11 @@ export function requestValidation(options: {
   allowedContentTypes?: string[]
   requireContentType?: boolean
 }): MiddlewareHandler<AppBindings> {
-  const { maxBodySize = 1024 * 1024, allowedContentTypes = [], requireContentType = false } = options
+  const {
+    maxBodySize = 1024 * 1024,
+    allowedContentTypes = [],
+    requireContentType = false,
+  } = options
 
   return createMiddleware(async (c, next) => {
     const method = c.req.method
@@ -128,35 +138,42 @@ export function requestValidation(options: {
     const contentType = c.req.header('content-type')
 
     // Check content length
-    if (contentLength && Number.parseInt(contentLength) > maxBodySize) {
-      return c.json({
-        error: 'Request entity too large',
-        message: `Request body must be less than ${Math.round(maxBodySize / 1024)}KB`,
-        maxSize: maxBodySize,
-      }, 413)
+    if (contentLength && Number.parseInt(contentLength, 10) > maxBodySize) {
+      return c.json(
+        {
+          error: 'Request entity too large',
+          message: `Request body must be less than ${Math.round(maxBodySize / 1024)}KB`,
+          maxSize: maxBodySize,
+        },
+        413
+      )
     }
 
     // Check content type for requests with body
     if (['POST', 'PUT', 'PATCH'].includes(method)) {
       if (requireContentType && !contentType) {
-        return c.json({
-          error: 'Content-Type required',
-          message: 'Content-Type header is required for this request',
-          allowedTypes: allowedContentTypes,
-        }, 400)
+        return c.json(
+          {
+            error: 'Content-Type required',
+            message: 'Content-Type header is required for this request',
+            allowedTypes: allowedContentTypes,
+          },
+          400
+        )
       }
 
       if (contentType && allowedContentTypes.length > 0) {
-        const isAllowed = allowedContentTypes.some(type =>
-          contentType.includes(type),
-        )
+        const isAllowed = allowedContentTypes.some(type => contentType.includes(type))
 
         if (!isAllowed) {
-          return c.json({
-            error: 'Invalid content type',
-            message: `Content-Type '${contentType}' is not allowed`,
-            allowedTypes: allowedContentTypes,
-          }, 415)
+          return c.json(
+            {
+              error: 'Invalid content type',
+              message: `Content-Type '${contentType}' is not allowed`,
+              allowedTypes: allowedContentTypes,
+            },
+            415
+          )
         }
       }
     }
@@ -179,31 +196,40 @@ export function enhancedSecurityHeaders(): MiddlewareHandler<AppBindings> {
     c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
 
     // Enhanced permissions policy
-    c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()')
+    c.header(
+      'Permissions-Policy',
+      'camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()'
+    )
 
     // Content Security Policy - Allow resources needed for HTML content and documentation
     const path = new URL(c.req.url).pathname
     const contentType = c.res.headers.get('content-type') || ''
 
     // More permissive CSP for HTML content (dashboards, documentation)
-    if (path === '/reference' || path === '/reference'
-      || path === '/' || path === '/'
-      || contentType.includes('text/html')) {
+    if (
+      path === '/reference' ||
+      path === '/reference' ||
+      path === '/' ||
+      path === '/' ||
+      contentType.includes('text/html')
+    ) {
       c.header(
         'Content-Security-Policy',
-        'default-src \'self\'; '
-        + 'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://unpkg.com https://cdn.jsdelivr.net; '
-        + 'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com https://unpkg.com https://cdn.jsdelivr.net; '
-        + 'font-src \'self\' https://fonts.gstatic.com; '
-        + 'img-src \'self\' data: https:; '
-        + 'connect-src \'self\'; '
-        + 'frame-ancestors \'none\'; '
-        + 'base-uri \'none\';',
+        "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; " +
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdn.jsdelivr.net; " +
+          "font-src 'self' https://fonts.gstatic.com; " +
+          "img-src 'self' data: https:; " +
+          "connect-src 'self'; " +
+          "frame-ancestors 'none'; " +
+          "base-uri 'none';"
       )
-    }
-    else {
+    } else {
       // Strict CSP for JSON API endpoints
-      c.header('Content-Security-Policy', 'default-src \'none\'; frame-ancestors \'none\'; base-uri \'none\';')
+      c.header(
+        'Content-Security-Policy',
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none';"
+      )
     }
 
     // Only add HSTS for HTTPS
@@ -239,8 +265,7 @@ export function inputSanitization(): MiddlewareHandler<AppBindings> {
           // In practice, you might modify the request object differently
           // c.set("sanitizedBody", _sanitized); // Commented out due to type restrictions
         }
-      }
-      catch {
+      } catch {
         // Continue if body parsing fails - let route handler deal with it
       }
     }
@@ -252,7 +277,7 @@ export function inputSanitization(): MiddlewareHandler<AppBindings> {
 /**
  * Recursively sanitize object properties
  */
-function sanitizeObject(obj: any): any {
+function sanitizeObject(obj: unknown): unknown {
   if (typeof obj !== 'object' || obj === null) {
     return sanitizeString(obj)
   }
@@ -261,7 +286,7 @@ function sanitizeObject(obj: any): any {
     return obj.map(item => sanitizeObject(item))
   }
 
-  const sanitized: any = {}
+  const sanitized: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(obj)) {
     sanitized[key] = sanitizeObject(value)
   }
@@ -272,7 +297,7 @@ function sanitizeObject(obj: any): any {
 /**
  * Sanitize string values
  */
-function sanitizeString(value: any): any {
+function sanitizeString(value: unknown): unknown {
   if (typeof value !== 'string') {
     return value
   }
@@ -316,56 +341,60 @@ export function securityAuditLog(): MiddlewareHandler<AppBindings> {
     }
 
     let statusCode: number | undefined
-    let error: any = null
+    let error: unknown = null
 
     try {
       await next()
       statusCode = c.res.status
-    }
-    catch (err) {
+    } catch (err) {
       error = err
       statusCode = err instanceof HTTPException ? err.status : 500
       throw err
-    }
-    finally {
+    } finally {
       const duration = Date.now() - startTime
 
       // Only log if statusCode is available
       if (statusCode !== undefined) {
         // Log completion with security context
-        console.warn(JSON.stringify({
-          ...securityContext,
-          response: {
-            statusCode,
-            duration,
-            error: error
-              ? {
-                  message: error.message,
-                  type: error.constructor.name,
-                }
-              : null,
-          },
-        }))
+        console.warn(
+          JSON.stringify({
+            ...securityContext,
+            response: {
+              statusCode,
+              duration,
+              error: error
+                ? {
+                    message: error.message,
+                    type: error.constructor.name,
+                  }
+                : null,
+            },
+          })
+        )
 
         // Alert on suspicious activities
         if (statusCode === 401 || statusCode === 403) {
-          console.warn(JSON.stringify({
-            type: 'security_alert',
-            level: 'warning',
-            message: `Authentication/Authorization failure: ${method} ${url}`,
-            ...securityContext.request,
-            statusCode,
-          }))
+          console.warn(
+            JSON.stringify({
+              type: 'security_alert',
+              level: 'warning',
+              message: `Authentication/Authorization failure: ${method} ${url}`,
+              ...securityContext.request,
+              statusCode,
+            })
+          )
         }
 
         // Alert on potential attacks
         if (statusCode === 429) {
-          console.warn(JSON.stringify({
-            type: 'security_alert',
-            level: 'warning',
-            message: `Rate limit exceeded: ${ip}`,
-            ...securityContext.request,
-          }))
+          console.warn(
+            JSON.stringify({
+              type: 'security_alert',
+              level: 'warning',
+              message: `Rate limit exceeded: ${ip}`,
+              ...securityContext.request,
+            })
+          )
         }
       }
     }
@@ -378,7 +407,7 @@ export function securityAuditLog(): MiddlewareHandler<AppBindings> {
 export function simpleRateLimit(options: {
   windowMs: number
   limit: number
-  keyGenerator?: (c: any) => string
+  keyGenerator?: (c: Context<AppBindings>) => string
   message?: string
 }): MiddlewareHandler<AppBindings> {
   const { windowMs, limit, keyGenerator, message } = options
@@ -388,8 +417,7 @@ export function simpleRateLimit(options: {
     let key: string
     if (keyGenerator) {
       key = keyGenerator(c)
-    }
-    else {
+    } else {
       const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown'
       key = `rate_limit:${ip}`
     }
@@ -404,17 +432,21 @@ export function simpleRateLimit(options: {
     try {
       // Get current count
       const currentCountStr = await kv.get(key)
-      const currentCount = currentCountStr ? Number.parseInt(currentCountStr) : 0
+      const currentCount = currentCountStr ? Number.parseInt(currentCountStr, 10) : 0
 
       if (currentCount >= limit) {
         c.header('X-RateLimit-Limit', limit.toString())
         c.header('X-RateLimit-Remaining', '0')
         c.header('Retry-After', Math.ceil(windowMs / 1000).toString())
 
-        return c.json({
-          error: 'Too Many Requests',
-          message: message || `Rate limit exceeded. Try again in ${Math.ceil(windowMs / 1000)} seconds.`,
-        }, 429)
+        return c.json(
+          {
+            error: 'Too Many Requests',
+            message:
+              message || `Rate limit exceeded. Try again in ${Math.ceil(windowMs / 1000)} seconds.`,
+          },
+          429
+        )
       }
 
       await next()
@@ -427,8 +459,7 @@ export function simpleRateLimit(options: {
       // Add rate limit headers
       c.header('X-RateLimit-Limit', limit.toString())
       c.header('X-RateLimit-Remaining', Math.max(0, limit - currentCount - 1).toString())
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Rate limiting error:', error)
       // Fail open on errors
       await next()

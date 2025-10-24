@@ -6,7 +6,7 @@ export class ResetPasswordEmail extends LayoutEmailTemplate {
     config: TemplateConfig,
     private readonly url: string,
     private readonly username: string,
-    private readonly name: string,
+    private readonly name: string
   ) {
     super(config)
   }
@@ -34,8 +34,8 @@ export class ResetPasswordEmail extends LayoutEmailTemplate {
       </p>
       
       ${this.components.alert(
-        'If you have any questions or concerns, please don\'t hesitate to reach out to us. We\'re here to help.',
-        'info',
+        "If you have any questions or concerns, please don't hesitate to reach out to us. We're here to help.",
+        'info'
       )}
       
       <p>

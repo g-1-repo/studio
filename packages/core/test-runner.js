@@ -36,30 +36,31 @@ class TestDashboardServer {
   }
 
   startWebSocketServer() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.wss = new WebSocketServer({ port: this.wsPort })
 
-      this.wss.on('connection', (ws) => {
+      this.wss.on('connection', ws => {
         console.log('📱 Dashboard client connected')
         this.clients.add(ws)
 
         // Send current test results
-        ws.send(JSON.stringify({
-          type: 'initial_data',
-          data: this.testResults,
-        }))
+        ws.send(
+          JSON.stringify({
+            type: 'initial_data',
+            data: this.testResults,
+          })
+        )
 
         ws.on('close', () => {
           console.log('📱 Dashboard client disconnected')
           this.clients.delete(ws)
         })
 
-        ws.on('message', (message) => {
+        ws.on('message', message => {
           try {
             const data = JSON.parse(message)
             this.handleClientMessage(data)
-          }
-          catch (error) {
+          } catch (error) {
             console.error('❌ Error parsing client message:', error)
           }
         })
@@ -70,15 +71,13 @@ class TestDashboardServer {
   }
 
   startHttpServer() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const server = http.createServer((req, res) => {
         if (req.url === '/') {
           this.serveDashboard(res)
-        }
-        else if (req.url === '/api/test-results') {
+        } else if (req.url === '/api/test-results') {
           this.serveTestResults(res)
-        }
-        else {
+        } else {
           res.writeHead(404)
           res.end('Not Found')
         }
@@ -184,7 +183,7 @@ class TestDashboardServer {
 
   broadcast(message) {
     const data = JSON.stringify(message)
-    this.clients.forEach((client) => {
+    this.clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(data)
       }
@@ -211,13 +210,13 @@ class TestDashboardServer {
 
     let output = ''
 
-    testProcess.stdout.on('data', (data) => {
+    testProcess.stdout.on('data', data => {
       const text = data.toString()
       output += text
 
       // Parse and broadcast test output
       const lines = text.split('\n').filter(line => line.trim())
-      lines.forEach((line) => {
+      lines.forEach(line => {
         this.broadcast({
           type: 'test_output',
           data: { text: line, type: this.getLineType(line) },
@@ -225,7 +224,7 @@ class TestDashboardServer {
       })
     })
 
-    testProcess.stderr.on('data', (data) => {
+    testProcess.stderr.on('data', data => {
       const text = data.toString()
       this.broadcast({
         type: 'test_output',
@@ -233,7 +232,7 @@ class TestDashboardServer {
       })
     })
 
-    testProcess.on('close', (code) => {
+    testProcess.on('close', code => {
       console.log(`✅ Test process exited with code ${code}`)
 
       // Parse test results
@@ -273,13 +272,13 @@ class TestDashboardServer {
     const durationMatch = output.match(/Time\s+([\d.]+)s/)
 
     if (testMatch) {
-      results.stats.total = Number.parseInt(testMatch[1])
-      results.stats.passed = Number.parseInt(testMatch[1])
+      results.stats.total = Number.parseInt(testMatch[1], 10)
+      results.stats.passed = Number.parseInt(testMatch[1], 10)
     }
 
     if (passedMatch) {
-      results.stats.total = Number.parseInt(passedMatch[1])
-      results.stats.passed = Number.parseInt(passedMatch[1])
+      results.stats.total = Number.parseInt(passedMatch[1], 10)
+      results.stats.passed = Number.parseInt(passedMatch[1], 10)
     }
 
     if (durationMatch) {
@@ -292,11 +291,9 @@ class TestDashboardServer {
   getLineType(line) {
     if (line.includes('✓') || line.includes('PASS') || line.includes('passed')) {
       return 'success'
-    }
-    else if (line.includes('✗') || line.includes('FAIL') || line.includes('failed')) {
+    } else if (line.includes('✗') || line.includes('FAIL') || line.includes('failed')) {
       return 'error'
-    }
-    else if (line.includes('RUN') || line.includes('Starting')) {
+    } else if (line.includes('RUN') || line.includes('Starting')) {
       return 'info'
     }
     return ''
@@ -316,11 +313,11 @@ class TestDashboardServer {
       stdio: 'pipe',
     })
 
-    watchProcess.stdout.on('data', (data) => {
+    watchProcess.stdout.on('data', data => {
       const text = data.toString()
       const lines = text.split('\n').filter(line => line.trim())
 
-      lines.forEach((line) => {
+      lines.forEach(line => {
         this.broadcast({
           type: 'test_output',
           data: { text: line, type: this.getLineType(line) },
@@ -345,7 +342,7 @@ class TestDashboardServer {
 // CLI interface
 const server = new TestDashboardServer()
 
-server.start().catch((error) => {
+server.start().catch(error => {
   console.error('❌ Failed to start server:', error)
   process.exit(1)
 })

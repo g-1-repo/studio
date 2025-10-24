@@ -115,7 +115,9 @@ const { Command: _Command } = await import('commander')
 const fs = await import('fs-extra')
 const path = await import('node:path')
 const { Logger } = await import('../utils/logger.js')
-const { detectPackageManager, getAvailablePackageManagers } = await import('../utils/package-manager.js')
+const { detectPackageManager, getAvailablePackageManagers } = await import(
+  '../utils/package-manager.js'
+)
 const { isGitRepository, getGitUserInfo } = await import('../utils/git.js')
 const { readJsonFile, getDirectorySize, formatFileSize } = await import('../utils/file-system.js')
 const { createInfoCommand } = await import('./info')
@@ -150,10 +152,10 @@ describe('info Command', () => {
 
     // Mock process methods
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project')
-    vi.spyOn(process, 'exit').mockImplementation((() => { }) as any)
+    vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
 
     // Mock console.log for JSON output
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { })
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Mock path.join - both default and named exports
     mockPath.join.mockImplementation((...args: string[]) => {
@@ -177,12 +179,10 @@ describe('info Command', () => {
     const { execSync } = await import('node:child_process')
     const mockExecSync = execSync as any
     mockExecSync.mockImplementation((command: string) => {
-      if (command === 'git branch --show-current')
-        return 'main'
+      if (command === 'git branch --show-current') return 'main'
       if (command === 'git config --get remote.origin.url')
         return 'https://github.com/user/repo.git'
-      if (command === 'git log -1 --format="%h %s"')
-        return 'abc1234 Initial commit'
+      if (command === 'git log -1 --format="%h %s"') return 'abc1234 Initial commit'
       return ''
     })
 
@@ -351,15 +351,13 @@ describe('info Command', () => {
         dependencies: { '@g-1/core': '^1.0.0' },
       }
       mockReadJsonFile.mockImplementation((path: string) => {
-        if (path.includes('package.json'))
-          return Promise.resolve(mockPackageJson)
+        if (path.includes('package.json')) return Promise.resolve(mockPackageJson)
         return Promise.resolve(null)
       })
 
       // Mock plugins directory to exist and contain 2 plugin files
       mockFs.pathExists.mockImplementation((path: string) => {
-        if (path.includes('src/plugins'))
-          return Promise.resolve(true)
+        if (path.includes('src/plugins')) return Promise.resolve(true)
         return Promise.resolve(false)
       })
       mockFs.readdir.mockResolvedValue(['plugin1.ts', 'plugin2.js', 'readme.md'])
@@ -467,9 +465,7 @@ describe('info Command', () => {
 
       await actionFn({ json: true })
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"name": "test-project"'),
-      )
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"name": "test-project"'))
       expect(mockLogger.header).not.toHaveBeenCalled()
     })
 

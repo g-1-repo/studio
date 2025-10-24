@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import process from 'node:process'
+
 // import { confirm, select } from '@g-1/util' // These don't exist in v2.0.0
 
 /**
@@ -76,8 +77,7 @@ async function setDevelopmentMode() {
   if (shouldRestart) {
     console.log('🔄 Restarting development server...')
     console.log('Run: NODE_ENV=development bun run dev\n')
-  }
-  else {
+  } else {
     console.log('💡 Remember to restart your dev server with: NODE_ENV=development bun run dev')
   }
 }
@@ -119,8 +119,7 @@ async function restartWithDevLimits() {
       await fs.writeFile('.env', 'NODE_ENV=development\n', { flag: 'a' })
       console.log('✅ Added NODE_ENV=development to .env file')
       console.log('Now run: bun run dev')
-    }
-    catch (error) {
+    } catch (error) {
       console.error('❌ Failed to create .env file:', error)
     }
   }
@@ -155,7 +154,7 @@ async function showRateLimitInfo() {
 }
 
 // Run the script
-main().catch((error) => {
+main().catch(error => {
   console.error('❌ Script failed:', error.message)
   process.exit(1)
 })

@@ -1,8 +1,6 @@
-import type {
-  ValidationResult,
-} from '@g-1/util'
+import type { ValidationResult } from '@g-1/util'
+import { email as emailRule, required, ValidationError, validate } from '@g-1/util'
 import type { BaseRepository } from './base-repository'
-import { email as emailRule, required, validate, ValidationError } from '@g-1/util'
 
 import { createBadRequest, createConflict } from './utils/exceptions'
 
@@ -14,9 +12,9 @@ export abstract class BaseService {
    */
   protected validateRequiredFields(
     data: Record<string, unknown>,
-    requiredFields: string[],
+    requiredFields: string[]
   ): ValidationResult {
-    const missingFields = requiredFields.filter((field) => {
+    const missingFields = requiredFields.filter(field => {
       const value = data[field]
       return value === undefined || value === null || value === ''
     })
@@ -42,7 +40,9 @@ export abstract class BaseService {
   /**
    * Validate and normalize email
    */
-  protected validateAndNormalizeEmail(data: { email: string }): ValidationResult<{ email: string }> {
+  protected validateAndNormalizeEmail(data: {
+    email: string
+  }): ValidationResult<{ email: string }> {
     const validation = this.validateEmail(data.email)
     if (!validation.success) {
       return {
@@ -60,7 +60,7 @@ export abstract class BaseService {
   /**
    * Validate pagination parameters
    */
-  protected validatePagination(params: { page?: number, limit?: number }): ValidationResult {
+  protected validatePagination(params: { page?: number; limit?: number }): ValidationResult {
     const page = params.page ?? 1
     const limit = params.limit ?? 20
 
@@ -77,7 +77,10 @@ export abstract class BaseService {
   /**
    * Handle validation errors
    */
-  protected handleValidationError(validation: ValidationResult, _context?: Record<string, unknown>): never {
+  protected handleValidationError(
+    validation: ValidationResult,
+    _context?: Record<string, unknown>
+  ): never {
     if (validation.error) {
       throw createBadRequest(validation.error.message)
     }
@@ -97,7 +100,7 @@ export abstract class BaseService {
   protected ensureNotExists<T>(
     entity: T | null | undefined,
     message: string,
-    details?: Record<string, unknown>,
+    details?: Record<string, unknown>
   ): void {
     if (entity) {
       this.handleConflictError(message, details)
@@ -109,7 +112,7 @@ export abstract class BaseService {
    */
   protected ensureExists<T>(
     entity: T | null | undefined,
-    message: string = 'Entity not found',
+    message: string = 'Entity not found'
   ): asserts entity is T {
     if (!entity) {
       throw createBadRequest(message)

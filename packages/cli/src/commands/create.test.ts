@@ -16,7 +16,7 @@ vi.doMock('commander', () => ({
       }),
       argument: vi.fn().mockReturnThis(),
       option: vi.fn().mockReturnThis(),
-      action: vi.fn().mockImplementation((handler) => {
+      action: vi.fn().mockImplementation(handler => {
         mockActionHandler = handler
         instance._actionHandler = handler
         return instance
@@ -229,7 +229,7 @@ describe('create Command', () => {
 
       const promptCalls = mockInquirer.prompt.mock.calls
       const templatePrompt = promptCalls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'template'),
+        call[0].some((prompt: any) => prompt.name === 'template')
       )
 
       expect(templatePrompt).toBeDefined()
@@ -246,7 +246,7 @@ describe('create Command', () => {
 
       const promptCalls = mockInquirer.prompt.mock.calls
       const packageManagerPrompt = promptCalls.find(call =>
-        call[0].some((prompt: any) => prompt.name === 'packageManager'),
+        call[0].some((prompt: any) => prompt.name === 'packageManager')
       )
 
       expect(packageManagerPrompt).toBeDefined()
@@ -329,7 +329,7 @@ describe('create Command', () => {
       expect(mockCreateProject).toHaveBeenCalledWith(
         expect.objectContaining({
           directory: '/current/directory',
-        }),
+        })
       )
     })
 
@@ -400,10 +400,12 @@ describe('create Command', () => {
 
       const actionFn = mockActionHandler || (createCommand as any)._actionHandler
 
-      await expect(actionFn('test-project', {
-        template: 'api',
-        packageManager: 'bun',
-      })).rejects.toThrow('process.exit called')
+      await expect(
+        actionFn('test-project', {
+          template: 'api',
+          packageManager: 'bun',
+        })
+      ).rejects.toThrow('process.exit called')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Creation failed')
     })
@@ -420,13 +422,16 @@ describe('create Command', () => {
       await actionFn('test-project', {})
 
       const promptCall = mockInquirer.prompt.mock.calls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'template'),
+        call[0].some((prompt: any) => prompt.name === 'template')
       )
 
       if (promptCall) {
         const templatePrompt = promptCall[0].find((prompt: any) => prompt.name === 'template')
         expect(templatePrompt.choices).toEqual([
-          { name: 'API Server - Full-featured API with auth, database, and middleware', value: 'api' },
+          {
+            name: 'API Server - Full-featured API with auth, database, and middleware',
+            value: 'api',
+          },
           { name: 'Minimal API - Basic API structure with minimal dependencies', value: 'minimal' },
           { name: 'Plugin - Create a G1 framework plugin', value: 'plugin' },
         ])
@@ -453,11 +458,13 @@ describe('create Command', () => {
       await actionFn('test-project', { template: 'api' })
 
       const promptCall = mockInquirer.prompt.mock.calls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'packageManager'),
+        call[0].some((prompt: any) => prompt.name === 'packageManager')
       )
 
       if (promptCall) {
-        const packageManagerPrompt = promptCall[0].find((prompt: any) => prompt.name === 'packageManager')
+        const packageManagerPrompt = promptCall[0].find(
+          (prompt: any) => prompt.name === 'packageManager'
+        )
         expect(packageManagerPrompt.choices).toEqual([
           { name: 'Bun (recommended)', value: 'bun' },
           { name: 'npm', value: 'npm' },

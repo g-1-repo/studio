@@ -1,5 +1,12 @@
 # @g-1/cli
 
+## 1.2.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @g-1/core@1.15.13
+
 ## 1.2.4
 
 ### Patch Changes

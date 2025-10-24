@@ -1,10 +1,10 @@
-import type { EmailTemplate } from '../interfaces/email-template.interface'
-import type { EmailProvider, EmailProviderConfig } from '../providers/email-provider.interface'
-import type { TemplateConfig } from './template-config.interface'
 import process from 'node:process'
 import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import type { EmailTemplate } from '../interfaces/email-template.interface'
+import type { EmailProvider, EmailProviderConfig } from '../providers/email-provider.interface'
 import { MockProvider } from '../providers/mock.provider'
 import { ResendProvider } from '../providers/resend.provider'
+import type { TemplateConfig } from './template-config.interface'
 import { DEFAULT_BRAND, DEFAULT_THEME } from './template-config.interface'
 import { templateRegistry } from './template-registry'
 
@@ -16,7 +16,7 @@ export interface MailServiceConfig {
   replyTo?: string
 }
 
-export interface SendEmailOptions<T extends any[] = any[]> {
+export interface SendEmailOptions<T extends unknown[] = unknown[]> {
   to: string
   template: string
   templateArgs?: T
@@ -32,7 +32,7 @@ export class MailService {
     this.templateConfig = this.createTemplateConfig(config.template)
   }
 
-  async send<T extends any[]>(options: SendEmailOptions<T>): Promise<{ id: string }> {
+  async send<T extends unknown[]>(options: SendEmailOptions<T>): Promise<{ id: string }> {
     // Create template instance
     const template = this.createTemplate(options.template, options.templateArgs)
 
@@ -72,9 +72,7 @@ export class MailService {
   private createProvider(config: EmailProviderConfig): EmailProvider {
     switch (config.type) {
       case 'resend':
-        return new ResendProvider(
-          config.apiKey ?? process.env.RESEND_API_KEY ?? '',
-        )
+        return new ResendProvider(config.apiKey ?? process.env.RESEND_API_KEY ?? '')
       case 'mock':
         return new MockProvider()
       default:
@@ -89,9 +87,9 @@ export class MailService {
     }
   }
 
-  private createTemplate<T extends any[]>(
+  private createTemplate<T extends unknown[]>(
     name: string,
-    args: T = [] as unknown as T,
+    args: T = [] as unknown as T
   ): EmailTemplate {
     return templateRegistry.create(name, this.templateConfig, ...args)
   }

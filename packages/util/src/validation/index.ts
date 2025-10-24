@@ -113,8 +113,7 @@ export function object(message: string = 'Must be an object'): ValidationRule {
  */
 export function minLength(min: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     const length = isString(value) || isArray(value) ? value.length : 0
     if (length < min) {
@@ -129,8 +128,7 @@ export function minLength(min: number, message?: string): ValidationRule {
  */
 export function maxLength(max: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     const length = isString(value) || isArray(value) ? value.length : 0
     if (length > max) {
@@ -145,8 +143,7 @@ export function maxLength(max: number, message?: string): ValidationRule {
  */
 export function min(minimum: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (isNumber(value) && value < minimum) {
       return message || `Must be at least ${minimum}`
@@ -160,8 +157,7 @@ export function min(minimum: number, message?: string): ValidationRule {
  */
 export function max(maximum: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (isNumber(value) && value > maximum) {
       return message || `Must be at most ${maximum}`
@@ -176,8 +172,7 @@ export function max(maximum: number, message?: string): ValidationRule {
 export function email(message: string = 'Must be a valid email address'): ValidationRule {
   const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (!isString(value) || !emailRegex.test(value)) {
       return message
@@ -191,8 +186,7 @@ export function email(message: string = 'Must be a valid email address'): Valida
  */
 export function url(message: string = 'Must be a valid URL'): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (!isString(value)) {
       return message
@@ -202,8 +196,7 @@ export function url(message: string = 'Must be a valid URL'): ValidationRule {
       // eslint-disable-next-line no-new
       new URL(value)
       return true
-    }
-    catch {
+    } catch {
       return message
     }
   }
@@ -214,8 +207,7 @@ export function url(message: string = 'Must be a valid URL'): ValidationRule {
  */
 export function pattern(regex: RegExp, message: string = 'Invalid format'): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (!isString(value) || !regex.test(value)) {
       return message
@@ -229,11 +221,10 @@ export function pattern(regex: RegExp, message: string = 'Invalid format'): Vali
  */
 export function custom<T = unknown>(
   validator: (value: T) => boolean,
-  message: string = 'Validation failed',
+  message: string = 'Validation failed'
 ): ValidationRule<T> {
   return (value: T) => {
-    if (isNullish(value))
-      return true
+    if (isNullish(value)) return true
 
     if (!validator(value)) {
       return message
@@ -245,7 +236,11 @@ export function custom<T = unknown>(
 /**
  * Validate a single value against rules
  */
-export function validateValue(value: unknown, rules: ValidationRule[], field?: string): ValidationResult {
+export function validateValue(
+  value: unknown,
+  rules: ValidationRule[],
+  field?: string
+): ValidationResult {
   for (const rule of rules) {
     const result = rule(value)
     if (result !== true) {
@@ -258,7 +253,10 @@ export function validateValue(value: unknown, rules: ValidationRule[], field?: s
 /**
  * Validate an object against a schema
  */
-export function validate(data: Record<string, unknown>, schema: ValidationSchema): ValidationResult<Record<string, unknown>> {
+export function validate(
+  data: Record<string, unknown>,
+  schema: ValidationSchema
+): ValidationResult<Record<string, unknown>> {
   const errors: ValidationError[] = []
   const validatedData: Record<string, unknown> = {}
 
@@ -268,15 +266,16 @@ export function validate(data: Record<string, unknown>, schema: ValidationSchema
 
     if (!result.success && result.error) {
       errors.push(result.error)
-    }
-    else {
+    } else {
       validatedData[field] = value
     }
   }
 
   if (errors.length > 0) {
     const firstError = errors[0]
-    return failure(firstError.message, firstError.field, firstError.value) as ValidationResult<Record<string, unknown>>
+    return failure(firstError.message, firstError.field, firstError.value) as ValidationResult<
+      Record<string, unknown>
+    >
   }
 
   return success(validatedData)

@@ -1,9 +1,7 @@
-import type { Mailer, SendProps } from './interfaces/mailer.interface'
 import process from 'node:process'
-
 import { createWorkerSafeCuid2 as createId } from '@g-1/util'
-
 import { Resend } from 'resend'
+import type { Mailer, SendProps } from './interfaces/mailer.interface'
 
 export interface MailerConfig {
   fromEmail?: string
@@ -18,7 +16,7 @@ export class MailerService implements Mailer {
 
   constructor(
     private resend?: Resend,
-    config: MailerConfig = {},
+    config: MailerConfig = {}
   ) {
     this.config = {
       fromEmail: config.fromEmail ?? 'no_reply@onboarding.golive.me',
@@ -28,7 +26,7 @@ export class MailerService implements Mailer {
       resendApiKey: config.resendApiKey ?? process.env.RESEND_API_KEY ?? '',
     }
 
-    this.useMock = (process.env.NODE_ENV === 'test')
+    this.useMock = process.env.NODE_ENV === 'test'
 
     if (!this.useMock && !this.resend) {
       if (!this.config.resendApiKey) {
@@ -55,7 +53,11 @@ export class MailerService implements Mailer {
     }
 
     try {
-      const result = await this.resend!.emails.send({
+      if (!this.resend) {
+        throw new Error('Resend client is not initialized')
+      }
+      
+      const result = await this.resend.emails.send({
         from: `${this.config.fromName} <${this.config.fromEmail}>`,
         to: [data.to],
         replyTo: this.config.replyTo,
@@ -71,11 +73,10 @@ export class MailerService implements Mailer {
       }
 
       return { id: result.data?.id ?? 'unknown' }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Failed to send email:', error)
       throw new Error(
-        `Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
   }

@@ -1,7 +1,7 @@
 import path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import Mustache from 'mustache'
 import fs from 'fs-extra'
+import Mustache from 'mustache'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   copyTemplateFiles,
   createTemplateVariables,
@@ -175,7 +175,7 @@ describe('template Utilities', () => {
       mockFs.pathExists.mockResolvedValue(true)
 
       await expect(renderTemplateToFile(template, outputPath, variables)).rejects.toThrow(
-        'File already exists: /output/existing.txt',
+        'File already exists: /output/existing.txt'
       )
     })
 
@@ -222,7 +222,7 @@ describe('template Utilities', () => {
       })
       mockPath.join.mockImplementation((...args: string[]) => args.join('/'))
       mockMustache.render.mockReturnValue('Template content test')
-      mockPath.extname.mockImplementation(p => p.endsWith('.mustache') ? '.mustache' : '.txt')
+      mockPath.extname.mockImplementation(p => (p.endsWith('.mustache') ? '.mustache' : '.txt'))
 
       await copyTemplateFiles(templateDir, destinationDir, variables)
 

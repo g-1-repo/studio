@@ -195,7 +195,7 @@ describe('generate Command', () => {
       expect(mockGeneratePlugin).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'test-plugin',
-        }),
+        })
       )
     })
 
@@ -459,7 +459,9 @@ describe('generate Command', () => {
       await generateCommand('plugin', 'test-plugin', {})
 
       expect(mockLogger.subheader).toHaveBeenCalledWith('Next steps:')
-      expect(mockLogger.listItem).toHaveBeenCalledWith('1. Implement your plugin logic in the generated files')
+      expect(mockLogger.listItem).toHaveBeenCalledWith(
+        '1. Implement your plugin logic in the generated files'
+      )
       expect(mockLogger.listItem).toHaveBeenCalledWith('2. Register the plugin in your application')
       expect(mockLogger.listItem).toHaveBeenCalledWith('3. Configure plugin settings if needed')
     })
@@ -509,7 +511,9 @@ describe('generate Command', () => {
 
       await generateCommand('plugin', 'test-plugin', { tests: false })
 
-      expect(mockLogger.listItem).not.toHaveBeenCalledWith('4. Run tests to ensure everything works')
+      expect(mockLogger.listItem).not.toHaveBeenCalledWith(
+        '4. Run tests to ensure everything works'
+      )
     })
   })
 
@@ -526,7 +530,9 @@ describe('generate Command', () => {
       // Import the generateCommand function directly
       const { generateCommand } = await import('./generate')
 
-      await expect(generateCommand('plugin', 'test-plugin', {})).rejects.toThrow('Generation failed')
+      await expect(generateCommand('plugin', 'test-plugin', {})).rejects.toThrow(
+        'Generation failed'
+      )
     })
 
     it('should handle non-Error exceptions', async () => {

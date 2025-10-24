@@ -1,7 +1,7 @@
 {
   "name": "@g-1/cli",
   "type": "module",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "packageManager": "bun@1.1.38",
   "description": "G1 API Framework CLI for project scaffolding and management",
   "author": "G1 Studio",
@@ -44,8 +44,12 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "clean": "rm -rf dist",
     "prepublishOnly": "bun run clean && bun run build"
   },
@@ -68,9 +72,6 @@
     "@types/node": "^20.8.0",
     "@types/semver": "^7.5.4",
     "@types/validate-npm-package-name": "^4.0.2",
-    "@typescript-eslint/eslint-plugin": "^6.7.4",
-    "@typescript-eslint/parser": "^6.7.4",
-    "eslint": "^8.51.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"
   }

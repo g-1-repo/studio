@@ -1,14 +1,11 @@
 import type { ResponseObject } from 'openapi3-ts/oas30'
-import type { ZodSchema } from './types'
 import oneOf from './one-of'
+import type { ZodSchema } from './types'
 
 /**
  * Create JSON content configuration for OpenAPI
  */
-export function jsonContent<T extends ZodSchema>(
-  schema: T,
-  description: string,
-) {
+export function jsonContent<T extends ZodSchema>(schema: T, description: string) {
   return {
     content: {
       'application/json': {
@@ -22,10 +19,7 @@ export function jsonContent<T extends ZodSchema>(
 /**
  * Create required JSON content configuration for OpenAPI
  */
-export function jsonContentRequired<T extends ZodSchema>(
-  schema: T,
-  description: string,
-) {
+export function jsonContentRequired<T extends ZodSchema>(schema: T, description: string) {
   return {
     ...jsonContent(schema, description),
     required: true,
@@ -37,7 +31,7 @@ export function jsonContentRequired<T extends ZodSchema>(
  */
 export function jsonContentOneOf<T extends ZodSchema>(
   schemas: T[],
-  description: string,
+  description: string
 ): ResponseObject {
   return {
     content: {

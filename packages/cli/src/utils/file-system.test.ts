@@ -63,7 +63,9 @@ describe('file System Utilities', () => {
       mockFs.writeFile.mockRejectedValue(new Error('Permission denied'))
       mockPath.join.mockReturnValue('/test/dir/.write-test')
 
-      await expect(ensureWritableDirectory('/test/dir')).rejects.toThrow('Directory is not writable: /test/dir')
+      await expect(ensureWritableDirectory('/test/dir')).rejects.toThrow(
+        'Directory is not writable: /test/dir'
+      )
     })
   })
 

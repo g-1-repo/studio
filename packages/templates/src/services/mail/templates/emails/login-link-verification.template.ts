@@ -4,7 +4,7 @@ import { LayoutEmailTemplate } from '../base/layout.template'
 export class LoginLinkVerificationEmail extends LayoutEmailTemplate {
   constructor(
     config: TemplateConfig,
-    private readonly url: string,
+    private readonly url: string
   ) {
     super(config)
   }
@@ -43,7 +43,7 @@ export class LoginLinkVerificationEmail extends LayoutEmailTemplate {
       
       ${this.components.alert(
         'Please note that this link is only valid for 15 minutes, so be sure to click it as soon as possible.',
-        'warning',
+        'warning'
       )}
       
       <p>

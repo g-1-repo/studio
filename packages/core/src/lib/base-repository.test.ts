@@ -1,6 +1,6 @@
-import type { Environment } from '../env'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDb } from '../db'
+import type { Environment } from '../env'
 import { BaseRepository, clearRepositoryCaches } from './base-repository'
 import { DatabaseError } from './errors'
 
@@ -23,7 +23,7 @@ class TestRepository extends BaseRepository {
   async testExecuteQuery<T>(
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
-    operationName?: string,
+    operationName?: string
   ) {
     return this.executeQuery(env, operation, operationName)
   }
@@ -31,7 +31,7 @@ class TestRepository extends BaseRepository {
   async testExecuteBatch<T>(
     env: Environment,
     operations: Array<(db: ReturnType<typeof createDb>) => Promise<T>>,
-    operationName?: string,
+    operationName?: string
   ) {
     return this.executeBatch(env, operations, operationName)
   }
@@ -40,7 +40,7 @@ class TestRepository extends BaseRepository {
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
     operationName?: string,
-    maxRetries?: number,
+    maxRetries?: number
   ) {
     return this.executeQueryWithRetry(env, operation, operationName, maxRetries)
   }
@@ -52,7 +52,7 @@ class TestRepository extends BaseRepository {
   async testExecuteQueryWithHealthCheck<T>(
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
-    operationName?: string,
+    operationName?: string
   ) {
     return this.executeQueryWithHealthCheck(env, operation, operationName)
   }
@@ -146,24 +146,22 @@ describe('baseRepository', () => {
     it('should handle database errors', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Database error'))
 
-      await expect(repository.testExecuteQuery(mockEnv, operation, 'test-operation'))
-        .rejects
-        .toThrow('Database error')
+      await expect(
+        repository.testExecuteQuery(mockEnv, operation, 'test-operation')
+      ).rejects.toThrow('Database error')
     })
 
     it('should log slow queries', async () => {
       // Set NODE_ENV to development to ensure warning is logged
       mockEnv.NODE_ENV = 'development'
 
-      const slowOperation = vi.fn().mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve('result'), 150)),
-      )
+      const slowOperation = vi
+        .fn()
+        .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve('result'), 150)))
 
       await repository.testExecuteQuery(mockEnv, slowOperation, 'slow-operation')
 
-      expect(consoleSpy.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Slow query detected'),
-      )
+      expect(consoleSpy.warn).toHaveBeenCalledWith(expect.stringContaining('Slow query detected'))
     })
   })
 
@@ -188,9 +186,9 @@ describe('baseRepository', () => {
         vi.fn().mockResolvedValue('result3'),
       ]
 
-      await expect(repository.testExecuteBatch(mockEnv, operations, 'batch-operation'))
-        .rejects
-        .toThrow('Batch error')
+      await expect(
+        repository.testExecuteBatch(mockEnv, operations, 'batch-operation')
+      ).rejects.toThrow('Batch error')
     })
 
     it('should log batch performance metrics', async () => {
@@ -205,7 +203,7 @@ describe('baseRepository', () => {
       await repository.testExecuteBatch(mockEnv, operations, 'batch-operation')
 
       expect(consoleSpy.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Batch operation: batch-operation took'),
+        expect.stringContaining('Batch operation: batch-operation took')
       )
     })
   })
@@ -214,19 +212,28 @@ describe('baseRepository', () => {
     it('should succeed on first attempt', async () => {
       const operation = vi.fn().mockResolvedValue('success')
 
-      const result = await repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation')
+      const result = await repository.testExecuteQueryWithRetry(
+        mockEnv,
+        operation,
+        'retry-operation'
+      )
 
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(1)
     })
 
     it('should retry on transient errors', async () => {
-      const operation = vi.fn()
+      const operation = vi
+        .fn()
         .mockRejectedValueOnce(new Error('Connection timeout'))
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValue('success')
 
-      const result = await repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation')
+      const result = await repository.testExecuteQueryWithRetry(
+        mockEnv,
+        operation,
+        'retry-operation'
+      )
 
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(3)
@@ -235,9 +242,9 @@ describe('baseRepository', () => {
     it('should not retry on non-retryable errors', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Unique constraint violation'))
 
-      await expect(repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation'))
-        .rejects
-        .toThrow('Unique constraint violation')
+      await expect(
+        repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation')
+      ).rejects.toThrow('Unique constraint violation')
 
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -245,9 +252,9 @@ describe('baseRepository', () => {
     it('should respect max retry limit', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Connection timeout'))
 
-      await expect(repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation', 2))
-        .rejects
-        .toThrow('Connection timeout')
+      await expect(
+        repository.testExecuteQueryWithRetry(mockEnv, operation, 'retry-operation', 2)
+      ).rejects.toThrow('Connection timeout')
 
       expect(operation).toHaveBeenCalledTimes(2)
     })
@@ -298,7 +305,11 @@ describe('baseRepository', () => {
       mockDb.run.mockResolvedValue({ success: true })
       const operation = vi.fn().mockResolvedValue('success')
 
-      const result = await repository.testExecuteQueryWithHealthCheck(mockEnv, operation, 'health-check-operation')
+      const result = await repository.testExecuteQueryWithHealthCheck(
+        mockEnv,
+        operation,
+        'health-check-operation'
+      )
 
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalled()
@@ -308,9 +319,9 @@ describe('baseRepository', () => {
       mockDb.run.mockRejectedValue(new Error('Database error'))
       const operation = vi.fn().mockResolvedValue('success')
 
-      await expect(repository.testExecuteQueryWithHealthCheck(mockEnv, operation, 'health-check-operation'))
-        .rejects
-        .toThrow(DatabaseError)
+      await expect(
+        repository.testExecuteQueryWithHealthCheck(mockEnv, operation, 'health-check-operation')
+      ).rejects.toThrow(DatabaseError)
 
       expect(operation).not.toHaveBeenCalled()
     })

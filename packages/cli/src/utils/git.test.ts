@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process'
 import path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'fs-extra'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createBranch,
   getCurrentBranch,
@@ -88,7 +88,7 @@ describe('git Utilities', () => {
 
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         '/test/project/.gitignore',
-        expect.stringContaining('node_modules/'),
+        expect.stringContaining('node_modules/')
       )
     })
 
@@ -101,7 +101,7 @@ describe('git Utilities', () => {
       })
 
       await expect(initializeGit('/test/project')).rejects.toThrow(
-        'Failed to initialize git repository: Git init failed',
+        'Failed to initialize git repository: Git init failed'
       )
     })
 
@@ -111,7 +111,7 @@ describe('git Utilities', () => {
       })
 
       await expect(initializeGit('/test/project')).rejects.toThrow(
-        'Failed to initialize git repository: Unknown error',
+        'Failed to initialize git repository: Unknown error'
       )
     })
   })
@@ -139,9 +139,7 @@ describe('git Utilities', () => {
 
   describe('getGitUserInfo', () => {
     it('should return git user name and email', () => {
-      mockExecSync
-        .mockReturnValueOnce('John Doe\n')
-        .mockReturnValueOnce('john.doe@example.com\n')
+      mockExecSync.mockReturnValueOnce('John Doe\n').mockReturnValueOnce('john.doe@example.com\n')
 
       const result = getGitUserInfo()
 
@@ -170,11 +168,9 @@ describe('git Utilities', () => {
     })
 
     it('should handle partial git config', () => {
-      mockExecSync
-        .mockReturnValueOnce('John Doe\n')
-        .mockImplementationOnce(() => {
-          throw new Error('No email configured')
-        })
+      mockExecSync.mockReturnValueOnce('John Doe\n').mockImplementationOnce(() => {
+        throw new Error('No email configured')
+      })
 
       const result = getGitUserInfo()
 
@@ -249,7 +245,7 @@ describe('git Utilities', () => {
       })
 
       await expect(gitAddAndCommit('/test/project', 'Test commit')).rejects.toThrow(
-        'Failed to add and commit files: Git add failed',
+        'Failed to add and commit files: Git add failed'
       )
     })
 
@@ -262,7 +258,7 @@ describe('git Utilities', () => {
       })
 
       await expect(gitAddAndCommit('/test/project', 'Test commit')).rejects.toThrow(
-        'Failed to add and commit files: Git commit failed',
+        'Failed to add and commit files: Git commit failed'
       )
     })
   })
@@ -285,7 +281,7 @@ describe('git Utilities', () => {
       })
 
       await expect(createBranch('/test/project', 'feature-branch')).rejects.toThrow(
-        'Failed to create branch: Branch creation failed',
+        'Failed to create branch: Branch creation failed'
       )
     })
   })

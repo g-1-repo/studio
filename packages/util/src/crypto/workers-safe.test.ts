@@ -109,7 +109,7 @@ describe('workers-safe crypto functions', () => {
     })
 
     it('should fallback to manual generation when crypto.randomUUID is not available', () => {
-      const mockGetRandomValues = vi.fn((array) => {
+      const mockGetRandomValues = vi.fn(array => {
         // Fill with predictable values for testing
         for (let i = 0; i < array.length; i++) {
           array[i] = i * 16 + 15 // This will give us 'ff' for each byte
@@ -143,8 +143,12 @@ describe('workers-safe crypto functions', () => {
       const uuid2 = generateUUID()
 
       // Basic format validation
-      expect(uuid1).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-      expect(uuid2).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+      expect(uuid1).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
+      expect(uuid2).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
 
       // They should be different (extremely high probability)
       if (uuid1 === uuid2) {

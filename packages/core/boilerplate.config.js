@@ -10,7 +10,8 @@ export const boilerplateConfig = {
   // Project Information
   projectName: 'g1-core',
   projectDisplayName: 'G1 Core API',
-  projectDescription: 'The G1 API Core. A high-performance, enterprise, typescript API boilerplate built for maximum scale and security. Powered by Hono, Cloudflare workers, D1, Drizzle, and Better-Auth.',
+  projectDescription:
+    'The G1 API Core. A high-performance, enterprise, typescript API boilerplate built for maximum scale and security. Powered by Hono, Cloudflare workers, D1, Drizzle, and Better-Auth.',
 
   // Package Information
   packageName: '@g-1/core',

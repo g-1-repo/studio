@@ -6,16 +6,16 @@ import {
   DEFAULT_RETRY_CONFIG,
   isConnectionError,
   isConstraintViolation,
-  normalizePagination,
   NotFoundError,
+  normalizePagination,
   PaginationParams,
   PaginationResult,
   RetryConfig,
   retryOperation,
   sleep,
+  TransactionCallback,
   takeFirst,
   takeFirstOrThrow,
-  TransactionCallback,
 } from '@g-1/util'
 
 import { text } from 'drizzle-orm/sqlite-core'
@@ -65,12 +65,10 @@ export function takeFirstOrThrowGeneric<T>(values: T[], message?: string): T {
 export function takeFirstOrThrowHttp<T>(values: T[], message?: string): T {
   try {
     return takeFirstOrThrowGeneric(values, message)
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof NotFoundError) {
       throw NotFound(error.message)
-    }
-    else {
+    } else {
       throw new InternalError((error as Error).message)
     }
   }
@@ -85,10 +83,7 @@ export function takeFirstOrThrowHttp<T>(values: T[], message?: string): T {
 const getCurrentISOString = () => new Date().toISOString()
 
 export const timestamps = {
-  createdAt: text('created_at')
-    .$defaultFn(getCurrentISOString),
-  updatedAt: text('updated_at')
-    .$defaultFn(getCurrentISOString)
-    .$onUpdate(getCurrentISOString),
+  createdAt: text('created_at').$defaultFn(getCurrentISOString),
+  updatedAt: text('updated_at').$defaultFn(getCurrentISOString).$onUpdate(getCurrentISOString),
   deletedAt: text('deleted_at'),
 }

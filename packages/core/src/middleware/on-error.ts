@@ -1,7 +1,7 @@
-import type { ErrorHandler } from 'hono'
-import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import process from 'node:process'
 import { isOperationalError } from '@g-1/util'
+import type { ErrorHandler } from 'hono'
+import type { ContentfulStatusCode } from 'hono/utils/http-status'
 
 import { AppError, getErrorCode, getErrorMessage } from '../lib/errors'
 import { INTERNAL_SERVER_ERROR, OK } from '../lib/utils/http-status'
@@ -12,8 +12,7 @@ const onError: ErrorHandler = (err, c) => {
     // Log operational errors for monitoring
     if (isOperationalError(err)) {
       console.warn('Operational error:', err.toJSON())
-    }
-    else {
+    } else {
       // Non-operational errors are more serious
       console.error('Non-operational error:', err.message, err.stack)
     }
@@ -22,12 +21,9 @@ const onError: ErrorHandler = (err, c) => {
   }
 
   // Handle legacy errors
-  const currentStatus = 'status' in err
-    ? err.status
-    : c.newResponse(null).status
-  const statusCode = currentStatus !== OK
-    ? (currentStatus as ContentfulStatusCode)
-    : INTERNAL_SERVER_ERROR
+  const currentStatus = 'status' in err ? err.status : c.newResponse(null).status
+  const statusCode =
+    currentStatus !== OK ? (currentStatus as ContentfulStatusCode) : INTERNAL_SERVER_ERROR
 
   const env = c.env?.NODE_ENV || process.env?.NODE_ENV
   const isDevelopment = env === 'development'
@@ -45,7 +41,7 @@ const onError: ErrorHandler = (err, c) => {
         ...(isDevelopment && { stack: err.stack }),
       },
     },
-    statusCode,
+    statusCode
   )
 }
 

@@ -1,29 +1,25 @@
+import process from 'node:process'
 import type { D1Database, IncomingRequestCfProperties } from '@cloudflare/workers-types'
-
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { admin, anonymous, emailOTP, openAPI, organization, username } from 'better-auth/plugins'
+import { withCloudflare } from 'better-auth-cloudflare'
+import { createDb } from '../db'
 import type { Environment } from '../env'
 import type { MailService } from '../services/mail'
-import process from 'node:process'
-import { betterAuth } from 'better-auth'
-import { withCloudflare } from 'better-auth-cloudflare'
-
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-
-import { admin, anonymous, emailOTP, openAPI, organization, username } from 'better-auth/plugins'
-import { createDb } from '../db'
 import { createMailService, TEMPLATE_NAMES } from '../services/mail'
 
 function getMailer(env?: Environment): MailService | null {
-  if (!env?.RESEND_API_KEY)
-    return null
+  if (!env?.RESEND_API_KEY) return null
   return createMailService({
     provider: { type: 'resend', apiKey: env.RESEND_API_KEY },
   })
 }
 
 // Single auth configuration that handles both CLI and runtime scenarios
-function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
+function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): ReturnType<typeof betterAuth> {
   // Use actual DB for runtime, empty object for CLI
-  const { db } = env ? createDb(env) : ({} as any)
+  const { db } = env ? createDb(env) : ({} as ReturnType<typeof createDb>)
 
   const isDev = process.env.NODE_ENV === 'development'
   return betterAuth({
@@ -53,7 +49,12 @@ function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
                 await mailer.send({
                   to: user.email,
                   template: TEMPLATE_NAMES.EMAIL_CHANGE_REQUEST,
-                  templateArgs: [url, (user as typeof user & { username?: string }).username ?? '', user.name, newEmail],
+                  templateArgs: [
+                    url,
+                    (user as typeof user & { username?: string }).username ?? '',
+                    user.name,
+                    newEmail,
+                  ],
                 })
               }
             },
@@ -71,7 +72,7 @@ function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
                 if (ctx) {
                   const userCount = await ctx.context.adapter.count({ model: 'user' })
                   if (userCount === 0) {
-                    (user as typeof user & { role?: string }).role = 'admin'
+                    ;(user as typeof user & { role?: string }).role = 'admin'
                   }
                 }
                 return { data: user }
@@ -88,7 +89,11 @@ function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
               await mailer.send({
                 to: user.email,
                 template: TEMPLATE_NAMES.RESET_PASSWORD,
-                templateArgs: [url, (user as typeof user & { username?: string }).username ?? '', user.name],
+                templateArgs: [
+                  url,
+                  (user as typeof user & { username?: string }).username ?? '',
+                  user.name,
+                ],
               })
             }
           },
@@ -123,7 +128,7 @@ function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
           }),
           organization(),
           username({
-            usernameValidator: (username) => {
+            usernameValidator: username => {
               if (username === 'admin') {
                 return false
               }
@@ -147,7 +152,7 @@ function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): any {
         rateLimit: {
           enabled: false, // Using custom rate limiting middleware instead
         },
-      },
+      }
     ),
     // Add database adapter for both runtime and CLI
     database: env
@@ -182,11 +187,11 @@ export const auth = {
     }
     return _authInstance.handler(...args)
   },
-  api: (...args: any[]) => {
+  api: (...args: unknown[]) => {
     if (!_authInstance) {
       _authInstance = createAuth()
     }
-    return (_authInstance.api as any)(...args)
+    return (_authInstance.api as unknown)(...args)
   },
 }
 

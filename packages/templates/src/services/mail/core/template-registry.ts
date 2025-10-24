@@ -1,17 +1,20 @@
 import type { EmailTemplate } from '../interfaces/email-template.interface'
 import type { TemplateConfig } from './template-config.interface'
 
-export type TemplateFactory<T extends any[] = any[]> = (config: TemplateConfig, ...args: T) => EmailTemplate
+export type TemplateFactory<T extends unknown[] = unknown[]> = (
+  config: TemplateConfig,
+  ...args: T
+) => EmailTemplate
 
 export class TemplateRegistry {
   private templates = new Map<string, TemplateFactory>()
   private cache = new Map<string, EmailTemplate>()
 
-  register<T extends any[]>(name: string, factory: TemplateFactory<T>): void {
+  register<T extends unknown[]>(name: string, factory: TemplateFactory<T>): void {
     this.templates.set(name, factory)
   }
 
-  create<T extends any[]>(name: string, config: TemplateConfig, ...args: T): EmailTemplate {
+  create<T extends unknown[]>(name: string, config: TemplateConfig, ...args: T): EmailTemplate {
     const factory = this.templates.get(name)
     if (!factory) {
       throw new Error(`Template "${name}" not found`)
@@ -22,7 +25,10 @@ export class TemplateRegistry {
 
     // Return cached template if available
     if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey)!
+      const cachedTemplate = this.cache.get(cacheKey)
+      if (cachedTemplate) {
+        return cachedTemplate
+      }
     }
 
     // Create new template and cache it
@@ -44,7 +50,7 @@ export class TemplateRegistry {
     this.cache.clear()
   }
 
-  private createCacheKey(name: string, config: TemplateConfig, args: any[]): string {
+  private createCacheKey(name: string, config: TemplateConfig, args: unknown[]): string {
     // Simple cache key based on template name and serialized args
     // In production, you might want a more sophisticated cache key strategy
     const argsHash = JSON.stringify(args)

@@ -25,7 +25,9 @@ async function main() {
     console.log('\n🚀 G1 Core API Demo')
     console.log('================================')
     console.log(`Version: ${version}`)
-    console.log(`Description: G1 Core API - High-performance TypeScript API for Cloudflare Workers with Better Auth and D1\n`)
+    console.log(
+      `Description: G1 Core API - High-performance TypeScript API for Cloudflare Workers with Better Auth and D1\n`
+    )
 
     console.log('🎆 Key Features:')
     const features = [
@@ -37,19 +39,21 @@ async function main() {
       'Multi-tenant organization support',
       'Comprehensive testing with Vitest',
     ]
-    features.forEach(feature => console.log(`  • ${feature}`))
+    for (const feature of features) {
+      console.log(`  • ${feature}`)
+    }
 
     console.log('\n🔗 API Endpoints:')
     const endpoints = {
       'Health Check': '/health',
       'API Documentation': '/doc',
-      'Authentication': '/api/auth/*',
+      Authentication: '/api/auth/*',
       'Early Access Requests': '/v1/early-access-requests',
       'Auth Documentation': '/v1/auth-docs',
     }
-    Object.entries(endpoints).forEach(([name, path]) => {
+    for (const [name, path] of Object.entries(endpoints)) {
       console.log(`  ${name}: ${path}`)
-    })
+    }
 
     console.log('\n🛠️ Development Commands:')
     const commands = [
@@ -60,7 +64,9 @@ async function main() {
       'bun run workflow    - Development workflow utilities',
       'bun run finish-branch - Finish current branch',
     ]
-    commands.forEach(cmd => console.log(`  ${cmd}`))
+    for (const cmd of commands) {
+      console.log(`  ${cmd}`)
+    }
 
     console.log('\n🎨 Try it out:')
     console.log('  1. Run "bun run dev" to start the development server')
@@ -69,8 +75,7 @@ async function main() {
     console.log('  4. Test authentication with anonymous login')
 
     console.log('\n✨ Happy coding!')
-  }
-  catch (error) {
+  } catch (error) {
     console.error('\n❌ Demo error:', error)
     process.exit(1)
   }

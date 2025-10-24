@@ -1,9 +1,9 @@
 import { Command } from 'commander'
 import inquirer from 'inquirer'
-import { Logger } from '../utils/logger.js'
-import { validateIdentifier } from '../utils/validation.js'
 import { generateMiddleware, generatePlugin, generateRoute } from '../generators/index.js'
 import type { GenerateOptions } from '../types/index.js'
+import { Logger } from '../utils/logger.js'
+import { validateIdentifier } from '../utils/validation.js'
 
 const logger = new Logger()
 
@@ -18,11 +18,10 @@ export function createGenerateCommand(): Command {
     .option('--no-tests', 'Skip test file generation')
     .option('--no-docs', 'Skip documentation generation')
     .option('--template <template>', 'Use specific template')
-    .action(async (type: string, name?: string, options: any = {}) => {
+    .action(async (type: string, name?: string, options: Record<string, unknown> = {}) => {
       try {
         await generateCommand(type, name, options)
-      }
-      catch (error) {
+      } catch (error) {
         logger.error(`Generation failed: ${error instanceof Error ? error.message : String(error)}`)
         process.exit(1)
       }
@@ -34,7 +33,7 @@ export function createGenerateCommand(): Command {
 export async function generateCommand(
   type: string,
   name?: string,
-  options: any = {},
+  options: Record<string, unknown> = {}
 ): Promise<void> {
   logger.header('🔧 G1 Code Generator')
 
@@ -65,8 +64,14 @@ export async function generateCommand(
     name = answers.name
   }
 
+  // At this point, name is guaranteed to be defined
+  if (!name) {
+    logger.error('Name is required')
+    return
+  }
+
   // Validate name
-  const nameValidation = validateIdentifier(name!)
+  const nameValidation = validateIdentifier(name)
   if (!nameValidation.valid) {
     logger.error(`Invalid name: ${nameValidation.message}`)
     return
@@ -74,7 +79,7 @@ export async function generateCommand(
 
   // Prepare generation options
   const generateOptions: GenerateOptions = {
-    name: name!,
+    name: name,
     type: type as 'plugin' | 'middleware' | 'route' | 'model' | 'service',
     directory: options.directory,
     force: options.force,
@@ -135,7 +140,9 @@ export async function generateCommand(
     if (generatedFiles.length > 0) {
       logger.newLine()
       logger.subheader('Generated files:')
-      generatedFiles.forEach(file => logger.listItem(file))
+      for (const file of generatedFiles) {
+        logger.listItem(file)
+      }
     }
 
     // Show next steps
@@ -166,8 +173,7 @@ export async function generateCommand(
 
     logger.newLine()
     logger.success('🎉 Generation completed!')
-  }
-  catch (error) {
+  } catch (error) {
     logger.failSpinner('Generation failed')
     throw error
   }

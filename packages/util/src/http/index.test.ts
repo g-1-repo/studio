@@ -59,7 +59,7 @@ describe('hTTP utilities', () => {
     })
 
     it('should have phrase for teapot status', () => {
-      expect(HTTP_STATUS_PHRASES[418]).toBe('I\'m a teapot')
+      expect(HTTP_STATUS_PHRASES[418]).toBe("I'm a teapot")
     })
 
     it('should have phrases for all defined status codes', () => {

@@ -1,7 +1,7 @@
 {
   "name": "@g-1/core",
   "type": "module",
-  "version": "1.15.12",
+  "version": "1.15.13",
   "description": "G1 Studio API Framework - A plugin-first, high-performance TypeScript API framework built on Hono for Cloudflare Workers",
   "author": "G1 Studio",
   "license": "MIT",
@@ -35,8 +35,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "test:dashboard": "node test-runner.js"
@@ -53,9 +57,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.0.0",
     "@types/node": "^24.8.1",
-    "eslint": "^9.38.0",
     "typescript": "^5.7.3",
     "vitest": "~3.2.4",
     "ws": "^8.18.0"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { readFile, writeFile } from 'node:fs/promises'
 import process from 'node:process'
+
 // import { confirm, select } from '@g-1/util' // These don't exist in v2.0.0
 
 /**
@@ -48,12 +49,7 @@ async function testAuthEndpoints() {
   console.log('🔍 Testing Better Auth endpoints...\n')
 
   const baseUrl = 'http://localhost:8787'
-  const endpoints = [
-    '/api/auth/openapi',
-    '/api/auth/openapi.json',
-    '/auth-docs',
-    '/doc',
-  ]
+  const endpoints = ['/api/auth/openapi', '/api/auth/openapi.json', '/auth-docs', '/doc']
 
   for (const endpoint of endpoints) {
     try {
@@ -63,18 +59,22 @@ async function testAuthEndpoints() {
         console.log(`✅ Working: ${endpoint}`)
         const contentType = response.headers.get('content-type')
         if (contentType?.includes('application/json')) {
-          const data = await response.json() as any
-          if (data.openapi || data.swagger) {
+          const data = (await response.json()) as unknown
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            ('openapi' in data || 'swagger' in data)
+          ) {
             console.log(`   📄 Contains valid OpenAPI schema`)
           }
         }
-      }
-      else {
+      } else {
         console.log(`❌ Failed: ${endpoint} (${response.status})`)
       }
-    }
-    catch (error) {
-      console.log(`❌ Error: ${endpoint} - ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } catch (error) {
+      console.log(
+        `❌ Error: ${endpoint} - ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     }
   }
 }
@@ -104,25 +104,22 @@ async function fixBetterAuthConfig() {
               version: '1.0.0',
               description: 'Authentication endpoints',
             },
-          })`,
+          })`
         )
 
         await writeFile(authConfigPath, content)
         console.log('✅ Updated Better Auth openAPI configuration')
       }
-    }
-    else if (content.includes('openAPI({')) {
+    } else if (content.includes('openAPI({')) {
       console.log('✅ Already has explicit openAPI configuration')
-    }
-    else {
+    } else {
       console.log('❌ openAPI plugin not found in configuration')
     }
 
     console.log('\n💡 Next steps:')
     console.log('1. Restart your dev server')
     console.log('2. Test the endpoints: bun run test-auth-endpoints')
-  }
-  catch (error) {
+  } catch (error) {
     console.error('❌ Failed to update auth configuration:', error)
   }
 }
@@ -134,24 +131,18 @@ async function updateScalarConfig() {
     {
       name: 'Both Better Auth and Custom (Recommended)',
       sources: [
-        '{ url: \'/doc\', title: \'API\' }',
-        '{ url: \'/api/auth/openapi\', title: \'Auth (Better Auth)\' }',
-        '{ url: \'/auth-docs\', title: \'Auth (Custom)\' }',
+        "{ url: '/doc', title: 'API' }",
+        "{ url: '/api/auth/openapi', title: 'Auth (Better Auth)' }",
+        "{ url: '/auth-docs', title: 'Auth (Custom)' }",
       ],
     },
     {
       name: 'Custom Auth Docs Only (Most Reliable)',
-      sources: [
-        '{ url: \'/doc\', title: \'API\' }',
-        '{ url: \'/auth-docs\', title: \'Auth\' }',
-      ],
+      sources: ["{ url: '/doc', title: 'API' }", "{ url: '/auth-docs', title: 'Auth' }"],
     },
     {
       name: 'Better Auth Only',
-      sources: [
-        '{ url: \'/doc\', title: \'API\' }',
-        '{ url: \'/api/auth/openapi\', title: \'Auth\' }',
-      ],
+      sources: ["{ url: '/doc', title: 'API' }", "{ url: '/api/auth/openapi', title: 'Auth' }"],
     },
   ]
 
@@ -161,7 +152,7 @@ async function updateScalarConfig() {
   console.log(`\n📋 Selected: ${config.name}`)
   console.log('\nUpdate src/lib/configure-open-api.ts with:')
   console.log('sources: [')
-  config.sources.forEach((source) => {
+  config.sources.forEach(source => {
     console.log(`  ${source},`)
   })
   console.log(']')
@@ -181,10 +172,7 @@ async function useCustomDocsOnly() {
     ],`
 
     // Replace the sources section
-    content = content.replace(
-      /sources:\s*\[[\s\S]*?\],/,
-      newSources,
-    )
+    content = content.replace(/sources:\s*\[[\s\S]*?\],/, newSources)
 
     await writeFile(configPath, content)
     console.log('✅ Updated to use custom auth docs only')
@@ -193,8 +181,7 @@ async function useCustomDocsOnly() {
     console.log('• No dependency on Better Auth openAPI plugin')
     console.log('• Covers all major auth endpoints')
     console.log('• Consistent documentation format')
-  }
-  catch (error) {
+  } catch (error) {
     console.error('❌ Failed to update configuration:', error)
   }
 }
@@ -211,12 +198,10 @@ async function fullDiagnosis() {
     const authConfig = await readFile('src/auth/index.ts', 'utf-8')
     if (authConfig.includes('openAPI')) {
       console.log('✅ openAPI plugin is configured')
-    }
-    else {
+    } else {
       console.log('❌ openAPI plugin not found')
     }
-  }
-  catch {
+  } catch {
     console.log('❌ Could not read auth configuration')
   }
 
@@ -277,7 +262,7 @@ async function showInformation() {
 }
 
 // Run the script
-main().catch((error) => {
+main().catch(error => {
   console.error('❌ Script failed:', error.message)
   process.exit(1)
 })

@@ -1,16 +1,10 @@
 import path from 'node:path'
+import type { GenerateOptions } from '../types/index.js'
 import { ensureWritableDirectory, writeJsonFile } from '../utils/file-system.js'
 import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
-import type { GenerateOptions } from '../types/index.js'
 
 export async function generatePlugin(options: GenerateOptions): Promise<string[]> {
-  const {
-    name,
-    directory = '.',
-    force = false,
-    includeTests = true,
-    includeDocs = true,
-  } = options
+  const { name, directory = '.', force = false, includeTests = true, includeDocs = true } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
@@ -26,55 +20,30 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
 
   // Plugin main file
   const pluginFile = path.join(outputDir, `${variables.kebabName}.plugin.ts`)
-  await renderTemplateToFile(
-    getPluginTemplate(),
-    pluginFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getPluginTemplate(), pluginFile, variables, { overwrite: force })
   generatedFiles.push(pluginFile)
 
   // Plugin types file
   const typesFile = path.join(outputDir, `${variables.kebabName}.types.ts`)
-  await renderTemplateToFile(
-    getPluginTypesTemplate(),
-    typesFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getPluginTypesTemplate(), typesFile, variables, { overwrite: force })
   generatedFiles.push(typesFile)
 
   // Plugin configuration file
   const configFile = path.join(outputDir, `${variables.kebabName}.config.ts`)
-  await renderTemplateToFile(
-    getPluginConfigTemplate(),
-    configFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getPluginConfigTemplate(), configFile, variables, { overwrite: force })
   generatedFiles.push(configFile)
 
   // Test file
   if (includeTests) {
     const testFile = path.join(outputDir, `${variables.kebabName}.plugin.test.ts`)
-    await renderTemplateToFile(
-      getPluginTestTemplate(),
-      testFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getPluginTestTemplate(), testFile, variables, { overwrite: force })
     generatedFiles.push(testFile)
   }
 
   // Documentation file
   if (includeDocs) {
     const docsFile = path.join(outputDir, `${variables.kebabName}.md`)
-    await renderTemplateToFile(
-      getPluginDocsTemplate(),
-      docsFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getPluginDocsTemplate(), docsFile, variables, { overwrite: force })
     generatedFiles.push(docsFile)
   }
 
@@ -87,25 +56,15 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
     type: 'module',
     main: `${variables.kebabName}.plugin.js`,
     types: `${variables.kebabName}.plugin.d.ts`,
-    files: [
-      '*.js',
-      '*.d.ts',
-      '*.json',
-      'README.md',
-    ],
+    files: ['*.js', '*.d.ts', '*.json', 'README.md'],
     scripts: {
-      'build': 'tsc',
-      'test': 'jest',
+      build: 'tsc',
+      test: 'jest',
       'test:watch': 'jest --watch',
-      'lint': 'eslint src --ext .ts',
+      lint: 'eslint src --ext .ts',
       'lint:fix': 'eslint src --ext .ts --fix',
     },
-    keywords: [
-      'g1',
-      'g1-framework',
-      'plugin',
-      variables.kebabName,
-    ],
+    keywords: ['g1', 'g1-framework', 'plugin', variables.kebabName],
     author: '',
     license: 'MIT',
     peerDependencies: {
@@ -116,10 +75,10 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
       '@types/node': '^20.0.0',
       '@typescript-eslint/eslint-plugin': '^6.0.0',
       '@typescript-eslint/parser': '^6.0.0',
-      'eslint': '^8.0.0',
-      'jest': '^29.0.0',
+      eslint: '^8.0.0',
+      jest: '^29.0.0',
       'ts-jest': '^29.0.0',
-      'typescript': '^5.0.0',
+      typescript: '^5.0.0',
     },
   }
 

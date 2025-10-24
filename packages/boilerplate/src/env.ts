@@ -19,7 +19,10 @@ const envSchema = z.object({
   FROM_EMAIL: z.string().email().optional(),
 
   // Rate limiting and security
-  RATE_LIMIT_ENABLED: z.string().transform(val => val === 'true').default('true'),
+  RATE_LIMIT_ENABLED: z
+    .string()
+    .transform(val => val === 'true')
+    .default('true'),
 
   // Logging
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -27,11 +30,10 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>
 
-export function parseEnv(env: Record<string, any>): Env {
+export function parseEnv(env: Record<string, unknown>): Env {
   try {
     return envSchema.parse(env)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Environment validation failed:', error)
     throw new Error('Invalid environment configuration')
   }

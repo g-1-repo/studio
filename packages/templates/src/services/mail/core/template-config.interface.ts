@@ -38,7 +38,7 @@ export const DEFAULT_THEME: TemplateTheme = {
   accentColor: '#3498db',
   textColor: '#333333',
   backgroundColor: '#ffffff',
-  fontFamily: '\'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif',
+  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   fontSize: {
     small: '12px',
     normal: '16px',

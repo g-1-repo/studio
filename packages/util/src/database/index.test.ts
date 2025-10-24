@@ -1,5 +1,5 @@
-import type { RetryConfig } from './index'
 import { describe, expect, it, vi } from 'vitest'
+import type { RetryConfig } from './index'
 import {
   calculateOffset,
   calculateRetryDelay,
@@ -9,7 +9,6 @@ import {
   isConnectionError,
   isConstraintViolation,
   normalizePagination,
-
   retryOperation,
   sleep,
   takeFirst,
@@ -50,7 +49,7 @@ describe('database utilities', () => {
     it('should throw with identifier when provided', () => {
       const results: any[] = []
       expect(() => takeFirstOrThrow(results, 'users', 123)).toThrow(
-        'Record not found in users with identifier: 123',
+        'Record not found in users with identifier: 123'
       )
     })
   })
@@ -213,7 +212,8 @@ describe('database utilities', () => {
     })
 
     it('should retry on failure and eventually succeed', async () => {
-      const operation = vi.fn()
+      const operation = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
@@ -227,9 +227,9 @@ describe('database utilities', () => {
     it('should fail after max attempts', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('persistent failure'))
 
-      await expect(retryOperation(operation, { ...DEFAULT_RETRY_CONFIG, maxAttempts: 2 }))
-        .rejects
-        .toThrow('persistent failure')
+      await expect(
+        retryOperation(operation, { ...DEFAULT_RETRY_CONFIG, maxAttempts: 2 })
+      ).rejects.toThrow('persistent failure')
 
       expect(operation).toHaveBeenCalledTimes(2)
     })

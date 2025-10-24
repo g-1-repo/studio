@@ -1,6 +1,6 @@
-import type { EmailData, EmailProvider } from './email-provider.interface'
 import { createWorkerSafeCuid2 as createId } from '@g-1/util'
 import { recordEmail } from '../testing/test-mailbox'
+import type { EmailData, EmailProvider } from './email-provider.interface'
 
 export class MockProvider implements EmailProvider {
   validateConfig(): boolean {

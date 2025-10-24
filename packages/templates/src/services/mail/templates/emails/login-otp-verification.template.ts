@@ -4,7 +4,7 @@ import { LayoutEmailTemplate } from '../base/layout.template'
 export class LoginOTPVerificationEmail extends LayoutEmailTemplate {
   constructor(
     config: TemplateConfig,
-    private readonly code: string,
+    private readonly code: string
   ) {
     super(config)
   }
@@ -29,8 +29,8 @@ export class LoginOTPVerificationEmail extends LayoutEmailTemplate {
       </p>
       
       ${this.components.alert(
-        'If you\'ve received this message by mistake, you can safely disregard it.',
-        'info',
+        "If you've received this message by mistake, you can safely disregard it.",
+        'info'
       )}
       
       <p>

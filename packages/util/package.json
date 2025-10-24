@@ -47,8 +47,12 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format .",
+    "format:fix": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -56,9 +60,7 @@
     "nanoid": "^5.0.4"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "6.0.0",
     "@types/node": "^20.8.0",
-    "eslint": "9.38.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"
   }

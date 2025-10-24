@@ -1,6 +1,5 @@
-import type { Environment } from '../env'
-
 import { createDb } from '../db'
+import type { Environment } from '../env'
 import { DatabaseError } from './errors'
 
 // Simple cache management utilities
@@ -29,7 +28,7 @@ function getCacheStats() {
  */
 export abstract class BaseRepository {
   protected static dbCache: Map<string, ReturnType<typeof createDb>> = new Map()
-  private static healthCheckCache: Map<string, { status: boolean, timestamp: number }> = new Map()
+  private static healthCheckCache: Map<string, { status: boolean; timestamp: number }> = new Map()
   private static readonly HEALTH_CHECK_TTL = 30 * 1000 // 30 seconds
 
   /**
@@ -37,14 +36,17 @@ export abstract class BaseRepository {
    * Uses environment-specific cache keys to handle multiple databases
    */
   protected getDb(env: Environment) {
-    // Create a cache key based on environment
     const cacheKey = `${env.CLOUDFLARE_ACCOUNT_ID || 'default'}-${env.CLOUDFLARE_DATABASE_ID || 'default'}`
 
     if (!BaseRepository.dbCache.has(cacheKey)) {
       BaseRepository.dbCache.set(cacheKey, createDb(env))
     }
 
-    return BaseRepository.dbCache.get(cacheKey)!
+    const db = BaseRepository.dbCache.get(cacheKey)
+    if (!db) {
+      throw new Error('Failed to retrieve database instance from cache')
+    }
+    return db
   }
 
   /**
@@ -58,7 +60,7 @@ export abstract class BaseRepository {
   protected async executeQuery<T>(
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
-    operationName?: string,
+    operationName?: string
   ): Promise<T> {
     const startTime = Date.now()
     const db = this.getDb(env)
@@ -72,8 +74,7 @@ export abstract class BaseRepository {
         const logMessage = `Slow query detected: ${operationName} took ${duration}ms`
         if (env.NODE_ENV === 'development') {
           console.warn(logMessage)
-        }
-        else {
+        } else {
           // In production, only log very slow queries to avoid spam
           if (duration > 500) {
             console.warn(logMessage)
@@ -82,8 +83,7 @@ export abstract class BaseRepository {
       }
 
       return result
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Database operation failed: ${operationName || 'unknown'}`, {
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
@@ -104,25 +104,24 @@ export abstract class BaseRepository {
   protected async executeBatch<T>(
     env: Environment,
     operations: Array<(db: ReturnType<typeof createDb>) => Promise<T>>,
-    operationName?: string,
+    operationName?: string
   ): Promise<T[]> {
     const startTime = Date.now()
     const db = this.getDb(env)
 
     try {
       // Execute all operations in parallel for better performance
-      const results = await Promise.all(
-        operations.map(operation => operation(db)),
-      )
+      const results = await Promise.all(operations.map(operation => operation(db)))
 
       const duration = Date.now() - startTime
       if (duration > 200 && operationName) {
-        console.warn(`Batch operation: ${operationName} took ${duration}ms for ${operations.length} operations`)
+        console.warn(
+          `Batch operation: ${operationName} took ${duration}ms for ${operations.length} operations`
+        )
       }
 
       return results
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Batch operation failed: ${operationName || 'unknown'}`, {
         error: error instanceof Error ? error.message : String(error),
         operationCount: operations.length,
@@ -145,15 +144,18 @@ export abstract class BaseRepository {
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
     operationName?: string,
-    maxRetries = 3,
+    maxRetries = 3
   ): Promise<T> {
     let lastError: Error | unknown
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        return await this.executeQuery(env, operation, operationName ? `${operationName} (attempt ${attempt})` : undefined)
-      }
-      catch (error) {
+        return await this.executeQuery(
+          env,
+          operation,
+          operationName ? `${operationName} (attempt ${attempt})` : undefined
+        )
+      } catch (error) {
         lastError = error
 
         // Don't retry for certain error types (validation, not found, etc.)
@@ -179,10 +181,10 @@ export abstract class BaseRepository {
   private shouldNotRetry(error: Error): boolean {
     const message = error.message.toLowerCase()
     return (
-      message.includes('unique constraint')
-      || message.includes('foreign key constraint')
-      || message.includes('not found')
-      || message.includes('validation')
+      message.includes('unique constraint') ||
+      message.includes('foreign key constraint') ||
+      message.includes('not found') ||
+      message.includes('validation')
     )
   }
 
@@ -207,8 +209,7 @@ export abstract class BaseRepository {
       const healthStatus = { status: true, timestamp: Date.now() }
       BaseRepository.healthCheckCache.set(cacheKey, healthStatus)
       return true
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Database health check failed:', error)
       const healthStatus = { status: false, timestamp: Date.now() }
       BaseRepository.healthCheckCache.set(cacheKey, healthStatus)
@@ -222,13 +223,13 @@ export abstract class BaseRepository {
   protected async executeQueryWithHealthCheck<T>(
     env: Environment,
     operation: (db: ReturnType<typeof createDb>) => Promise<T>,
-    operationName?: string,
+    operationName?: string
   ): Promise<T> {
     // Check database health before executing query
     const isHealthy = await this.checkDatabaseHealth(env)
     if (!isHealthy) {
       throw new DatabaseError(
-        `Database health check failed for operation: ${operationName || 'unknown'}`,
+        `Database health check failed for operation: ${operationName || 'unknown'}`
       )
     }
 

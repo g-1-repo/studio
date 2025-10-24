@@ -1,9 +1,8 @@
-import { execSync } from 'node:child_process'
 import { Buffer } from 'node:buffer'
+import { execSync } from 'node:child_process'
 import fs from 'fs-extra'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  type PackageManager,
   addDependencies,
   detectPackageManager,
   getAvailablePackageManagers,
@@ -13,6 +12,7 @@ import {
   hasScript,
   installDependencies,
   isPackageManagerAvailable,
+  type PackageManager,
   removeDependencies,
   runScript,
 } from './package-manager'
@@ -83,7 +83,7 @@ describe('package Manager Utilities', () => {
       })
 
       await expect(installDependencies('/test/project')).rejects.toThrow(
-        'Failed to install dependencies: Installation failed',
+        'Failed to install dependencies: Installation failed'
       )
     })
 
@@ -93,7 +93,7 @@ describe('package Manager Utilities', () => {
       })
 
       await expect(installDependencies('/test/project')).rejects.toThrow(
-        'Failed to install dependencies: Unknown error',
+        'Failed to install dependencies: Unknown error'
       )
     })
   })
@@ -117,7 +117,7 @@ describe('package Manager Utilities', () => {
 
     it('should throw error for unknown package manager', () => {
       expect(() => getInstallCommand('unknown' as PackageManager)).toThrow(
-        'Unknown package manager: unknown',
+        'Unknown package manager: unknown'
       )
     })
   })
@@ -141,7 +141,7 @@ describe('package Manager Utilities', () => {
 
     it('should throw error for unknown package manager', () => {
       expect(() => getRunCommand('unknown' as PackageManager, 'test')).toThrow(
-        'Unknown package manager: unknown',
+        'Unknown package manager: unknown'
       )
     })
   })
@@ -251,7 +251,11 @@ describe('package Manager Utilities', () => {
 
     it('should fallback to npm if bun is not available', () => {
       mockExecSync.mockImplementation((command: string) => {
-        if (command === 'bun --version' || command === 'pnpm --version' || command === 'yarn --version') {
+        if (
+          command === 'bun --version' ||
+          command === 'pnpm --version' ||
+          command === 'yarn --version'
+        ) {
           throw new Error('Command not found')
         }
         return '1.0.0'
@@ -303,7 +307,7 @@ describe('package Manager Utilities', () => {
       })
 
       await expect(addDependencies('/test/project', ['express'])).rejects.toThrow(
-        'Failed to add dependencies: Add failed',
+        'Failed to add dependencies: Add failed'
       )
     })
   })
@@ -337,7 +341,7 @@ describe('package Manager Utilities', () => {
       })
 
       await expect(removeDependencies('/test/project', ['express'])).rejects.toThrow(
-        'Failed to remove dependencies: Remove failed',
+        'Failed to remove dependencies: Remove failed'
       )
     })
   })
@@ -371,7 +375,7 @@ describe('package Manager Utilities', () => {
       })
 
       await expect(runScript('/test/project', 'test')).rejects.toThrow(
-        'Failed to run script: Script failed',
+        'Failed to run script: Script failed'
       )
     })
   })

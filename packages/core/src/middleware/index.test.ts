@@ -1,8 +1,8 @@
-import type { AppBindings } from '../lib/types'
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppError } from '../lib/errors'
+import type { AppBindings } from '../lib/types'
 import { notFound } from './not-found'
 import { onError } from './on-error'
 
@@ -62,7 +62,7 @@ describe('middleware', () => {
   describe('onError', () => {
     it('should handle AppError instances correctly', async () => {
       app.onError(onError)
-      app.get('/test', (_c) => {
+      app.get('/test', _c => {
         throw new AppError('Test error', 400)
       })
 
@@ -104,7 +104,7 @@ describe('middleware', () => {
       expect(consoleSpy.error).toHaveBeenCalledWith(
         'Non-operational error:',
         'Non-operational error',
-        expect.any(String),
+        expect.any(String)
       )
     })
 
@@ -143,7 +143,7 @@ describe('middleware', () => {
       const mockEnv = { NODE_ENV: 'development' }
 
       app.onError(onError)
-      app.get('/test', (_c) => {
+      app.get('/test', _c => {
         throw new Error('Test error')
       })
 
@@ -159,7 +159,7 @@ describe('middleware', () => {
       const mockEnv = { NODE_ENV: 'production' }
 
       app.onError(onError)
-      app.get('/test', (_c) => {
+      app.get('/test', _c => {
         throw new Error('Test error')
       })
 
@@ -182,7 +182,7 @@ describe('middleware', () => {
       expect(consoleSpy.error).toHaveBeenCalledWith(
         'Unhandled error:',
         'Unexpected error',
-        expect.any(String),
+        expect.any(String)
       )
     })
 

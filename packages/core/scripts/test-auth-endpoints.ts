@@ -42,17 +42,14 @@ async function testEndpoints() {
           if (text.includes('openapi') || text.includes('swagger') || text.includes('paths')) {
             console.log(`   📄 Contains OpenAPI content (${text.length} chars)`)
           }
-        }
-        catch {
+        } catch {
           console.log(`   📄 Binary or complex content`)
         }
-      }
-      else {
+      } else {
         console.log(`❌ ${path} - ${status}`)
         results.push({ path, status, contentType, success: false })
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.log(`❌ ${path} - Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       results.push({ path, status: 'error', contentType: 'error', success: false })
     }
@@ -64,17 +61,16 @@ async function testEndpoints() {
 
   if (successful.length > 0) {
     console.log('\n✅ Working endpoints:')
-    successful.forEach((r) => {
+    successful.forEach(r => {
       console.log(`   ${r.path} (${r.status}) - ${r.contentType}`)
     })
 
     console.log('\n🔧 To fix your OpenAPI configuration:')
     console.log(`Update src/lib/configure-open-api.ts to use:`)
-    successful.forEach((r) => {
+    successful.forEach(r => {
       console.log(`   { url: '${r.path}', title: 'Auth' },`)
     })
-  }
-  else {
+  } else {
     console.log('\n❌ No working Better Auth OpenAPI endpoints found')
     console.log('\nPossible issues:')
     console.log('1. Dev server is not running')

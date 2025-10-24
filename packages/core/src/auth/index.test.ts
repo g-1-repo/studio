@@ -1,6 +1,6 @@
+import { describe, expect, it } from 'vitest'
 import type { Environment } from '../env'
 import type { AuthConfig } from './index'
-import { describe, expect, it } from 'vitest'
 import { auth, createAuth } from './index'
 
 describe('auth Module', () => {

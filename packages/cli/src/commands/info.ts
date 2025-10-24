@@ -1,11 +1,11 @@
-import path from 'node:path'
 import os from 'node:os'
+import path from 'node:path'
 import { Command } from 'commander'
 import fs from 'fs-extra'
+import { formatFileSize, getDirectorySize, readJsonFile } from '../utils/file-system.js'
+import { getGitUserInfo, isGitRepository } from '../utils/git.js'
 import { Logger } from '../utils/logger.js'
 import { detectPackageManager, getAvailablePackageManagers } from '../utils/package-manager.js'
-import { getGitUserInfo, isGitRepository } from '../utils/git.js'
-import { formatFileSize, getDirectorySize, readJsonFile } from '../utils/file-system.js'
 
 const logger = new Logger()
 
@@ -14,12 +14,13 @@ export function createInfoCommand(): Command {
     .description('Display project and environment information')
     .option('-v, --verbose', 'Show detailed information', false)
     .option('--json', 'Output information as JSON', false)
-    .action(async (options: any = {}) => {
+    .action(async (options: Record<string, unknown> = {}) => {
       try {
         await infoCommand(options)
-      }
-      catch (error) {
-        logger.error(`Failed to gather information: ${error instanceof Error ? error.message : String(error)}`)
+      } catch (error) {
+        logger.error(
+          `Failed to gather information: ${error instanceof Error ? error.message : String(error)}`
+        )
         process.exit(1)
       }
     })
@@ -27,20 +28,26 @@ export function createInfoCommand(): Command {
   return command
 }
 
-async function infoCommand(options: any = {}): Promise<void> {
-  const info = await gatherProjectInfo(options.verbose)
+async function infoCommand(options: Record<string, unknown> = {}): Promise<void> {
+  const info = await gatherProjectInfo(Boolean(options.verbose))
 
   if (options.json) {
     console.log(JSON.stringify(info, null, 2))
     return
   }
 
-  displayProjectInfo(info, options.verbose)
+  displayProjectInfo(info, Boolean(options.verbose))
 }
 
-async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
+interface ProjectInfo {
+  project: Record<string, unknown>
+  environment: Record<string, unknown>
+  system: Record<string, unknown>
+}
+
+async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo> {
   const cwd = process.cwd()
-  const info: any = {
+  const info: ProjectInfo = {
     project: {},
     environment: {},
     system: {},
@@ -64,9 +71,11 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
     }
 
     // Check if it's a G1 project
-    const isG1Project = !!(packageJson.dependencies?.['@g-1/core']
-      || packageJson.devDependencies?.['@g-1/core']
-      || packageJson.name?.startsWith('@g-1/'))
+    const isG1Project = !!(
+      packageJson.dependencies?.['@g-1/core'] ||
+      packageJson.devDependencies?.['@g-1/core'] ||
+      packageJson.name?.startsWith('@g-1/')
+    )
 
     info.project.isG1Project = isG1Project
 
@@ -84,9 +93,10 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
       if (hasPlugins) {
         try {
           const pluginFiles = await fs.readdir(pluginsDir)
-          info.project.pluginCount = pluginFiles.filter(f => f.endsWith('.ts') || f.endsWith('.js')).length
-        }
-        catch {
+          info.project.pluginCount = pluginFiles.filter(
+            f => f.endsWith('.ts') || f.endsWith('.js')
+          ).length
+        } catch {
           info.project.pluginCount = 0
         }
       }
@@ -116,19 +126,20 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
       try {
         const { execSync } = await import('node:child_process')
         const branch = execSync('git branch --show-current', { cwd, encoding: 'utf8' }).trim()
-        const remoteUrl = execSync('git config --get remote.origin.url', { cwd, encoding: 'utf8' }).trim()
+        const remoteUrl = execSync('git config --get remote.origin.url', {
+          cwd,
+          encoding: 'utf8',
+        }).trim()
         const lastCommit = execSync('git log -1 --format="%h %s"', { cwd, encoding: 'utf8' }).trim()
 
         info.environment.git.branch = branch
         info.environment.git.remoteUrl = remoteUrl
         info.environment.git.lastCommit = lastCommit
-      }
-      catch {
+      } catch {
         // Ignore git command errors
       }
     }
-  }
-  else {
+  } else {
     info.environment.git = { isRepository: false }
   }
 
@@ -152,8 +163,7 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
     try {
       const projectSize = await getDirectorySize(cwd)
       info.project.size = formatFileSize(projectSize)
-    }
-    catch {
+    } catch {
       info.project.size = 'Unknown'
     }
 
@@ -172,7 +182,7 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<any> {
   return info
 }
 
-function displayProjectInfo(info: any, verbose: boolean = false): void {
+function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   logger.header('📊 Project Information')
 
   // Project details
@@ -208,7 +218,9 @@ function displayProjectInfo(info: any, verbose: boolean = false): void {
     }
 
     if (verbose && info.project.typescript) {
-      logger.listItem(`TypeScript: ${info.project.typescript.target}/${info.project.typescript.module}`)
+      logger.listItem(
+        `TypeScript: ${info.project.typescript.target}/${info.project.typescript.module}`
+      )
     }
   }
 
@@ -220,14 +232,10 @@ function displayProjectInfo(info: any, verbose: boolean = false): void {
 
   if (verbose) {
     const versions = []
-    if (info.environment.npmVersion)
-      versions.push(`npm@${info.environment.npmVersion}`)
-    if (info.environment.yarnVersion)
-      versions.push(`yarn@${info.environment.yarnVersion}`)
-    if (info.environment.pnpmVersion)
-      versions.push(`pnpm@${info.environment.pnpmVersion}`)
-    if (info.environment.bunVersion)
-      versions.push(`bun@${info.environment.bunVersion}`)
+    if (info.environment.npmVersion) versions.push(`npm@${info.environment.npmVersion}`)
+    if (info.environment.yarnVersion) versions.push(`yarn@${info.environment.yarnVersion}`)
+    if (info.environment.pnpmVersion) versions.push(`pnpm@${info.environment.pnpmVersion}`)
+    if (info.environment.bunVersion) versions.push(`bun@${info.environment.bunVersion}`)
 
     if (versions.length > 0) {
       logger.listItem(`Available: ${versions.join(', ')}`)
@@ -259,7 +267,9 @@ function displayProjectInfo(info: any, verbose: boolean = false): void {
     logger.listItem(`Environment: ${info.system.nodeEnv}`)
 
     if (info.system.memory) {
-      logger.listItem(`Memory: ${info.system.memory.free}MB free / ${info.system.memory.total}MB total`)
+      logger.listItem(
+        `Memory: ${info.system.memory.free}MB free / ${info.system.memory.total}MB total`
+      )
     }
 
     if (info.system.cpu) {
@@ -268,7 +278,10 @@ function displayProjectInfo(info: any, verbose: boolean = false): void {
   }
 
   // Dependencies
-  if (verbose && (info.project.dependencies.length > 0 || info.project.devDependencies.length > 0)) {
+  if (
+    verbose &&
+    (info.project.dependencies.length > 0 || info.project.devDependencies.length > 0)
+  ) {
     logger.newLine()
     logger.subheader('Dependencies:')
 
@@ -287,8 +300,7 @@ async function getToolVersion(tool: string): Promise<string | null> {
     const { execSync } = await import('node:child_process')
     const version = execSync(`${tool} --version`, { encoding: 'utf8', stdio: 'pipe' })
     return version.trim().split('\n')[0]
-  }
-  catch {
+  } catch {
     return null
   }
 }

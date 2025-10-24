@@ -10,12 +10,13 @@ export function createVersionCommand(): Command {
     .description('Display version information')
     .option('--json', 'Output version information as JSON', false)
     .option('-a, --all', 'Show all related package versions', false)
-    .action(async (options: any = {}) => {
+    .action(async (options: Record<string, unknown> = {}) => {
       try {
         await versionCommand(options)
-      }
-      catch (error) {
-        logger.error(`Failed to get version information: ${error instanceof Error ? error.message : String(error)}`)
+      } catch (error) {
+        logger.error(
+          `Failed to get version information: ${error instanceof Error ? error.message : String(error)}`
+        )
         process.exit(1)
       }
     })
@@ -23,19 +24,25 @@ export function createVersionCommand(): Command {
   return command
 }
 
-async function versionCommand(options: any = {}): Promise<void> {
-  const versionInfo = await gatherVersionInfo(options.all)
+async function versionCommand(options: Record<string, unknown> = {}): Promise<void> {
+  const versionInfo = await gatherVersionInfo(Boolean(options.all))
 
   if (options.json) {
     console.log(JSON.stringify(versionInfo, null, 2))
     return
   }
 
-  displayVersionInfo(versionInfo, options.all)
+  displayVersionInfo(versionInfo, Boolean(options.all))
 }
 
-async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
-  const info: any = {
+interface VersionInfo {
+  cli: string | null
+  project: string | null
+  g1Dependencies: Record<string, string>
+}
+
+async function gatherVersionInfo(includeAll: boolean = false): Promise<VersionInfo> {
+  const info: VersionInfo = {
     cli: null,
     project: null,
     g1Dependencies: {},
@@ -90,8 +97,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
       const { execSync } = await import('node:child_process')
       const npmVersion = execSync('npm --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.npm = npmVersion
-    }
-    catch {
+    } catch {
       info.npm = 'Not available'
     }
 
@@ -102,8 +108,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
         const { execSync } = await import('node:child_process')
         const version = execSync(`${pm} --version`, { encoding: 'utf8', stdio: 'pipe' }).trim()
         info[pm] = version
-      }
-      catch {
+      } catch {
         info[pm] = 'Not available'
       }
     }
@@ -113,8 +118,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
       const { execSync } = await import('node:child_process')
       const tsVersion = execSync('npx tsc --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.typescript = tsVersion.replace('Version ', '')
-    }
-    catch {
+    } catch {
       info.typescript = 'Not available'
     }
 
@@ -123,8 +127,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
       const { execSync } = await import('node:child_process')
       const gitVersion = execSync('git --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.git = gitVersion.replace('git version ', '')
-    }
-    catch {
+    } catch {
       info.git = 'Not available'
     }
 
@@ -139,7 +142,11 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
   return info
 }
 
-export function displayVersionInfo(info: any, showAll: boolean = false, customLogger?: Logger): void {
+export function displayVersionInfo(
+  info: VersionInfo,
+  showAll: boolean = false,
+  customLogger?: Logger
+): void {
   const loggerInstance = customLogger || logger
   loggerInstance.header('📋 Version Information')
 

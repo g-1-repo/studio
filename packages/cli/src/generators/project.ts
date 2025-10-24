@@ -1,9 +1,9 @@
 import path from 'node:path'
 import fs from 'fs-extra'
-import { logger } from '../utils/logger.js'
-import { initializeGit } from '../utils/git.js'
-import { installDependencies } from '../utils/package-manager.js'
 import type { CreateProjectOptions, TemplateVariables } from '../types/index.js'
+import { initializeGit } from '../utils/git.js'
+import { logger } from '../utils/logger.js'
+import { installDependencies } from '../utils/package-manager.js'
 
 /**
  * Create a new G1 project from template
@@ -32,8 +32,7 @@ export async function createProject(options: CreateProjectOptions): Promise<void
       if (files.length > 0) {
         throw new Error(`Directory ${projectPath} is not empty`)
       }
-    }
-    else {
+    } else {
       await fs.ensureDir(projectPath)
     }
 
@@ -80,8 +79,7 @@ export async function createProject(options: CreateProjectOptions): Promise<void
       await installDependencies(projectPath, packageManager)
       logger.succeedSpinner('Dependencies installed')
     }
-  }
-  catch (error) {
+  } catch (error) {
     logger.failSpinner('Failed to create project')
     throw error
   }
@@ -99,15 +97,15 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
     type: 'module',
     main: 'dist/index.js',
     scripts: {
-      'dev': 'bun run --watch src/index.ts',
-      'build': 'bun build src/index.ts --outdir dist --target node',
-      'start': 'node dist/index.js',
-      'test': 'vitest',
+      dev: 'bun run --watch src/index.ts',
+      build: 'bun build src/index.ts --outdir dist --target node',
+      start: 'node dist/index.js',
+      test: 'vitest',
       'test:watch': 'vitest --watch',
       'test:coverage': 'vitest --coverage',
-      'lint': 'eslint src --ext .ts',
+      lint: 'eslint src --ext .ts',
       'lint:fix': 'eslint src --ext .ts --fix',
-      'format': 'prettier --write src/**/*.ts',
+      format: 'prettier --write src/**/*.ts',
       'format:check': 'prettier --check src/**/*.ts',
       'db:generate': 'drizzle-kit generate',
       'db:migrate': 'drizzle-kit migrate',
@@ -118,17 +116,17 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
       '@g-1/util': '^1.0.0',
       '@hono/zod-openapi': '^1.1.4',
       'drizzle-orm': '^0.44.6',
-      'hono': '^4.10.1',
-      'zod': '^4.1.12',
+      hono: '^4.10.1',
+      zod: '^4.1.12',
       '@libsql/client': '^0.10.0',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      'typescript': '^5.2.2',
-      'vitest': '^0.34.6',
+      typescript: '^5.2.2',
+      vitest: '^0.34.6',
       'drizzle-kit': '^0.20.0',
       ...(vars.eslint && {
-        'eslint': '^8.51.0',
+        eslint: '^8.51.0',
         '@typescript-eslint/eslint-plugin': '^6.7.4',
         '@typescript-eslint/parser': '^6.7.4',
       }),
@@ -350,10 +348,7 @@ temp/
   if (vars.eslint) {
     const eslintConfig = {
       parser: '@typescript-eslint/parser',
-      extends: [
-        'eslint:recommended',
-        '@typescript-eslint/recommended',
-      ],
+      extends: ['eslint:recommended', '@typescript-eslint/recommended'],
       plugins: ['@typescript-eslint'],
       env: {
         node: true,
@@ -406,12 +401,12 @@ async function generateMinimalProject(projectPath: string, vars: TemplateVariabl
     dependencies: {
       '@g-1/core': '^1.15.9',
       '@g-1/util': '^1.0.0',
-      'hono': '^4.10.1',
+      hono: '^4.10.1',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      'typescript': '^5.2.2',
-      'vitest': '^0.34.6',
+      typescript: '^5.2.2',
+      vitest: '^0.34.6',
     },
     engines: {
       node: '>=18.0.0',
@@ -485,8 +480,8 @@ async function generatePluginProject(projectPath: string, vars: TemplateVariable
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      'typescript': '^5.2.2',
-      'vitest': '^0.34.6',
+      typescript: '^5.2.2',
+      vitest: '^0.34.6',
     },
     peerDependencies: {
       hono: '^4.10.1',

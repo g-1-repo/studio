@@ -1,8 +1,6 @@
-import type { AppOpenAPI } from './types'
-
 import { apiReference } from '@scalar/hono-api-reference'
-
 import packageJSON from '../../package.json'
+import type { AppOpenAPI } from './types'
 
 export default function configureOpenAPI(app: AppOpenAPI) {
   app.doc('/doc', {
@@ -13,16 +11,19 @@ export default function configureOpenAPI(app: AppOpenAPI) {
     },
   })
 
-  app.get('/reference', apiReference({
-    theme: 'kepler',
-    pageTitle: 'G1 Api Boilerplate',
-    defaultHttpClient: {
-      targetKey: 'js',
-      clientKey: 'fetch',
-    },
-    sources: [
-      { url: '/doc', title: 'API' },
-      { url: '/api/auth/open-api/generate-schema', title: 'Auth' },
-    ],
-  }))
+  app.get(
+    '/reference',
+    apiReference({
+      theme: 'kepler',
+      pageTitle: 'G1 Api Boilerplate',
+      defaultHttpClient: {
+        targetKey: 'js',
+        clientKey: 'fetch',
+      },
+      sources: [
+        { url: '/doc', title: 'API' },
+        { url: '/api/auth/open-api/generate-schema', title: 'Auth' },
+      ],
+    })
+  )
 }

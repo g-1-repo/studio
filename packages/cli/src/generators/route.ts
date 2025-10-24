@@ -1,16 +1,10 @@
 import path from 'node:path'
+import type { GenerateOptions } from '../types/index.js'
 import { ensureWritableDirectory } from '../utils/file-system.js'
 import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
-import type { GenerateOptions } from '../types/index.js'
 
 export async function generateRoute(options: GenerateOptions): Promise<string[]> {
-  const {
-    name,
-    directory = '.',
-    force = false,
-    includeTests = true,
-    includeDocs = true,
-  } = options
+  const { name, directory = '.', force = false, includeTests = true, includeDocs = true } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
@@ -26,65 +20,39 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
 
   // Route handler file
   const routeFile = path.join(outputDir, `${variables.kebabName}.routes.ts`)
-  await renderTemplateToFile(
-    getRouteTemplate(),
-    routeFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getRouteTemplate(), routeFile, variables, { overwrite: force })
   generatedFiles.push(routeFile)
 
   // Route types file
   const typesFile = path.join(outputDir, `${variables.kebabName}.types.ts`)
-  await renderTemplateToFile(
-    getRouteTypesTemplate(),
-    typesFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getRouteTypesTemplate(), typesFile, variables, { overwrite: force })
   generatedFiles.push(typesFile)
 
   // Route validation file
   const validationFile = path.join(outputDir, `${variables.kebabName}.validation.ts`)
-  await renderTemplateToFile(
-    getRouteValidationTemplate(),
-    validationFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getRouteValidationTemplate(), validationFile, variables, {
+    overwrite: force,
+  })
   generatedFiles.push(validationFile)
 
   // Route service file
   const serviceFile = path.join(outputDir, `${variables.kebabName}.service.ts`)
-  await renderTemplateToFile(
-    getRouteServiceTemplate(),
-    serviceFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getRouteServiceTemplate(), serviceFile, variables, {
+    overwrite: force,
+  })
   generatedFiles.push(serviceFile)
 
   // Test file
   if (includeTests) {
     const testFile = path.join(outputDir, `${variables.kebabName}.routes.test.ts`)
-    await renderTemplateToFile(
-      getRouteTestTemplate(),
-      testFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getRouteTestTemplate(), testFile, variables, { overwrite: force })
     generatedFiles.push(testFile)
   }
 
   // Documentation file
   if (includeDocs) {
     const docsFile = path.join(outputDir, `${variables.kebabName}-routes.md`)
-    await renderTemplateToFile(
-      getRouteDocsTemplate(),
-      docsFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getRouteDocsTemplate(), docsFile, variables, { overwrite: force })
     generatedFiles.push(docsFile)
   }
 

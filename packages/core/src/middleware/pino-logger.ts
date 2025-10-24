@@ -1,8 +1,7 @@
+import { createWorkerSafeCuid2 } from '@g-1/util'
 import type { Context, MiddlewareHandler } from 'hono'
 import type { Env } from 'hono-pino'
-
 import type { AppBindings } from '../lib/types'
-import { createWorkerSafeCuid2 } from '@g-1/util'
 
 function pinoLogger() {
   return (async (c, next) => {
@@ -17,9 +16,10 @@ function pinoLogger() {
     if (c.env.NODE_ENV !== 'production') {
       // Development (and other non-production) use pretty printing when available
       const { default: pretty } = await import('pino-pretty')
-      const transport = typeof pretty === 'function' ? (pretty as unknown as () => any)() : undefined
+      const transport =
+        typeof pretty === 'function' ? (pretty as unknown as () => unknown)() : undefined
       return baseLogger({
-        pino: pino({ level: c.env.LOG_LEVEL || 'info' }, transport as any),
+        pino: pino({ level: c.env.LOG_LEVEL || 'info' }, transport as unknown),
         http: { reqId: () => createWorkerSafeCuid2() },
       })(c as unknown as Context<Env>, next)
     }

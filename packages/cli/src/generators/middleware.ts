@@ -1,16 +1,10 @@
 import path from 'node:path'
+import type { GenerateOptions } from '../types/index.js'
 import { ensureWritableDirectory } from '../utils/file-system.js'
 import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
-import type { GenerateOptions } from '../types/index.js'
 
 export async function generateMiddleware(options: GenerateOptions): Promise<string[]> {
-  const {
-    name,
-    directory = '.',
-    force = false,
-    includeTests = true,
-    includeDocs = true,
-  } = options
+  const { name, directory = '.', force = false, includeTests = true, includeDocs = true } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
@@ -26,45 +20,33 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
 
   // Middleware main file
   const middlewareFile = path.join(outputDir, `${variables.kebabName}.middleware.ts`)
-  await renderTemplateToFile(
-    getMiddlewareTemplate(),
-    middlewareFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getMiddlewareTemplate(), middlewareFile, variables, {
+    overwrite: force,
+  })
   generatedFiles.push(middlewareFile)
 
   // Middleware types file
   const typesFile = path.join(outputDir, `${variables.kebabName}.types.ts`)
-  await renderTemplateToFile(
-    getMiddlewareTypesTemplate(),
-    typesFile,
-    variables,
-    { overwrite: force },
-  )
+  await renderTemplateToFile(getMiddlewareTypesTemplate(), typesFile, variables, {
+    overwrite: force,
+  })
   generatedFiles.push(typesFile)
 
   // Test file
   if (includeTests) {
     const testFile = path.join(outputDir, `${variables.kebabName}.middleware.test.ts`)
-    await renderTemplateToFile(
-      getMiddlewareTestTemplate(),
-      testFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getMiddlewareTestTemplate(), testFile, variables, {
+      overwrite: force,
+    })
     generatedFiles.push(testFile)
   }
 
   // Documentation file
   if (includeDocs) {
     const docsFile = path.join(outputDir, `${variables.kebabName}-middleware.md`)
-    await renderTemplateToFile(
-      getMiddlewareDocsTemplate(),
-      docsFile,
-      variables,
-      { overwrite: force },
-    )
+    await renderTemplateToFile(getMiddlewareDocsTemplate(), docsFile, variables, {
+      overwrite: force,
+    })
     generatedFiles.push(docsFile)
   }
 

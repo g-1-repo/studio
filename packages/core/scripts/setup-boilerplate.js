@@ -41,8 +41,8 @@ const { boilerplateConfig, derived } = await import(path.join(projectRoot, 'boil
 const replacements = {
   // Current hardcoded values -> template values
   'g1-core': boilerplateConfig.projectName,
-  'g1_core': derived.snakeCase,
-  'GO_BOILERPLATE_KV_AUTH': boilerplateConfig.kvNamespace,
+  g1_core: derived.snakeCase,
+  GO_BOILERPLATE_KV_AUTH: boilerplateConfig.kvNamespace,
   '@g-1': boilerplateConfig.orgScope,
 
   // Generic template placeholders
@@ -74,9 +74,8 @@ async function getAllFiles(dir, pattern = '*') {
 
   for (const item of items) {
     if (item.isDirectory() && !item.name.startsWith('.') && item.name !== 'node_modules') {
-      files.push(...await getAllFiles(path.join(dir, item.name), pattern))
-    }
-    else if (item.isFile()) {
+      files.push(...(await getAllFiles(path.join(dir, item.name), pattern)))
+    } else if (item.isFile()) {
       files.push(path.join(dir, item.name))
     }
   }
@@ -103,8 +102,7 @@ async function replaceInFile(filePath) {
     }
 
     return false
-  }
-  catch {
+  } catch {
     console.error(`✗ Error processing ${filePath}:`, 'Unknown error')
     return false
   }
@@ -117,14 +115,16 @@ async function main() {
 
   // Get all relevant files
   const allFiles = await getAllFiles(projectRoot)
-  const targetFiles = allFiles.filter((file) => {
+  const targetFiles = allFiles.filter(file => {
     const ext = path.extname(file).toLowerCase()
-    return ['.ts', '.js', '.json', '.md', '.jsonc'].includes(ext)
-      && !file.includes('node_modules')
-      && !file.includes('.git')
-      && !file.includes('coverage')
-      && !file.includes('dist')
-      && !file.endsWith('setup-boilerplate.js') // Don't process this script
+    return (
+      ['.ts', '.js', '.json', '.md', '.jsonc'].includes(ext) &&
+      !file.includes('node_modules') &&
+      !file.includes('.git') &&
+      !file.includes('coverage') &&
+      !file.includes('dist') &&
+      !file.endsWith('setup-boilerplate.js')
+    ) // Don't process this script
   })
 
   console.log(`📁 Processing ${targetFiles.length} files...`)
@@ -133,8 +133,7 @@ async function main() {
   let updatedCount = 0
   for (const file of targetFiles) {
     const wasUpdated = await replaceInFile(file)
-    if (wasUpdated)
-      updatedCount++
+    if (wasUpdated) updatedCount++
   }
 
   console.log('')
