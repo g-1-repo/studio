@@ -1,8 +1,7 @@
-import { sql } from 'drizzle-orm'
-import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
-import { createSelectSchema, createInsertSchema } from 'drizzle-zod'
-import { z } from 'zod'
 import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import { z } from 'zod'
 
 export const earlyAccessRequestsTable = sqliteTable('early_access_request_table', {
   id: text().primaryKey().$defaultFn(() => createId()),

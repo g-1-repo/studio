@@ -11,5 +11,4 @@ export default function pino() {
   }
 }
 
-export const pino = pino
 export { pino as default }

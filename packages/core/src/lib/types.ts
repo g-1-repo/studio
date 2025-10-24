@@ -2,7 +2,7 @@ import type { OpenAPIHono, RouteConfig, RouteHandler } from '@hono/zod-openapi'
 import type { Schema } from 'hono'
 import type { PinoLogger } from 'hono-pino'
 
-import type { auth, createAuth } from '../auth'
+import type { createAuth } from '../auth'
 import type { Environment } from '../env'
 
 export interface AppBindings {

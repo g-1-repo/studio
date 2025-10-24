@@ -1,6 +1,6 @@
+import type { ResponseObject } from 'openapi3-ts/oas30'
 import type { ZodSchema } from './types'
 import oneOf from './one-of'
-import type { ResponseObject } from 'openapi3-ts/oas30'
 
 /**
  * Create JSON content configuration for OpenAPI

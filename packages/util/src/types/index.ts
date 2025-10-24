@@ -83,10 +83,14 @@ export function isPromise(value: unknown): value is Promise<unknown> {
  * Check if a value is empty (null, undefined, empty string, empty array, empty object)
  */
 export function isEmpty(value: unknown): boolean {
-  if (isNullish(value)) return true
-  if (isString(value)) return value.length === 0
-  if (isArray(value)) return value.length === 0
-  if (isObject(value)) return Object.keys(value).length === 0
+  if (isNullish(value))
+    return true
+  if (isString(value))
+    return value.length === 0
+  if (isArray(value))
+    return value.length === 0
+  if (isObject(value))
+    return Object.keys(value).length === 0
   return false
 }
 
@@ -143,8 +147,8 @@ export type Prettify<T> = {
 /**
  * Utility type for converting union to intersection
  */
-export type UnionToIntersection<U> = 
-  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+export type UnionToIntersection<U>
+  = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 
 /**
  * Utility type for non-empty arrays
@@ -160,19 +164,19 @@ export type Awaited<T> = T extends Promise<infer U> ? U : T
  * Utility type for creating a union of all possible dot-notation paths in an object
  */
 export type DotNotation<T, Prefix extends string = ''> = {
-  [K in keyof T]: T[K] extends object 
-    ? DotNotation<T[K], `${Prefix}${string & K}.`> 
+  [K in keyof T]: T[K] extends object
+    ? DotNotation<T[K], `${Prefix}${string & K}.`>
     : `${Prefix}${string & K}`
 }[keyof T]
 
 /**
  * Utility type for creating a type-safe pick by dot notation
  */
-export type PickByPath<T, Path extends string> = 
-  Path extends `${infer Key}.${infer Rest}` 
-    ? Key extends keyof T 
-      ? PickByPath<T[Key], Rest> 
-      : never 
-    : Path extends keyof T 
-      ? T[Path] 
+export type PickByPath<T, Path extends string>
+  = Path extends `${infer Key}.${infer Rest}`
+    ? Key extends keyof T
+      ? PickByPath<T[Key], Rest>
+      : never
+    : Path extends keyof T
+      ? T[Path]
       : never

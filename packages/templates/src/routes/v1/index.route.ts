@@ -1,6 +1,5 @@
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi'
-import { z } from 'zod'
-import { createRouter, OK, jsonContent, createMessageObjectSchema } from '@g-1/core'
+import { createMessageObjectSchema, createRouter, jsonContent, OK } from '@g-1/core'
+import { createRoute } from '@hono/zod-openapi'
 
 const router = createRouter()
   .openapi(

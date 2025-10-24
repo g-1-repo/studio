@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createAuth, auth, type AuthConfig } from './index'
 import type { Environment } from '../env'
+import type { AuthConfig } from './index'
+import { describe, expect, it } from 'vitest'
+import { auth, createAuth } from './index'
 
-describe('Auth Module', () => {
+describe('auth Module', () => {
   describe('createAuth', () => {
     it('should create auth config with provided environment variables', () => {
       const mockEnv: Environment = {
@@ -10,7 +11,7 @@ describe('Auth Module', () => {
         BETTER_AUTH_URL: 'https://example.com',
         DB: {} as D1Database,
         NODE_ENV: 'test',
-        LOG_LEVEL: 'info'
+        LOG_LEVEL: 'info',
       }
 
       const config = createAuth(mockEnv)
@@ -29,7 +30,7 @@ describe('Auth Module', () => {
     it('should use default values when environment variables are not provided', () => {
       const mockEnv: Environment = {
         NODE_ENV: 'development',
-        LOG_LEVEL: 'debug'
+        LOG_LEVEL: 'debug',
       } as Environment
 
       const config = createAuth(mockEnv)
@@ -47,7 +48,7 @@ describe('Auth Module', () => {
       const mockEnv: Environment = {
         BETTER_AUTH_SECRET: 'partial-secret',
         NODE_ENV: 'test',
-        LOG_LEVEL: 'info'
+        LOG_LEVEL: 'info',
       } as Environment
 
       const config = createAuth(mockEnv)
@@ -95,7 +96,7 @@ describe('Auth Module', () => {
     })
   })
 
-  describe('AuthConfig interface', () => {
+  describe('authConfig interface', () => {
     it('should accept valid auth config', () => {
       const config: AuthConfig = {
         secret: 'test-secret',

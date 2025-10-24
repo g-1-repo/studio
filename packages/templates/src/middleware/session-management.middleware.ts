@@ -1,13 +1,13 @@
+import type { AppBindings } from '@g-1/core'
 import type { MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
-import type { AppBindings } from '@g-1/core'
 
 export const sessionManagement: MiddlewareHandler = createMiddleware<AppBindings>(async (c, next) => {
   const auth = c.get('auth') as any // Type assertion to bypass TypeScript error
-  
+
   try {
-    const session = await auth.api.getSession({ 
-      headers: c.req.raw.headers 
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
     })
 
     if (!session) {
@@ -19,7 +19,8 @@ export const sessionManagement: MiddlewareHandler = createMiddleware<AppBindings
     c.set('user', session.user)
     c.set('session', session.session)
     return next()
-  } catch (error) {
+  }
+  catch (error) {
     // If session retrieval fails, treat as unauthenticated
     c.set('user', null)
     c.set('session', null)

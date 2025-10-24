@@ -5,10 +5,10 @@
 export interface Environment {
   // Database bindings
   DB?: D1Database
-  
+
   // KV bindings
   MY_API_PROJECT_KV_AUTH?: KVNamespace
-  
+
   // Environment variables
   NODE_ENV?: string
   BETTER_AUTH_SECRET?: string
@@ -16,7 +16,7 @@ export interface Environment {
   CLOUDFLARE_ACCOUNT_ID?: string
   CLOUDFLARE_DATABASE_ID?: string
   CLOUDFLARE_D1_TOKEN?: string
-  
+
   // Optional environment variables
   LOG_LEVEL?: string
   TEST_MODE?: string

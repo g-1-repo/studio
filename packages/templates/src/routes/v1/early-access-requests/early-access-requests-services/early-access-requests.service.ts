@@ -1,6 +1,5 @@
 import type { Environment } from '../../../../env'
 import type { MailService } from '../../../../services/mail'
-import type { EarlyAccessRequest, NewEarlyAccessRequest } from '../../../../db/tables/early-access-request.table'
 import { BaseService } from '@g-1/core'
 import { createMailService, TEMPLATE_NAMES } from '../../../../services/mail'
 

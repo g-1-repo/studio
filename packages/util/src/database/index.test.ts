@@ -1,23 +1,23 @@
-import { describe, it, expect, vi } from 'vitest'
+import type { RetryConfig } from './index'
+import { describe, expect, it, vi } from 'vitest'
 import {
-  DatabaseNotFoundError,
-  takeFirstOrThrow,
-  takeFirst,
   calculateOffset,
-  createPaginationResult,
-  normalizePagination,
   calculateRetryDelay,
-  sleep,
-  retryOperation,
-  isConstraintViolation,
-  isConnectionError,
+  createPaginationResult,
+  DatabaseNotFoundError,
   DEFAULT_RETRY_CONFIG,
-  type PaginationParams,
-  type RetryConfig
+  isConnectionError,
+  isConstraintViolation,
+  normalizePagination,
+
+  retryOperation,
+  sleep,
+  takeFirst,
+  takeFirstOrThrow,
 } from './index'
 
 describe('database utilities', () => {
-  describe('DatabaseNotFoundError', () => {
+  describe('databaseNotFoundError', () => {
     it('should create error with table name only', () => {
       const error = new DatabaseNotFoundError('users')
       expect(error.message).toBe('Record not found in users')
@@ -50,7 +50,7 @@ describe('database utilities', () => {
     it('should throw with identifier when provided', () => {
       const results: any[] = []
       expect(() => takeFirstOrThrow(results, 'users', 123)).toThrow(
-        'Record not found in users with identifier: 123'
+        'Record not found in users with identifier: 123',
       )
     })
   })
@@ -90,7 +90,7 @@ describe('database utilities', () => {
     it('should create pagination result with default values', () => {
       const data = [{ id: 1 }, { id: 2 }]
       const result = createPaginationResult(data, 25)
-      
+
       expect(result.data).toEqual(data)
       expect(result.pagination).toEqual({
         page: 1,
@@ -99,14 +99,14 @@ describe('database utilities', () => {
         total: 25,
         totalPages: 3,
         hasNext: true,
-        hasPrev: false
+        hasPrev: false,
       })
     })
 
     it('should create pagination result for middle page', () => {
       const data = [{ id: 11 }, { id: 12 }]
       const result = createPaginationResult(data, 25, 2, 10)
-      
+
       expect(result.pagination).toEqual({
         page: 2,
         limit: 10,
@@ -114,14 +114,14 @@ describe('database utilities', () => {
         total: 25,
         totalPages: 3,
         hasNext: true,
-        hasPrev: true
+        hasPrev: true,
       })
     })
 
     it('should create pagination result for last page', () => {
       const data = [{ id: 21 }]
       const result = createPaginationResult(data, 25, 3, 10)
-      
+
       expect(result.pagination).toEqual({
         page: 3,
         limit: 10,
@@ -129,7 +129,7 @@ describe('database utilities', () => {
         total: 25,
         totalPages: 3,
         hasNext: false,
-        hasPrev: true
+        hasPrev: true,
       })
     })
   })
@@ -140,7 +140,7 @@ describe('database utilities', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        offset: 0
+        offset: 0,
       })
     })
 
@@ -149,7 +149,7 @@ describe('database utilities', () => {
       expect(result).toEqual({
         page: 2,
         limit: 10,
-        offset: 10
+        offset: 10,
       })
     })
 
@@ -158,7 +158,7 @@ describe('database utilities', () => {
       expect(result).toEqual({
         page: 2,
         limit: 5,
-        offset: 15
+        offset: 15,
       })
     })
   })
@@ -173,7 +173,7 @@ describe('database utilities', () => {
       const delay1 = calculateRetryDelay(1, DEFAULT_RETRY_CONFIG)
       const delay2 = calculateRetryDelay(2, DEFAULT_RETRY_CONFIG)
       const delay3 = calculateRetryDelay(3, DEFAULT_RETRY_CONFIG)
-      
+
       expect(delay1).toBe(100)
       expect(delay2).toBe(200)
       expect(delay3).toBe(400)
@@ -184,9 +184,9 @@ describe('database utilities', () => {
         maxAttempts: 10,
         baseDelay: 1000,
         maxDelay: 2000,
-        backoffFactor: 3
+        backoffFactor: 3,
       }
-      
+
       const delay = calculateRetryDelay(5, config)
       expect(delay).toBe(2000) // Should be capped at maxDelay
     })
@@ -197,7 +197,7 @@ describe('database utilities', () => {
       const start = Date.now()
       await sleep(50)
       const end = Date.now()
-      
+
       expect(end - start).toBeGreaterThanOrEqual(45) // Allow some tolerance
     })
   })
@@ -205,9 +205,9 @@ describe('database utilities', () => {
   describe('retryOperation', () => {
     it('should succeed on first attempt', async () => {
       const operation = vi.fn().mockResolvedValue('success')
-      
+
       const result = await retryOperation(operation)
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -217,19 +217,20 @@ describe('database utilities', () => {
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success')
-      
+
       const result = await retryOperation(operation)
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(3)
     })
 
     it('should fail after max attempts', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('persistent failure'))
-      
+
       await expect(retryOperation(operation, { ...DEFAULT_RETRY_CONFIG, maxAttempts: 2 }))
-        .rejects.toThrow('persistent failure')
-      
+        .rejects
+        .toThrow('persistent failure')
+
       expect(operation).toHaveBeenCalledTimes(2)
     })
 
@@ -239,9 +240,9 @@ describe('database utilities', () => {
         maxAttempts: 1,
         baseDelay: 10,
         maxDelay: 100,
-        backoffFactor: 1
+        backoffFactor: 1,
       }
-      
+
       await expect(retryOperation(operation, config)).rejects.toThrow('failure')
       expect(operation).toHaveBeenCalledTimes(1)
     })

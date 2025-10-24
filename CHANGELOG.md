@@ -5,6 +5,20 @@ All notable changes to the G1 API Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2024-12-19
+
+### Fixed
+- Fixed incorrect import of `Scalar` from `@scalar/hono-api-reference` - now correctly imports `apiReference`
+- Updated @g-1/core package to version 1.15.11 with the import fix
+- Updated CLI templates to use @g-1/core@^1.15.11
+- Resolved build errors in generated API projects
+- Fixed dependency resolution issues with @scalar/hono-api-reference package
+
+### Technical Improvements
+- Verified API project generation, build, and runtime functionality
+- Ensured proper npm package publishing and registry propagation
+- Updated CLI project templates with correct dependency versions
+
 ## [1.1.0] - 2024-12-19
 
 ### Added

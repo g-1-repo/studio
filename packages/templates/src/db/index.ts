@@ -9,7 +9,7 @@ export function createDb(env: Environment) {
   if (!env.DB) {
     throw new Error('Database binding (DB) is not available in environment')
   }
-  
+
   const db = drizzle(env.DB, {
     casing: 'snake_case',
     schema,
@@ -17,7 +17,7 @@ export function createDb(env: Environment) {
   return db
 }
 
+export * from './auth.schema'
 // Export all database utilities
 export * from './schema'
-export * from './auth.schema'
 export * from './tables'

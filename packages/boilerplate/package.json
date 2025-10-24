@@ -1,8 +1,15 @@
 {
   "name": "@g-1/boilerplate",
+  "type": "module",
   "version": "0.1.0",
   "description": "Clean boilerplate application using the @g-1/core framework",
-  "type": "module",
+  "keywords": [
+    "api",
+    "boilerplate",
+    "cloudflare-workers",
+    "hono",
+    "typescript"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -36,12 +43,5 @@
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "wrangler": "^3.94.0"
-  },
-  "keywords": [
-    "api",
-    "boilerplate",
-    "cloudflare-workers",
-    "hono",
-    "typescript"
-  ]
+  }
 }

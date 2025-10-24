@@ -2,38 +2,38 @@
  * Exception utilities and error classes
  */
 
-import { HTTPException } from 'hono/http-exception'
 import {
   AppError,
-  ValidationError,
   AuthenticationError,
   AuthorizationError,
-  NotFoundError,
   ConflictError,
-  RateLimitError,
-  InternalServerError,
-  ServiceUnavailableError,
-  isOperationalError,
   getErrorCode,
   getErrorMessage,
   getErrorStatusCode,
+  InternalServerError,
+  isOperationalError,
+  NotFoundError,
+  RateLimitError,
+  ServiceUnavailableError,
+  ValidationError,
 } from '@g-1/util'
+import { HTTPException } from 'hono/http-exception'
 
 // Re-export all error classes and utilities
 export {
   AppError,
-  ValidationError,
   AuthenticationError,
   AuthorizationError,
-  NotFoundError,
   ConflictError,
-  RateLimitError,
-  InternalServerError,
-  ServiceUnavailableError,
-  isOperationalError,
   getErrorCode,
   getErrorMessage,
   getErrorStatusCode,
+  InternalServerError,
+  isOperationalError,
+  NotFoundError,
+  RateLimitError,
+  ServiceUnavailableError,
+  ValidationError,
 }
 
 // Create convenience functions for common errors

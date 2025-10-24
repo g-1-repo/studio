@@ -1,12 +1,9 @@
-import { ValidationError, ConflictError } from '@g-1/util'
-import {
-  validate,
-  required,
-  email as emailRule,
+import type {
   ValidationResult,
 } from '@g-1/util'
+import type { BaseRepository } from './base-repository'
+import { email as emailRule, required, validate, ValidationError } from '@g-1/util'
 
-import { BaseRepository } from './base-repository'
 import { createBadRequest, createConflict } from './utils/exceptions'
 
 export abstract class BaseService {
@@ -17,20 +14,20 @@ export abstract class BaseService {
    */
   protected validateRequiredFields(
     data: Record<string, unknown>,
-    requiredFields: string[]
+    requiredFields: string[],
   ): ValidationResult {
-    const missingFields = requiredFields.filter(field => {
+    const missingFields = requiredFields.filter((field) => {
       const value = data[field]
       return value === undefined || value === null || value === ''
     })
-    
+
     if (missingFields.length > 0) {
       return {
         success: false,
         error: new ValidationError(`Missing required fields: ${missingFields.join(', ')}`),
       }
     }
-    
+
     return { success: true, data }
   }
 
@@ -50,37 +47,37 @@ export abstract class BaseService {
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error
+        error: validation.error,
       }
     }
-    
+
     return {
       success: true,
-      data: { email: data.email.toLowerCase().trim() }
+      data: { email: data.email.toLowerCase().trim() },
     }
   }
 
   /**
    * Validate pagination parameters
    */
-  protected validatePagination(params: { page?: number; limit?: number }): ValidationResult {
+  protected validatePagination(params: { page?: number, limit?: number }): ValidationResult {
     const page = params.page ?? 1
     const limit = params.limit ?? 20
-    
+
     if (page < 1 || limit < 1 || limit > 100) {
       return {
         success: false,
-        error: new ValidationError('Invalid pagination parameters')
+        error: new ValidationError('Invalid pagination parameters'),
       }
     }
-    
+
     return { success: true, data: { page, limit } }
   }
 
   /**
    * Handle validation errors
    */
-  protected handleValidationError(validation: ValidationResult, context?: Record<string, unknown>): never {
+  protected handleValidationError(validation: ValidationResult, _context?: Record<string, unknown>): never {
     if (validation.error) {
       throw createBadRequest(validation.error.message)
     }
@@ -90,7 +87,7 @@ export abstract class BaseService {
   /**
    * Handle conflict errors
    */
-  protected handleConflictError(message: string, details?: Record<string, unknown>): never {
+  protected handleConflictError(message: string, _details?: Record<string, unknown>): never {
     throw createConflict(message)
   }
 
@@ -100,7 +97,7 @@ export abstract class BaseService {
   protected ensureNotExists<T>(
     entity: T | null | undefined,
     message: string,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ): void {
     if (entity) {
       this.handleConflictError(message, details)
@@ -112,7 +109,7 @@ export abstract class BaseService {
    */
   protected ensureExists<T>(
     entity: T | null | undefined,
-    message: string = 'Entity not found'
+    message: string = 'Entity not found',
   ): asserts entity is T {
     if (!entity) {
       throw createBadRequest(message)

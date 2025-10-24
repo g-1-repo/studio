@@ -1,4 +1,4 @@
-import { beforeAll, afterEach, vi } from 'vitest'
+import { afterEach, beforeAll, vi } from 'vitest'
 
 /**
  * Global test setup for G1 Core package
@@ -7,7 +7,7 @@ import { beforeAll, afterEach, vi } from 'vitest'
 beforeAll(() => {
   // Set test environment
   process.env.NODE_ENV = 'test'
-  
+
   // Mock console methods to reduce noise during tests
   vi.spyOn(console, 'info').mockImplementation(() => {})
   vi.spyOn(console, 'debug').mockImplementation(() => {})
@@ -19,7 +19,7 @@ afterEach(() => {
 })
 
 // Global test utilities
-global.testUtils = {
+globalThis.testUtils = {
   createMockContext: () => ({
     env: {},
     var: vi.fn(),

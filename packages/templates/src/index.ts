@@ -1,12 +1,12 @@
 // Export all template components
 export * from './auth'
+export { createAuth } from './auth'
 export * from './db'
-export * from './routes'
+export { createDb } from './db'
 export * from './middleware'
-export * from './services'
 
+export * from './routes'
 // Named exports for convenience
 export { default as apiRoutes } from './routes/v1'
-export { createDb } from './db'
-export { createAuth } from './auth'
+export * from './services'
 export { createMailService } from './services/mail'

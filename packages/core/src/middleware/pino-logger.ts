@@ -4,8 +4,6 @@ import type { Env } from 'hono-pino'
 import type { AppBindings } from '../lib/types'
 import { createWorkerSafeCuid2 } from '@g-1/util'
 
-export { pinoLogger }
-
 function pinoLogger() {
   return (async (c, next) => {
     if (c.env.NODE_ENV === 'test') {
@@ -33,3 +31,5 @@ function pinoLogger() {
     })(c as unknown as Context<Env>, next)
   }) satisfies MiddlewareHandler<AppBindings>
 }
+
+export { pinoLogger }

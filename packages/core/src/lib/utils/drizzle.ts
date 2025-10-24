@@ -1,45 +1,45 @@
 import {
-  NotFoundError,
+  calculateOffset,
+  calculateRetryDelay,
+  createPaginationResult,
   DatabaseNotFoundError,
-  takeFirstOrThrow,
-  takeFirst,
+  DEFAULT_RETRY_CONFIG,
+  isConnectionError,
+  isConstraintViolation,
+  normalizePagination,
+  NotFoundError,
   PaginationParams,
   PaginationResult,
-  calculateOffset,
-  createPaginationResult,
-  normalizePagination,
-  TransactionCallback,
   RetryConfig,
-  DEFAULT_RETRY_CONFIG,
-  calculateRetryDelay,
-  sleep,
   retryOperation,
-  isConstraintViolation,
-  isConnectionError,
+  sleep,
+  takeFirst,
+  takeFirstOrThrow,
+  TransactionCallback,
 } from '@g-1/util'
 
 import { text } from 'drizzle-orm/sqlite-core'
-import { NotFound, InternalError } from '../utils/exceptions'
+import { InternalError, NotFound } from '../utils/exceptions'
 
 // Re-export database utilities
 export {
-  NotFoundError,
+  calculateOffset,
+  calculateRetryDelay,
+  createPaginationResult,
   DatabaseNotFoundError,
-  takeFirstOrThrow,
-  takeFirst,
+  DEFAULT_RETRY_CONFIG,
+  isConnectionError,
+  isConstraintViolation,
+  normalizePagination,
+  NotFoundError,
   PaginationParams,
   PaginationResult,
-  calculateOffset,
-  createPaginationResult,
-  normalizePagination,
-  TransactionCallback,
   RetryConfig,
-  DEFAULT_RETRY_CONFIG,
-  calculateRetryDelay,
-  sleep,
   retryOperation,
-  isConstraintViolation,
-  isConnectionError,
+  sleep,
+  takeFirst,
+  takeFirstOrThrow,
+  TransactionCallback,
 }
 
 // Legacy alias
@@ -65,10 +65,12 @@ export function takeFirstOrThrowGeneric<T>(values: T[], message?: string): T {
 export function takeFirstOrThrowHttp<T>(values: T[], message?: string): T {
   try {
     return takeFirstOrThrowGeneric(values, message)
-  } catch (error) {
+  }
+  catch (error) {
     if (error instanceof NotFoundError) {
       throw NotFound(error.message)
-    } else {
+    }
+    else {
       throw InternalError((error as Error).message)
     }
   }

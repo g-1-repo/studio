@@ -1,16 +1,8 @@
 {
   "name": "@g-1/core",
   "type": "module",
-  "version": "1.15.8",
+  "version": "1.15.11",
   "description": "G1 Studio API Framework - A plugin-first, high-performance TypeScript API framework built on Hono for Cloudflare Workers",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
   "author": "G1 Studio",
   "license": "MIT",
   "homepage": "https://github.com/g1-studio/g1-studio",
@@ -32,6 +24,14 @@
     "g1",
     "g-1"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -41,10 +41,14 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@g-1/util": "workspace:*",
+    "@g-1/util": "^1.0.0",
     "@hono/zod-openapi": "^1.1.4",
+    "@scalar/hono-api-reference": "^0.5.0",
     "drizzle-orm": "^0.44.6",
     "hono": "^4.10.1",
+    "hono-pino": "^0.4.0",
+    "pino": "^8.0.0",
+    "pino-pretty": "^10.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

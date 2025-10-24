@@ -1,46 +1,54 @@
 {
   "name": "@g-1/util",
+  "type": "module",
   "version": "1.0.0",
   "description": "G1 Studio utility functions and helpers",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "author": "G1 Studio",
+  "license": "MIT",
+  "keywords": [
+    "utilities",
+    "helpers",
+    "typescript",
+    "g1-studio"
+  ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./crypto/workers-safe": {
-      "import": "./dist/crypto/workers-safe.js",
-      "types": "./dist/crypto/workers-safe.d.ts"
+      "types": "./dist/crypto/workers-safe.d.ts",
+      "import": "./dist/crypto/workers-safe.js"
     },
     "./http": {
-      "import": "./dist/http/index.js",
-      "types": "./dist/http/index.d.ts"
+      "types": "./dist/http/index.d.ts",
+      "import": "./dist/http/index.js"
     },
     "./web": {
-      "import": "./dist/web/index.js",
-      "types": "./dist/web/index.d.ts"
+      "types": "./dist/web/index.d.ts",
+      "import": "./dist/web/index.js"
     },
     "./types": {
-      "import": "./dist/types/index.js",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
     },
     "./validation": {
-      "import": "./dist/validation/index.js",
-      "types": "./dist/validation/index.d.ts"
+      "types": "./dist/validation/index.d.ts",
+      "import": "./dist/validation/index.js"
     },
     "./database": {
-      "import": "./dist/database/index.js",
-      "types": "./dist/database/index.d.ts"
+      "types": "./dist/database/index.d.ts",
+      "import": "./dist/database/index.js"
     }
   },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -48,16 +56,10 @@
     "nanoid": "^5.0.4"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "6.0.0",
     "@types/node": "^20.8.0",
+    "eslint": "9.38.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"
-  },
-  "keywords": [
-    "utilities",
-    "helpers",
-    "typescript",
-    "g1-studio"
-  ],
-  "author": "G1 Studio",
-  "license": "MIT"
+  }
 }

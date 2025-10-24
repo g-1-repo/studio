@@ -1,9 +1,9 @@
 import type { Mailer, SendProps } from './interfaces/mailer.interface'
 import process from 'node:process'
 
-import { Resend } from 'resend'
-
 import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+
+import { Resend } from 'resend'
 
 export interface MailerConfig {
   fromEmail?: string

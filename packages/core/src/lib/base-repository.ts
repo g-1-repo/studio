@@ -228,7 +228,7 @@ export abstract class BaseRepository {
     const isHealthy = await this.checkDatabaseHealth(env)
     if (!isHealthy) {
       throw new DatabaseError(
-        `Database health check failed for operation: ${operationName || 'unknown'}`
+        `Database health check failed for operation: ${operationName || 'unknown'}`,
       )
     }
 

@@ -1,11 +1,10 @@
-import { and, desc, eq, count } from 'drizzle-orm'
-import type { LibSQLDatabase } from 'drizzle-orm/libsql'
+import type { EarlyAccessRequest } from '../../../db/tables/early-access-request.table'
 import type { Environment } from '../../../env'
-import type { EarlyAccessRequest, NewEarlyAccessRequest } from '../../../db/tables/early-access-request.table'
+import { BaseRepository, createPaginationResult } from '@g-1/core'
 
-import { earlyAccessRequestsTable } from '../../../db/tables/early-access-request.table'
-import { BaseRepository, takeFirstOrThrow, createPaginationResult } from '@g-1/core'
+import { count, desc, eq } from 'drizzle-orm'
 import { createDb } from '../../../db'
+import { earlyAccessRequestsTable } from '../../../db/tables/early-access-request.table'
 
 /* -------------------------------------------------------------------------- */
 /*                                    Types                                   */
@@ -38,6 +37,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
 
     return BaseRepository.dbCache.get(cacheKey)!
   }
+
   /**
    * Get all early access requests
    */

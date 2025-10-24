@@ -1,5 +1,5 @@
+import { isArray, isBoolean, isNullish, isNumber, isObject, isString } from '../types'
 import { ValidationError } from '../web'
-import { isString, isNumber, isBoolean, isArray, isObject, isNullish } from '../types'
 
 /**
  * Validation result type
@@ -113,8 +113,9 @@ export function object(message: string = 'Must be an object'): ValidationRule {
  */
 export function minLength(min: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     const length = isString(value) || isArray(value) ? value.length : 0
     if (length < min) {
       return message || `Must be at least ${min} characters long`
@@ -128,8 +129,9 @@ export function minLength(min: number, message?: string): ValidationRule {
  */
 export function maxLength(max: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     const length = isString(value) || isArray(value) ? value.length : 0
     if (length > max) {
       return message || `Must be at most ${max} characters long`
@@ -143,8 +145,9 @@ export function maxLength(max: number, message?: string): ValidationRule {
  */
 export function min(minimum: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (isNumber(value) && value < minimum) {
       return message || `Must be at least ${minimum}`
     }
@@ -157,8 +160,9 @@ export function min(minimum: number, message?: string): ValidationRule {
  */
 export function max(maximum: number, message?: string): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (isNumber(value) && value > maximum) {
       return message || `Must be at most ${maximum}`
     }
@@ -170,10 +174,11 @@ export function max(maximum: number, message?: string): ValidationRule {
  * Email validation rule
  */
 export function email(message: string = 'Must be a valid email address'): ValidationRule {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (!isString(value) || !emailRegex.test(value)) {
       return message
     }
@@ -186,16 +191,18 @@ export function email(message: string = 'Must be a valid email address'): Valida
  */
 export function url(message: string = 'Must be a valid URL'): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (!isString(value)) {
       return message
     }
-    
+
     try {
       new URL(value)
       return true
-    } catch {
+    }
+    catch {
       return message
     }
   }
@@ -206,8 +213,9 @@ export function url(message: string = 'Must be a valid URL'): ValidationRule {
  */
 export function pattern(regex: RegExp, message: string = 'Invalid format'): ValidationRule {
   return (value: unknown) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (!isString(value) || !regex.test(value)) {
       return message
     }
@@ -220,11 +228,12 @@ export function pattern(regex: RegExp, message: string = 'Invalid format'): Vali
  */
 export function custom<T = unknown>(
   validator: (value: T) => boolean,
-  message: string = 'Validation failed'
+  message: string = 'Validation failed',
 ): ValidationRule<T> {
   return (value: T) => {
-    if (isNullish(value)) return true
-    
+    if (isNullish(value))
+      return true
+
     if (!validator(value)) {
       return message
     }
@@ -255,10 +264,11 @@ export function validate(data: Record<string, unknown>, schema: ValidationSchema
   for (const [field, rules] of Object.entries(schema)) {
     const value = data[field]
     const result = validateValue(value, rules, field)
-    
+
     if (!result.success && result.error) {
       errors.push(result.error)
-    } else {
+    }
+    else {
       validatedData[field] = value
     }
   }

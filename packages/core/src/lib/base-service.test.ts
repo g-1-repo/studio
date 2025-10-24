@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { BaseService } from './base-service'
+import { ConflictError, ValidationError } from '@g-1/util'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { BaseRepository } from './base-repository'
-import { ValidationError, ConflictError } from '@g-1/util'
+import { BaseService } from './base-service'
 
 // Mock BaseRepository
 class MockRepository extends BaseRepository {
@@ -27,7 +27,7 @@ class TestService extends BaseService {
     return this.validateAndNormalizeEmail(data)
   }
 
-  testValidatePagination(params: { page?: number; limit?: number }) {
+  testValidatePagination(params: { page?: number, limit?: number }) {
     return this.validatePagination(params)
   }
 
@@ -48,7 +48,7 @@ class TestService extends BaseService {
   }
 }
 
-describe('BaseService', () => {
+describe('baseService', () => {
   let service: TestService
   let mockRepository: MockRepository
 
@@ -145,7 +145,7 @@ describe('BaseService', () => {
         'user123@domain123.org',
       ]
 
-      validEmails.forEach(email => {
+      validEmails.forEach((email) => {
         const result = service.testValidateEmail(email)
         expect(result.success).toBe(true)
       })
@@ -160,7 +160,7 @@ describe('BaseService', () => {
         'double@@domain.com',
       ]
 
-      invalidEmails.forEach(email => {
+      invalidEmails.forEach((email) => {
         const result = service.testValidateEmail(email)
         expect(result.success).toBe(false)
       })
@@ -274,16 +274,17 @@ describe('BaseService', () => {
   describe('ensureNotExists', () => {
     it('should not throw when entity does not exist', () => {
       const service = new TestService(mockRepository)
-      
+
       expect(() => service.testEnsureNotExists(null, 'Entity already exists'))
-        .not.toThrow()
+        .not
+        .toThrow()
     })
   })
 
   describe('ensureExists', () => {
     it('should throw ValidationError when entity does not exist', () => {
       const service = new TestService(mockRepository)
-      
+
       expect(() => service.testEnsureExists(null))
         .toThrow(ValidationError)
 
@@ -293,7 +294,7 @@ describe('BaseService', () => {
 
     it('should throw ValidationError with custom message', () => {
       const service = new TestService(mockRepository)
-      
+
       expect(() => service.testEnsureExists(undefined, 'Custom not found message'))
         .toThrow('Custom not found message')
     })
@@ -301,24 +302,25 @@ describe('BaseService', () => {
     it('should not throw when entity exists', () => {
       const service = new TestService(mockRepository)
       const entity = { id: 1, name: 'test' }
-      
+
       expect(() => service.testEnsureExists(entity))
-        .not.toThrow()
+        .not
+        .toThrow()
     })
 
     it('should assert entity type correctly', () => {
       const entity = { id: '123', name: 'Test' }
-      
+
       // This should not throw and entity should be properly typed
       service.testEnsureExists(entity)
-      
+
       // After the assertion, entity should be treated as non-null
       expect(entity.id).toBe('123')
       expect(entity.name).toBe('Test')
     })
   })
 
-  describe('Repository Integration', () => {
+  describe('repository Integration', () => {
     it('should have access to repository', () => {
       expect((service as any).repository).toBe(mockRepository)
     })

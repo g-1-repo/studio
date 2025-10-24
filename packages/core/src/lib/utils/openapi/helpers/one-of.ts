@@ -1,10 +1,10 @@
-import type { ZodSchema } from './types.ts'
+import type { ReferenceObject, SchemaObject } from 'openapi3-ts/oas30'
 
+import type { ZodSchema } from './types.ts'
 import {
   OpenApiGeneratorV3,
   OpenAPIRegistry,
 } from '@asteasolutions/zod-to-openapi'
-import type { ReferenceObject, SchemaObject } from 'openapi3-ts/oas30'
 
 function oneOf<
   T extends ZodSchema,

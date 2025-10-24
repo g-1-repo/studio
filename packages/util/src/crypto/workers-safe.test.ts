@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createWorkerSafeCuid2,
   createWorkerSafeNanoid,
   generateSecureRandomString,
-  generateUUID
+  generateUUID,
 } from './workers-safe'
 
 describe('workers-safe crypto functions', () => {
@@ -65,7 +65,7 @@ describe('workers-safe crypto functions', () => {
 
     it('should only contain valid characters', () => {
       const str = generateSecureRandomString(100)
-      const validChars = /^[A-Za-z0-9]+$/
+      const validChars = /^[A-Z0-9]+$/i
       expect(validChars.test(str)).toBe(true)
     })
 
@@ -85,7 +85,7 @@ describe('workers-safe crypto functions', () => {
       const uuid = generateUUID()
       expect(uuid).toBeDefined()
       expect(typeof uuid).toBe('string')
-      
+
       // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
       expect(uuidRegex.test(uuid)).toBe(true)
@@ -93,14 +93,14 @@ describe('workers-safe crypto functions', () => {
 
     it('should use crypto.randomUUID when available', () => {
       const mockRandomUUID = vi.fn(() => '550e8400-e29b-41d4-a716-446655440000')
-      
+
       // Mock crypto.randomUUID
       Object.defineProperty(global, 'crypto', {
         value: {
           randomUUID: mockRandomUUID,
-          getRandomValues: vi.fn()
+          getRandomValues: vi.fn(),
         },
-        writable: true
+        writable: true,
       })
 
       const uuid = generateUUID()
@@ -120,16 +120,16 @@ describe('workers-safe crypto functions', () => {
       // Mock crypto without randomUUID
       Object.defineProperty(global, 'crypto', {
         value: {
-          getRandomValues: mockGetRandomValues
+          getRandomValues: mockGetRandomValues,
         },
-        writable: true
+        writable: true,
       })
 
       const uuid = generateUUID()
       expect(mockGetRandomValues).toHaveBeenCalled()
       expect(uuid).toBeDefined()
       expect(typeof uuid).toBe('string')
-      
+
       // Should still be valid UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
       expect(uuidRegex.test(uuid)).toBe(true)
@@ -141,11 +141,11 @@ describe('workers-safe crypto functions', () => {
       // but this is extremely unlikely with proper random generation
       const uuid1 = generateUUID()
       const uuid2 = generateUUID()
-      
+
       // Basic format validation
       expect(uuid1).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
       expect(uuid2).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-      
+
       // They should be different (extremely high probability)
       if (uuid1 === uuid2) {
         console.warn('Generated identical UUIDs - this is extremely rare but possible')

@@ -20,6 +20,3 @@ export function createRouter<S extends Schema = Schema>(): AppOpenAPI<S> {
     },
   })
 }
-
-
-

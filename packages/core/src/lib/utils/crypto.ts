@@ -10,6 +10,6 @@ export {
 export {
   createWorkerSafeCuid2 as createCuid2,
   createWorkerSafeNanoid as createNanoid,
-  generateSecureRandomString as generateRandomString,
   generateUUID as createUUID,
+  generateSecureRandomString as generateRandomString,
 } from '@g-1/util/crypto/workers-safe'

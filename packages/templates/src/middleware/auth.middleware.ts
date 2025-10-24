@@ -1,7 +1,5 @@
-import { getCookie } from 'hono/cookie'
+import type { MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
-import type { Context, Next, MiddlewareHandler } from 'hono'
-import type { AppBindings } from '@g-1/core'
 import { createAuth } from '../auth'
 
 export const authManagement: MiddlewareHandler = createMiddleware(async (c, next) => {

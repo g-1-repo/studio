@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { AppBindings } from '../lib/types'
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  rateLimitOptimized,
-  requestValidation,
   enhancedSecurityHeaders,
   inputSanitization,
+  rateLimitOptimized,
+  requestValidation,
   securityAuditLog,
   simpleRateLimit,
 } from './security.middleware'
-import type { AppBindings } from '../lib/types'
 
 // Mock KV store
 const mockKV = {
@@ -25,7 +24,7 @@ const mockEnv = {
   NODE_ENV: 'test',
 }
 
-describe('Security Middleware', () => {
+describe('security Middleware', () => {
   let app: Hono<AppBindings>
 
   beforeEach(() => {
@@ -46,7 +45,7 @@ describe('Security Middleware', () => {
         windowMs: 60000,
         maxRequests: 10,
       }))
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         headers: { 'cf-connecting-ip': '127.0.0.1' },
@@ -62,7 +61,7 @@ describe('Security Middleware', () => {
         windowMs: 60000,
         maxRequests: 10,
       }))
-      appWithoutKV.get('/test', (c) => c.text('OK'))
+      appWithoutKV.get('/test', c => c.text('OK'))
 
       const res = await appWithoutKV.request('/test', {
         headers: { 'cf-connecting-ip': '127.0.0.1' },
@@ -82,7 +81,7 @@ describe('Security Middleware', () => {
         maxRequests: 10,
         keyGenerator: customKeyGenerator,
       }))
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       await app.request('/test', {}, mockEnv)
 
@@ -97,7 +96,7 @@ describe('Security Middleware', () => {
         allowedContentTypes: ['application/json'],
         requireContentType: true,
       }))
-      app.post('/test', (c) => c.text('OK'))
+      app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         method: 'POST',
@@ -116,7 +115,7 @@ describe('Security Middleware', () => {
         allowedContentTypes: ['application/json'],
         requireContentType: true,
       }))
-      app.post('/test', (c) => c.text('OK'))
+      app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         method: 'POST',
@@ -133,7 +132,7 @@ describe('Security Middleware', () => {
       app.use('*', requestValidation({
         maxBodySize: 10,
       }))
-      app.post('/test', (c) => c.text('OK'))
+      app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         method: 'POST',
@@ -150,7 +149,7 @@ describe('Security Middleware', () => {
   describe('enhancedSecurityHeaders', () => {
     it('should add security headers to response', async () => {
       app.use('*', enhancedSecurityHeaders())
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       const res = await app.request('/test')
 
@@ -164,14 +163,14 @@ describe('Security Middleware', () => {
 
     it('should set CSP header', async () => {
       app.use('*', enhancedSecurityHeaders())
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       const res = await app.request('/test')
 
       const csp = res.headers.get('Content-Security-Policy')
-      expect(csp).toContain("default-src 'none'")
-      expect(csp).toContain("frame-ancestors 'none'")
-      expect(csp).toContain("base-uri 'none'")
+      expect(csp).toContain('default-src \'none\'')
+      expect(csp).toContain('frame-ancestors \'none\'')
+      expect(csp).toContain('base-uri \'none\'')
     })
   })
 
@@ -204,7 +203,7 @@ describe('Security Middleware', () => {
 
     it('should handle non-JSON requests', async () => {
       app.use('*', inputSanitization())
-      app.post('/test', (c) => c.text('OK'))
+      app.post('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         method: 'POST',
@@ -223,7 +222,7 @@ describe('Security Middleware', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
       app.use('*', securityAuditLog())
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       await app.request('/test', {
         headers: {
@@ -240,7 +239,7 @@ describe('Security Middleware', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
       app.use('*', securityAuditLog())
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       await app.request('/test?id=<script>alert(1)</script>', {
         headers: {
@@ -263,7 +262,7 @@ describe('Security Middleware', () => {
         windowMs: 60000,
         limit: 5,
       }))
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         headers: { 'cf-connecting-ip': '127.0.0.1' },
@@ -283,7 +282,7 @@ describe('Security Middleware', () => {
         limit: 5,
         keyGenerator: customKeyGenerator,
       }))
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       await app.request('/test', {}, mockEnv)
 
@@ -299,7 +298,7 @@ describe('Security Middleware', () => {
         limit: 5,
         message: 'Custom rate limit message',
       }))
-      app.get('/test', (c) => c.text('OK'))
+      app.get('/test', c => c.text('OK'))
 
       const res = await app.request('/test', {
         headers: { 'cf-connecting-ip': '127.0.0.1' },

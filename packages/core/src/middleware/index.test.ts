@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { AppBindings } from '../lib/types'
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AppError } from '../lib/errors'
 import { notFound } from './not-found'
 import { onError } from './on-error'
-import { AppError } from '../lib/errors'
-import { HTTP_STATUS } from '@g-1/util'
-import type { AppBindings } from '../lib/types'
 
-describe('Middleware', () => {
+describe('middleware', () => {
   let app: Hono<AppBindings>
   let consoleSpy: any
 
@@ -30,7 +29,7 @@ describe('Middleware', () => {
       const res = await app.request('/non-existent-route')
 
       expect(res.status).toBe(404)
-      
+
       const body = await res.json()
       expect(body).toHaveProperty('error')
       expect(body.error).toHaveProperty('code', 'NOT_FOUND')
@@ -46,7 +45,7 @@ describe('Middleware', () => {
       const res = await app.request('/api/users/123')
 
       expect(res.status).toBe(404)
-      
+
       const body = await res.json()
       expect(body.error.message).toContain('/api/users/123')
     })
@@ -63,7 +62,7 @@ describe('Middleware', () => {
   describe('onError', () => {
     it('should handle AppError instances correctly', async () => {
       app.onError(onError)
-      app.get('/test', (c) => {
+      app.get('/test', (_c) => {
         throw new AppError('Test error', 400)
       })
 
@@ -105,7 +104,7 @@ describe('Middleware', () => {
       expect(consoleSpy.error).toHaveBeenCalledWith(
         'Non-operational error:',
         'Non-operational error',
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -118,7 +117,7 @@ describe('Middleware', () => {
       const res = await app.request('/test')
 
       expect(res.status).toBe(403)
-      
+
       const body = await res.json()
       expect(body).toHaveProperty('error')
       expect(body.error).toHaveProperty('message', 'Forbidden')
@@ -133,7 +132,7 @@ describe('Middleware', () => {
       const res = await app.request('/test')
 
       expect(res.status).toBe(500)
-      
+
       const body = await res.json()
       expect(body).toHaveProperty('error')
       expect(body.error).toHaveProperty('message', 'Generic error')
@@ -142,32 +141,32 @@ describe('Middleware', () => {
 
     it('should include stack trace in development environment', async () => {
       const mockEnv = { NODE_ENV: 'development' }
-      
+
       app.onError(onError)
-      app.get('/test', (c) => {
+      app.get('/test', (_c) => {
         throw new Error('Test error')
       })
 
       const res = await app.request('/test', {}, mockEnv)
 
       expect(res.status).toBe(500)
-      
+
       const body = await res.json()
       expect(body.error).toHaveProperty('stack')
     })
 
     it('should not include stack trace in production environment', async () => {
       const mockEnv = { NODE_ENV: 'production' }
-      
+
       app.onError(onError)
-      app.get('/test', (c) => {
+      app.get('/test', (_c) => {
         throw new Error('Test error')
       })
 
       const res = await app.request('/test', {}, mockEnv)
 
       expect(res.status).toBe(500)
-      
+
       const body = await res.json()
       expect(body.error).not.toHaveProperty('stack')
     })
@@ -183,7 +182,7 @@ describe('Middleware', () => {
       expect(consoleSpy.error).toHaveBeenCalledWith(
         'Unhandled error:',
         'Unexpected error',
-        expect.any(String)
+        expect.any(String),
       )
     })
 

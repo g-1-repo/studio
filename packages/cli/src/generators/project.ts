@@ -114,11 +114,13 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
       'db:studio': 'drizzle-kit studio',
     },
     dependencies: {
-      '@g-1/core': 'workspace:*',
-      hono: '^3.12.0',
-      zod: '^3.22.4',
-      'drizzle-orm': '^0.29.0',
-      '@libsql/client': '^0.4.0',
+      '@g-1/core': '^1.15.11',
+      '@g-1/util': '^1.0.0',
+      '@hono/zod-openapi': '^1.1.4',
+      'drizzle-orm': '^0.44.6',
+      hono: '^4.10.1',
+      zod: '^4.1.12',
+      '@libsql/client': '^0.10.0',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
@@ -402,8 +404,9 @@ async function generateMinimalProject(projectPath: string, vars: TemplateVariabl
       test: 'vitest',
     },
     dependencies: {
-      '@g-1/core': 'workspace:*',
-      hono: '^3.12.0',
+      '@g-1/core': '^1.15.9',
+      '@g-1/util': '^1.0.0',
+      hono: '^4.10.1',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
@@ -477,7 +480,8 @@ async function generatePluginProject(projectPath: string, vars: TemplateVariable
       test: 'vitest',
     },
     dependencies: {
-      '@g-1/core': 'workspace:*',
+      '@g-1/core': '^1.15.9',
+      '@g-1/util': '^1.0.0',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
@@ -485,7 +489,7 @@ async function generatePluginProject(projectPath: string, vars: TemplateVariable
       vitest: '^0.34.6',
     },
     peerDependencies: {
-      hono: '^3.12.0',
+      hono: '^4.10.1',
     },
     engines: {
       node: '>=18.0.0',

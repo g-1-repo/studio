@@ -28,17 +28,17 @@ export function createAuth(env: Environment): AuthConfig {
 
 export const auth = {
   // Auth utilities and helpers
-  verifySession: async (token: string) => {
+  verifySession: async (_token: string) => {
     // Session verification logic
     return null
   },
-  
-  createSession: async (userId: string) => {
+
+  createSession: async (_userId: string) => {
     // Session creation logic
     return null
   },
-  
-  destroySession: async (token: string) => {
+
+  destroySession: async (_token: string) => {
     // Session destruction logic
     return true
   },

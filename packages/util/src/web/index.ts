@@ -9,7 +9,7 @@ export class AppError extends Error {
   constructor(
     message: string,
     statusCode: number = 500,
-    isOperational: boolean = true
+    isOperational: boolean = true,
   ) {
     super(message)
     this.name = this.constructor.name
