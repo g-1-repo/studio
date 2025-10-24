@@ -41,7 +41,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/cli.js",
-    "test": "vitest",
+    "test": "vitest --no-watch",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "lint": "biome lint .",

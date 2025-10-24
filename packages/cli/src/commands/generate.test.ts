@@ -18,18 +18,52 @@ const mockLogger = {
 
 // Use dynamic imports with vi.doMock for proper hoisting
 vi.doMock('commander', () => ({
-  Command: vi.fn().mockImplementation(() => {
+  Command: vi.fn(() => {
     let _mockActionHandler: any = null
+    let mockDescription = ''
+    let mockName = ''
+    const mockOptions: any[] = []
+
     const instance = {
-      name: vi.fn().mockReturnThis(),
-      description: vi.fn().mockReturnThis(),
-      argument: vi.fn().mockReturnThis(),
-      option: vi.fn().mockReturnThis(),
+      name: vi.fn((value?: string) => {
+        if (value !== undefined) {
+          mockName = value
+          return instance
+        }
+        return mockName
+      }),
+      alias: vi.fn(() => instance),
+      description: vi.fn((value?: string) => {
+        if (value !== undefined) {
+          mockDescription = value
+          return instance
+        }
+        return mockDescription
+      }),
+      argument: vi.fn(() => instance),
+      option: vi.fn((flags: string, description: string, defaultValue?: any) => {
+        mockOptions.push({ flags, description, defaultValue })
+        return instance
+      }),
       action: vi.fn((handler: any) => {
         _mockActionHandler = handler
         return instance
       }),
+      _actionHandler: null as any,
+      getActionHandler: vi.fn(() => _mockActionHandler),
+      getMockOptions: vi.fn(() => mockOptions),
+      getMockDescription: vi.fn(() => mockDescription),
+      getMockName: vi.fn(() => mockName),
     }
+
+    // Set _actionHandler to point to the stored handler
+    Object.defineProperty(instance, '_actionHandler', {
+      get: () => _mockActionHandler,
+      set: (value) => { _mockActionHandler = value },
+      enumerable: true,
+      configurable: true
+    })
+
     return instance
   }),
 }))
@@ -120,14 +154,14 @@ describe('generate Command', () => {
       expect(Command).toHaveBeenCalled()
 
       // Check that the command has the expected options from the mock
-      const options = (commandInstance as any).options
-      const optionNames = options.map((opt: any) => opt.long)
+      const options = (commandInstance as any).getMockOptions()
+      const optionNames = options.map((opt: any) => opt.flags)
 
-      expect(optionNames).toContain('--directory')
-      expect(optionNames).toContain('--force')
+      expect(optionNames).toContain('-d, --directory <dir>')
+      expect(optionNames).toContain('-f, --force')
       expect(optionNames).toContain('--no-tests')
       expect(optionNames).toContain('--no-docs')
-      expect(optionNames).toContain('--template')
+      expect(optionNames).toContain('--template <template>')
     })
 
     it('should accept type and name arguments', () => {
@@ -259,7 +293,7 @@ describe('generate Command', () => {
 
       await generateCommand('plugin', undefined, {})
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Invalid name: Name is required')
+      expect(mockLogger.error).toHaveBeenCalledWith('Name is required')
     })
 
     it('should validate generator name when provided', async () => {

@@ -171,8 +171,8 @@ describe('create Command', () => {
 
     it('should exit if project name is invalid', async () => {
       // Configure process.exit to throw for this specific test
-      mockProcessExit.mockImplementation(() => {
-        throw new Error('process.exit called')
+      _mockProcessExit.mockImplementation(() => {
+        throw new Error('Process exit called')
       })
 
       mockValidateProjectName.mockReturnValue({
@@ -183,7 +183,7 @@ describe('create Command', () => {
 
       const actionFn = mockActionHandler || (createCommand as any)._actionHandler
 
-      await expect(actionFn('invalid-name', {})).rejects.toThrow('process.exit called')
+      await expect(actionFn('invalid-name', {})).rejects.toThrow('Process exit called')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Invalid project name')
     })
@@ -405,7 +405,7 @@ describe('create Command', () => {
           template: 'api',
           packageManager: 'bun',
         })
-      ).rejects.toThrow('process.exit called')
+      ).rejects.toThrow('Process exit called')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Creation failed')
     })

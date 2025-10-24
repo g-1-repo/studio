@@ -13,6 +13,7 @@
     "dev": "bun run --filter='@g-1/core' dev",
     "test": "bun run --filter='*' test",
     "test:ci": "bun run --filter='*' test --run",
+    "test:dashboard": "bun run --filter='@g-1/core' test:dashboard",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format .",

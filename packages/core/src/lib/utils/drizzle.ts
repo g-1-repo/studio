@@ -69,7 +69,7 @@ export function takeFirstOrThrowHttp<T>(values: T[], message?: string): T {
     if (error instanceof NotFoundError) {
       throw NotFound(error.message)
     } else {
-      throw new (InternalError as any)((error as Error).message)
+      throw InternalError((error as Error).message)
     }
   }
 }

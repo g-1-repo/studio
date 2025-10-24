@@ -1,13 +1,14 @@
-import os from 'node:os'
-import path from 'node:path'
 import { Command } from 'commander'
 import fs from 'fs-extra'
+import os from 'node:os'
+import path from 'node:path'
 import { formatFileSize, getDirectorySize, readJsonFile } from '../utils/file-system.js'
 import { getGitUserInfo, isGitRepository } from '../utils/git.js'
 import { Logger } from '../utils/logger.js'
 import { detectPackageManager, getAvailablePackageManagers } from '../utils/package-manager.js'
 
-const logger = new Logger()
+// Create logger instance that can be mocked in tests
+export const logger = new Logger()
 
 interface TsConfig {
   compilerOptions?: {
@@ -170,13 +171,19 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
   }
 
   // Environment information
+  const npmVersion = await getToolVersion('npm')
+  const yarnVersion = await getToolVersion('yarn')
+  const pnpmVersion = await getToolVersion('pnpm')
+  const bunVersion = await getToolVersion('bun')
+  const gitVersion = await getToolVersion('git')
+
   info.environment = {
     nodeVersion: process.version,
-    npmVersion: await getToolVersion('npm'),
-    yarnVersion: await getToolVersion('yarn'),
-    pnpmVersion: await getToolVersion('pnpm'),
-    bunVersion: await getToolVersion('bun'),
-    gitVersion: await getToolVersion('git'),
+    npmVersion,
+    yarnVersion,
+    pnpmVersion,
+    bunVersion,
+    gitVersion,
     packageManager: await detectPackageManager(cwd),
     availablePackageManagers: await getAvailablePackageManagers(),
   }
@@ -246,113 +253,147 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
 
 function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   logger.header('📊 Project Information')
-
-  // Project details
-  if (info.project.name) {
-    logger.subheader('Project:')
-    logger.listItem(`Name: ${info.project.name}`)
-    logger.listItem(`Version: ${info.project.version}`)
-
-    if (info.project.description) {
-      logger.listItem(`Description: ${info.project.description}`)
-    }
-
-    logger.listItem(`Type: ${info.project.type}`)
-
-    if (info.project.isG1Project) {
-      logger.listItem('🚀 G1 Framework Project')
-
-      if (verbose && info.project.hasG1Config) {
-        logger.listItem('✅ G1 Configuration found')
-      }
-
-      if (verbose && info.project.hasPlugins) {
-        logger.listItem(`🔌 Plugins: ${info.project.pluginCount}`)
-      }
-    }
-
-    if (verbose && info.project.size) {
-      logger.listItem(`Size: ${info.project.size}`)
-    }
-
-    if (info.project.scripts && info.project.scripts.length > 0) {
-      logger.listItem(`Scripts: ${info.project.scripts.join(', ')}`)
-    }
-
-    if (verbose && info.project.typescript) {
-      logger.listItem(
-        `TypeScript: ${info.project.typescript.target}/${info.project.typescript.module}`
-      )
-    }
-  }
-
-  // Environment details
   logger.newLine()
-  logger.subheader('Environment:')
-  logger.listItem(`Node.js: ${info.environment.nodeVersion}`)
-  logger.listItem(`Package Manager: ${info.environment.packageManager}`)
 
-  if (verbose) {
-    const versions = []
-    if (info.environment.npmVersion) versions.push(`npm@${info.environment.npmVersion}`)
-    if (info.environment.yarnVersion) versions.push(`yarn@${info.environment.yarnVersion}`)
-    if (info.environment.pnpmVersion) versions.push(`pnpm@${info.environment.pnpmVersion}`)
-    if (info.environment.bunVersion) versions.push(`bun@${info.environment.bunVersion}`)
-
-    if (versions.length > 0) {
-      logger.listItem(`Available: ${versions.join(', ')}`)
-    }
+  // Project Information
+  if (info.project.name) {
+    logger.listItem(`Name: ${info.project.name}`)
+  }
+  if (info.project.version) {
+    logger.listItem(`Version: ${info.project.version}`)
+  }
+  if (info.project.description) {
+    logger.listItem(`Description: ${info.project.description}`)
+  }
+  if (info.project.type) {
+    logger.listItem(`Type: ${info.project.type}`)
+  }
+  if (info.project.main) {
+    logger.listItem(`Main: ${info.project.main}`)
   }
 
-  if (info.environment.gitVersion) {
-    logger.listItem(`Git: ${info.environment.gitVersion}`)
-  }
-
-  // Git information
-  if (info.environment.git?.isRepository) {
-    logger.listItem('📁 Git Repository')
-
-    if (verbose && info.environment.git.branch) {
-      logger.listItem(`Branch: ${info.environment.git.branch}`)
+  // G1 Project Information
+  if (info.project.isG1Project) {
+    logger.listItem('� G1 Project: Yes')
+    if (info.project.hasG1Config) {
+      logger.listItem('⚙️ G1 Config: Found')
     }
-
-    if (verbose && info.environment.git.lastCommit) {
-      logger.listItem(`Last Commit: ${info.environment.git.lastCommit}`)
-    }
-  }
-
-  // System information
-  if (verbose) {
-    logger.newLine()
-    logger.subheader('System:')
-    logger.listItem(`Platform: ${info.system.platform} (${info.system.arch})`)
-    logger.listItem(`Environment: ${info.system.nodeEnv}`)
-
-    if (info.system.memory) {
-      logger.listItem(
-        `Memory: ${info.system.memory.free}MB free / ${info.system.memory.total}MB total`
-      )
-    }
-
-    if (info.system.cpu) {
-      logger.listItem(`CPU: ${info.system.cpu}`)
+    if (info.project.hasPlugins) {
+      logger.listItem(`🔌 Plugins: ${info.project.pluginCount || 0}`)
+    } else {
+      logger.listItem('🔌 Plugins: 0')
     }
   }
 
   // Dependencies
-  if (
-    verbose &&
-    ((info.project.dependencies?.length || 0) > 0 || (info.project.devDependencies?.length || 0) > 0)
-  ) {
-    logger.newLine()
-    logger.subheader('Dependencies:')
-
-    if ((info.project.dependencies?.length || 0) > 0) {
-      logger.listItem(`Production: ${info.project.dependencies?.length} packages`)
+  if (info.project.dependencies && info.project.dependencies.length > 0) {
+    logger.listItem(`Dependencies: ${info.project.dependencies.length}`)
+    if (verbose) {
+      info.project.dependencies.forEach((dep) => {
+        logger.listItem(`  - ${dep}`, 2)
+      })
     }
+  }
 
-    if ((info.project.devDependencies?.length || 0) > 0) {
-      logger.listItem(`Development: ${info.project.devDependencies?.length} packages`)
+  if (info.project.devDependencies && info.project.devDependencies.length > 0) {
+    logger.listItem(`Dev Dependencies: ${info.project.devDependencies.length}`)
+    if (verbose) {
+      info.project.devDependencies.forEach((dep) => {
+        logger.listItem(`  - ${dep}`, 2)
+      })
+    }
+  }
+
+  // Scripts
+  if (info.project.scripts && info.project.scripts.length > 0) {
+    logger.listItem(`Scripts: ${info.project.scripts.length}`)
+    if (verbose) {
+      info.project.scripts.forEach((script) => {
+        logger.listItem(`  - ${script}`, 2)
+      })
+    }
+  }
+
+  // TypeScript Configuration
+  if (info.project.typescript) {
+    logger.listItem('TypeScript Configuration:')
+    logger.listItem(`  Target: ${info.project.typescript.target}`, 2)
+    logger.listItem(`  Module: ${info.project.typescript.module}`, 2)
+    logger.listItem(`  Strict: ${info.project.typescript.strict}`, 2)
+  }
+
+  // Project Size
+  if (info.project.size) {
+    logger.listItem(`Project Size: ${info.project.size}`)
+  }
+
+  logger.newLine()
+
+  // Environment Information
+  logger.subheader('🌍 Environment')
+  if (info.environment.nodeVersion) {
+    logger.listItem(`Node.js: ${info.environment.nodeVersion}`)
+  }
+  if (info.environment.packageManager) {
+    logger.listItem(`Package Manager: ${info.environment.packageManager}`)
+  }
+  if (info.environment.npmVersion) {
+    logger.listItem(`npm: ${info.environment.npmVersion}`)
+  }
+  if (info.environment.yarnVersion) {
+    logger.listItem(`Yarn: ${info.environment.yarnVersion}`)
+  }
+  if (info.environment.pnpmVersion) {
+    logger.listItem(`pnpm: ${info.environment.pnpmVersion}`)
+  }
+  if (info.environment.bunVersion) {
+    logger.listItem(`Bun: ${info.environment.bunVersion}`)
+  }
+  if (info.environment.gitVersion) {
+    logger.listItem(`Git: ${info.environment.gitVersion}`)
+  }
+
+  // Git Information
+  if (info.environment.git?.isRepository) {
+    logger.newLine()
+    logger.subheader('� Git Repository')
+    if (info.environment.git.branch) {
+      logger.listItem(`Branch: ${info.environment.git.branch}`)
+    }
+    if (info.environment.git.lastCommit) {
+      logger.listItem(`Last Commit: ${info.environment.git.lastCommit}`)
+    }
+    if (info.environment.git.user?.name) {
+      logger.listItem(`User: ${info.environment.git.user.name}`)
+    }
+    if (info.environment.git.user?.email) {
+      logger.listItem(`Email: ${info.environment.git.user.email}`)
+    }
+  }
+
+  // System Information (only in verbose mode)
+  if (verbose) {
+    logger.newLine()
+    logger.subheader('💻 System')
+    if (info.system.platform) {
+      logger.listItem(`Platform: ${info.system.platform}`)
+    }
+    if (info.system.arch) {
+      logger.listItem(`Architecture: ${info.system.arch}`)
+    }
+    if (info.system.nodeEnv) {
+      logger.listItem(`NODE_ENV: ${info.system.nodeEnv}`)
+    }
+    if (info.system.cwd) {
+      logger.listItem(`Working Directory: ${info.system.cwd}`)
+    }
+    if (info.system.memory) {
+      const freeMemory = (info.system.memory.free / 1024 / 1024 / 1024).toFixed(2)
+      const totalMemory = (info.system.memory.total / 1024 / 1024 / 1024).toFixed(2)
+      logger.listItem(`Memory: ${freeMemory}GB free / ${totalMemory}GB total`)
+    }
+    if (info.system.cpu) {
+      logger.listItem(`CPU: ${info.system.cpu}`)
     }
   }
 }

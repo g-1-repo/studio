@@ -6,7 +6,7 @@ describe('version Command', () => {
   let createVersionCommand: any
   let gatherVersionInfo: any
   let displayVersionInfo: any
-  let _consoleSpy: any
+  let consoleSpy: any
 
   beforeEach(async () => {
     vi.resetAllMocks()
@@ -24,7 +24,7 @@ describe('version Command', () => {
     }
 
     // Mock console.log
-    _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Mock modules using vi.doMock
     vi.doMock('../utils/file-system.js', () => ({
@@ -384,49 +384,31 @@ describe('version Command', () => {
     })
 
     it('should handle file read errors gracefully', async () => {
-      const mockReadFile = vi.fn()
-      mockReadFile.mockRejectedValue(new Error('File not found'))
-
-      vi.doMock('fs-extra', () => ({
-        readFile: mockReadFile,
-      }))
-
-      const { gatherVersionInfo } = await import('./version')
-
-      const result = await gatherVersionInfo('/non/existent/path', (_filePath: string) => {
-        return { name: 'test', version: '1.0.0' }
+      // Mock readJsonFile to return null (simulating file read error)
+      mockReadJsonFile.mockImplementation((_filePath: string) => {
+        return Promise.resolve(null)
       })
 
-      expect(result).toEqual({
-        name: 'test',
-        version: '1.0.0',
-        nodeVersion: process.version,
-        platform: process.platform,
-        arch: process.arch,
-      })
+      const versionInfo = await gatherVersionInfo(false)
+
+      // Should return default structure with null values when files can't be read
+      expect(versionInfo.cli).toBeNull()
+      expect(versionInfo.project).toBeNull()
+      expect(versionInfo.g1Dependencies).toEqual({})
     })
 
     it('should handle missing package.json gracefully', async () => {
-      const mockReadFile = vi.fn()
-      mockReadFile.mockRejectedValue(new Error('ENOENT: no such file or directory'))
-
-      vi.doMock('fs-extra', () => ({
-        readFile: mockReadFile,
-      }))
-
-      const { gatherVersionInfo } = await import('./version')
-
-      const result = await gatherVersionInfo('/non/existent/path', (_filePath: string) => {
-        return { name: 'fallback', version: '0.0.0' }
+      // Mock readJsonFile to return null (file doesn't exist)
+      mockReadJsonFile.mockImplementation((_filePath: string) => {
+        return Promise.resolve(null)
       })
 
-      expect(result).toEqual({
-        name: 'fallback',
-        version: '0.0.0',
-        nodeVersion: process.version,
-        platform: process.platform,
-        arch: process.arch,
-      })
+      const versionInfo = await gatherVersionInfo(false)
+
+      // Should return default structure with null values when files don't exist
+      expect(versionInfo.cli).toBeNull()
+      expect(versionInfo.project).toBeNull()
+      expect(versionInfo.g1Dependencies).toEqual({})
     })
   })
 })

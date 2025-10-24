@@ -6,5 +6,7 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     exclude: ['test-output/**/*'],
+    silent: false,
+    reporter: 'verbose',
   },
 })

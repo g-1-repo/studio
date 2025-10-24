@@ -364,6 +364,42 @@
           </div>
         </div>
 
+        <div class="card">
+          <h3>
+            <span>📊</span>
+            Code Coverage
+          </h3>
+          <div id="coverageSection" style="display: none;">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-number info" id="coverageFunctions">0%</div>
+                <div class="stat-label">Functions</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number success" id="coverageLines">0%</div>
+                <div class="stat-label">Lines</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number warning" id="coverageBranches">0%</div>
+                <div class="stat-label">Branches</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number info" id="coverageStatements">0%</div>
+                <div class="stat-label">Statements</div>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="coverageProgress" style="width: 0%"></div>
+            </div>
+            <div id="coverageFiles" style="margin-top: 15px; font-size: 0.85rem;">
+              <!-- Coverage file details will be populated here -->
+            </div>
+          </div>
+          <div id="noCoverageMessage" style="text-align: center; color: #718096; padding: 20px;">
+            Run tests with coverage to see detailed coverage metrics
+          </div>
+        </div>
+
         <div class="card test-categories">
           <h3>
             <span>🏷️</span>
@@ -456,15 +492,10 @@
       }
 
       // Simulate running tests
+      // Run tests - This will be overridden by WebSocket script
       function runTests() {
-        addTerminalLine('🚀 Starting test run...', 'info')
-        addTerminalLine('Applying database migrations...', '')
-
-        setTimeout(() => {
-          addTerminalLine('✓ Database setup complete', 'success')
-          addTerminalLine('Running tests in parallel...', '')
-          simulateTestExecution()
-        }, 1000)
+        // This function will be replaced by the WebSocket implementation
+        console.log('Run tests function called - should be overridden by WebSocket script')
       }
 
       // Simulate test execution
@@ -485,29 +516,16 @@
         }, 200)
       }
 
-      // Run with coverage
+      // Run with coverage - This will be overridden by WebSocket script
       function runCoverage() {
-        addTerminalLine('📊 Running tests with coverage analysis...', 'info')
-        runTests()
-        setTimeout(() => {
-          addTerminalLine('✓ Coverage report generated: ./coverage/index.html', 'success')
-        }, 3000)
+        // This function will be replaced by the WebSocket implementation
+        console.log('Coverage function called - should be overridden by WebSocket script')
       }
 
-      // Watch mode
+      // Watch mode - This will be overridden by WebSocket script
       function watchMode() {
-        addTerminalLine('👀 Entering watch mode...', 'info')
-        addTerminalLine('Watching for file changes...', '')
-
-        // Simulate file changes
-        setInterval(() => {
-          if (Math.random() > 0.7) {
-            addTerminalLine('📝 File change detected, re-running tests...', 'info')
-            setTimeout(() => {
-              addTerminalLine('✓ Tests passed', 'success')
-            }, 500)
-          }
-        }, 5000)
+        // This function will be replaced by the WebSocket implementation
+        console.log('Watch mode function called - should be overridden by WebSocket script')
       }
 
       // Add line to terminal output

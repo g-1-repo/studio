@@ -128,6 +128,9 @@ class TestDashboardServer {
                         case 'test_complete':
                             handleTestComplete(message.data);
                             break;
+                        case 'coverage_update':
+                            updateCoverageDisplay(message.data);
+                            break;
                     }
                 }
                 
@@ -139,6 +142,45 @@ class TestDashboardServer {
                     
                     const successRate = stats.total > 0 ? (stats.passed / stats.total * 100) : 0;
                     document.querySelector('.progress-fill').style.width = successRate + '%';
+                }
+
+                function updateCoverageDisplay(coverage) {
+                    const coverageSection = document.getElementById('coverageSection');
+                    const noCoverageMessage = document.getElementById('noCoverageMessage');
+                    
+                    if (coverage && coverage.overall) {
+                        // Show coverage section and hide no coverage message
+                        coverageSection.style.display = 'block';
+                        noCoverageMessage.style.display = 'none';
+                        
+                        // Update coverage stats
+                        document.getElementById('coverageFunctions').textContent = coverage.overall.functions.toFixed(1) + '%';
+                        document.getElementById('coverageLines').textContent = coverage.overall.lines.toFixed(1) + '%';
+                        document.getElementById('coverageBranches').textContent = coverage.overall.branches.toFixed(1) + '%';
+                        document.getElementById('coverageStatements').textContent = coverage.overall.statements.toFixed(1) + '%';
+                        
+                        // Update progress bar
+                        const coverageProgress = document.getElementById('coverageProgress');
+                        coverageProgress.style.width = coverage.overall.lines.toFixed(1) + '%';
+                        
+                        // Update coverage files list
+                        const coverageFiles = document.getElementById('coverageFiles');
+                        if (coverage.files && coverage.files.length > 0) {
+                            let filesHtml = '<div style="font-weight: bold; margin-bottom: 8px;">File Coverage:</div>';
+                            coverage.files.forEach(file => {
+                                const color = file.lines >= 80 ? '#68d391' : file.lines >= 60 ? '#f6e05e' : '#fc8181';
+                                filesHtml += \`<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: #e2e8f0;">\${file.name}</span>
+                                    <span style="color: \${color};">\${file.lines.toFixed(1)}%</span>
+                                </div>\`;
+                            });
+                            coverageFiles.innerHTML = filesHtml;
+                        }
+                    } else {
+                        // Hide coverage section and show no coverage message
+                        coverageSection.style.display = 'none';
+                        noCoverageMessage.style.display = 'block';
+                    }
                 }
                 
                 // Override the original runTests function to use WebSocket
@@ -252,6 +294,14 @@ class TestDashboardServer {
         type: 'test_update',
         data: this.testResults.stats,
       })
+
+      // If coverage data is available, broadcast it
+      if (withCoverage && results.coverage) {
+        this.broadcast({
+          type: 'coverage_update',
+          data: results.coverage,
+        })
+      }
     })
   }
 
@@ -264,6 +314,7 @@ class TestDashboardServer {
         duration: 0,
         coverage: 0,
       },
+      coverage: null,
     }
 
     // Parse test statistics from Vitest output
@@ -285,7 +336,71 @@ class TestDashboardServer {
       results.stats.duration = Number.parseFloat(durationMatch[1])
     }
 
+    // Parse coverage data if present
+    const coverageTableMatch = output.match(/(-{30,}.*?\n.*?File.*?% Funcs.*?% Lines.*?\n-{30,}.*?\n)(.*?)(-{30,})/s)
+    if (coverageTableMatch) {
+      const coverageData = this.parseCoverageTable(coverageTableMatch[2])
+      results.coverage = coverageData
+      
+      // Update overall coverage percentage in stats
+      if (coverageData && coverageData.overall) {
+        results.stats.coverage = coverageData.overall.lines
+      }
+    } else {
+      // Try alternative parsing for different output formats
+      const altCoverageMatch = output.match(/File\s+\|\s+% Funcs\s+\|\s+% Lines\s+\|\s+Uncovered Line #s\s*\n-+\|\s*-+\|\s*-+\|\s*-+\s*\n(.*?)(?:\n\s*\d+\s+pass|\n\s*$)/s)
+      if (altCoverageMatch) {
+        const coverageData = this.parseCoverageTable(altCoverageMatch[1])
+        results.coverage = coverageData
+        
+        // Update overall coverage percentage in stats
+        if (coverageData && coverageData.overall) {
+          results.stats.coverage = coverageData.overall.lines
+        }
+      }
+    }
+
     return results
+  }
+
+  parseCoverageTable(tableContent) {
+    const lines = tableContent.trim().split('\n')
+    const files = []
+    let overall = null
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+      if (!trimmedLine || trimmedLine.startsWith('-')) continue
+
+      // Parse coverage line: "File | % Funcs | % Lines | Uncovered Line #s"
+      const parts = trimmedLine.split('|').map(part => part.trim())
+      if (parts.length >= 3) {
+        const fileName = parts[0]
+        const funcsCoverage = parseFloat(parts[1]) || 0
+        const linesCoverage = parseFloat(parts[2]) || 0
+        
+        if (fileName === 'All files') {
+          overall = {
+            functions: funcsCoverage,
+            lines: linesCoverage,
+            branches: 0, // Not provided in current output
+            statements: 0, // Not provided in current output
+          }
+        } else if (fileName && !fileName.includes('---')) {
+          files.push({
+            name: fileName,
+            functions: funcsCoverage,
+            lines: linesCoverage,
+            uncoveredLines: parts[3] || '',
+          })
+        }
+      }
+    }
+
+    return {
+      overall,
+      files: files.slice(0, 10), // Limit to top 10 files for display
+    }
   }
 
   getLineType(line) {
