@@ -1,7 +1,7 @@
 {
   "name": "@g-1/example",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Example application demonstrating the `@g-1/core` framework",
   "keywords": [
     "api",

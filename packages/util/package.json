@@ -1,7 +1,7 @@
 {
   "name": "@g-1/util",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "G1 Studio utility functions and helpers",
   "author": "G1 Studio",
   "license": "MIT",

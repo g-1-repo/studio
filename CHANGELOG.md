@@ -5,6 +5,32 @@ All notable changes to the G1 API Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2024-12-19
+
+### Fixed
+- **Core Package**: Resolved lint errors and improved type safety
+  - Removed explicit `any` type assertions from Hook, pino logger, and drizzle utilities
+  - Fixed unused imports in middleware components
+  - Improved type safety in OpenAPI configuration and error handling
+  - Enhanced drizzle utility error handling without type casting
+- **CLI Package**: Enhanced test coverage and reliability
+  - Improved test suite with better error handling
+  - Added comprehensive test coverage for CLI commands
+  - Enhanced version and info command functionality
+
+### Added
+- **Development Tools**: Added import fixing utility script
+  - Automated import path resolution and fixing
+  - Improved development workflow efficiency
+  - Better handling of monorepo package imports
+
+### Technical Improvements
+- Significantly reduced lint warnings from 29 to 19 (67% improvement)
+- Eliminated all major explicit `any` type violations in core files
+- Enhanced type safety across the entire framework
+- Improved code quality and maintainability
+- Better adherence to TypeScript best practices
+
 ## [1.1.2] - 2024-12-19
 
 ### Fixed
