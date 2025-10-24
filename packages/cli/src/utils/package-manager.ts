@@ -1,6 +1,6 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import path from 'node:path'
 import fs from 'fs-extra'
-import path from 'path'
 
 export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun'
 
@@ -9,12 +9,13 @@ export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun'
  */
 export async function installDependencies(
   projectPath: string,
-  packageManager: PackageManager = 'bun'
+  packageManager: PackageManager = 'bun',
 ): Promise<void> {
   try {
     const command = getInstallCommand(packageManager)
     execSync(command, { cwd: projectPath, stdio: 'inherit' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to install dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -84,7 +85,8 @@ export async function detectPackageManager(projectPath: string): Promise<Package
           return pmName as PackageManager
         }
       }
-    } catch {
+    }
+    catch {
       // Ignore JSON parsing errors
     }
   }
@@ -99,7 +101,8 @@ export function isPackageManagerAvailable(packageManager: PackageManager): boole
   try {
     execSync(`${packageManager} --version`, { stdio: 'pipe' })
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -118,13 +121,13 @@ export function getAvailablePackageManagers(): PackageManager[] {
 export function getPreferredPackageManager(): PackageManager {
   const available = getAvailablePackageManagers()
   const preference: PackageManager[] = ['bun', 'pnpm', 'yarn', 'npm']
-  
+
   for (const pm of preference) {
     if (available.includes(pm)) {
       return pm
     }
   }
-  
+
   return 'npm' // Fallback to npm (should always be available)
 }
 
@@ -137,10 +140,10 @@ export async function addDependencies(
   options: {
     dev?: boolean
     packageManager?: PackageManager
-  } = {}
+  } = {},
 ): Promise<void> {
   const { dev = false, packageManager = 'bun' } = options
-  
+
   if (dependencies.length === 0) {
     return
   }
@@ -148,7 +151,8 @@ export async function addDependencies(
   try {
     const command = getAddCommand(packageManager, dependencies, dev)
     execSync(command, { cwd: projectPath, stdio: 'inherit' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to add dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -159,10 +163,10 @@ export async function addDependencies(
 function getAddCommand(
   packageManager: PackageManager,
   dependencies: string[],
-  dev: boolean
+  dev: boolean,
 ): string {
   const deps = dependencies.join(' ')
-  
+
   switch (packageManager) {
     case 'npm':
       return dev ? `npm install --save-dev ${deps}` : `npm install ${deps}`
@@ -183,7 +187,7 @@ function getAddCommand(
 export async function removeDependencies(
   projectPath: string,
   dependencies: string[],
-  packageManager: PackageManager = 'bun'
+  packageManager: PackageManager = 'bun',
 ): Promise<void> {
   if (dependencies.length === 0) {
     return
@@ -192,7 +196,8 @@ export async function removeDependencies(
   try {
     const command = getRemoveCommand(packageManager, dependencies)
     execSync(command, { cwd: projectPath, stdio: 'inherit' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to remove dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -202,7 +207,7 @@ export async function removeDependencies(
  */
 function getRemoveCommand(packageManager: PackageManager, dependencies: string[]): string {
   const deps = dependencies.join(' ')
-  
+
   switch (packageManager) {
     case 'npm':
       return `npm uninstall ${deps}`
@@ -223,12 +228,13 @@ function getRemoveCommand(packageManager: PackageManager, dependencies: string[]
 export async function runScript(
   projectPath: string,
   script: string,
-  packageManager: PackageManager = 'bun'
+  packageManager: PackageManager = 'bun',
 ): Promise<void> {
   try {
     const command = getRunCommand(packageManager, script)
     execSync(command, { cwd: projectPath, stdio: 'inherit' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to run script: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -241,7 +247,8 @@ export async function hasScript(projectPath: string, script: string): Promise<bo
     const packageJsonPath = path.join(projectPath, 'package.json')
     const packageJson = await fs.readJson(packageJsonPath)
     return !!(packageJson.scripts && packageJson.scripts[script])
-  } catch {
+  }
+  catch {
     return false
   }
 }

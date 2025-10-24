@@ -13,52 +13,42 @@ const mockLogger = {
   succeedSpinner: vi.fn(),
   failSpinner: vi.fn(),
   updateSpinner: vi.fn(),
-  stopSpinner: vi.fn()
+  stopSpinner: vi.fn(),
 }
 
 // Use dynamic imports with vi.doMock for proper hoisting
 vi.doMock('commander', () => ({
-  Command: vi.fn(() => {
-    let mockActionHandler: any = null
+  Command: vi.fn().mockImplementation(() => {
+    let _mockActionHandler: any = null
     const instance = {
       name: vi.fn().mockReturnThis(),
       description: vi.fn().mockReturnThis(),
       argument: vi.fn().mockReturnThis(),
       option: vi.fn().mockReturnThis(),
-      alias: vi.fn().mockReturnThis(),
-      action: vi.fn((handler) => {
-        mockActionHandler = handler
-        instance._actionHandler = handler
+      action: vi.fn((handler: any) => {
+        _mockActionHandler = handler
         return instance
       }),
-      _actionHandler: null,
-      options: [
-        { long: '--directory' },
-        { long: '--force' },
-        { long: '--no-tests' },
-        { long: '--no-docs' },
-        { long: '--template' }
-      ]
     }
     return instance
-  })
+  }),
 }))
 
 vi.doMock('inquirer', () => ({
   default: {
-    prompt: vi.fn()
+    prompt: vi.fn(),
   },
-  prompt: vi.fn()
+  prompt: vi.fn(),
 }))
 
 vi.doMock('../utils/validation.js', () => ({
-  validateIdentifier: vi.fn()
+  validateIdentifier: vi.fn(),
 }))
 
 vi.doMock('../generators/index.js', () => ({
   generatePlugin: vi.fn(),
   generateMiddleware: vi.fn(),
-  generateRoute: vi.fn()
+  generateRoute: vi.fn(),
 }))
 
 vi.doMock('../utils/logger.js', () => ({
@@ -75,8 +65,8 @@ vi.doMock('../utils/logger.js', () => ({
     succeedSpinner: vi.fn(),
     failSpinner: vi.fn(),
     updateSpinner: vi.fn(),
-    stopSpinner: vi.fn()
-  }
+    stopSpinner: vi.fn(),
+  },
 }))
 
 // Dynamic imports
@@ -99,26 +89,26 @@ vi.mocked(Logger).mockImplementation(() => mockLogger as any)
 // Mock inquirer.default.prompt to use the same mock as inquirer.prompt
 mockInquirer.default.prompt = mockInquirer.prompt
 
-describe('Generate Command', () => {
-  let generateCommand: Command
-  let mockProcessExit: any
+describe('generate Command', () => {
+  let _generateCommand: Command
+  let _mockProcessExit: any
 
   beforeEach(() => {
     vi.clearAllMocks()
 
     // Mock process.exit to not throw by default
-    mockProcessExit = vi.spyOn(process, 'exit').mockImplementation((() => {
+    _mockProcessExit = vi.spyOn(process, 'exit').mockImplementation((() => {
       // Don't throw by default, only in specific tests
     }) as any)
 
-    generateCommand = createGenerateCommand()
+    _generateCommand = createGenerateCommand()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  describe('Command Configuration', () => {
+  describe('command Configuration', () => {
     it('should be configured with correct description and options', () => {
       // Create a command instance to test configuration
       const commandInstance = createGenerateCommand()
@@ -153,7 +143,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Type Validation', () => {
+  describe('type Validation', () => {
     it('should accept valid generator types', async () => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -188,7 +178,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Name Handling', () => {
+  describe('name Handling', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -204,8 +194,8 @@ describe('Generate Command', () => {
 
       expect(mockGeneratePlugin).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'test-plugin'
-        })
+          name: 'test-plugin',
+        }),
       )
     })
 
@@ -225,8 +215,8 @@ describe('Generate Command', () => {
           type: 'input',
           name: 'name',
           message: 'Enter plugin name:',
-          validate: expect.any(Function)
-        }
+          validate: expect.any(Function),
+        },
       ])
     })
 
@@ -284,7 +274,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Generation Options', () => {
+  describe('generation Options', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -304,7 +294,7 @@ describe('Generate Command', () => {
         force: undefined,
         includeTests: true,
         includeDocs: true,
-        template: undefined
+        template: undefined,
       })
     })
 
@@ -317,7 +307,7 @@ describe('Generate Command', () => {
         force: true,
         tests: false,
         docs: false,
-        template: 'custom-template'
+        template: 'custom-template',
       })
 
       expect(mockGeneratePlugin).toHaveBeenCalledWith({
@@ -327,7 +317,7 @@ describe('Generate Command', () => {
         force: true,
         includeTests: false,
         includeDocs: false,
-        template: 'custom-template'
+        template: 'custom-template',
       })
     })
 
@@ -338,7 +328,7 @@ describe('Generate Command', () => {
       await generateCommand('plugin', 'test-plugin', {
         directory: '/test/dir',
         force: true,
-        template: 'custom'
+        template: 'custom',
       })
 
       expect(mockLogger.subheader).toHaveBeenCalledWith('Configuration:')
@@ -352,7 +342,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Confirmation Prompt', () => {
+  describe('confirmation Prompt', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
     })
@@ -383,7 +373,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Code Generation', () => {
+  describe('code Generation', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -404,7 +394,7 @@ describe('Generate Command', () => {
         force: undefined,
         includeTests: true,
         includeDocs: true,
-        template: undefined
+        template: undefined,
       })
     })
 
@@ -423,7 +413,7 @@ describe('Generate Command', () => {
         force: undefined,
         includeTests: true,
         includeDocs: true,
-        template: undefined
+        template: undefined,
       })
     })
 
@@ -442,7 +432,7 @@ describe('Generate Command', () => {
         force: undefined,
         includeTests: true,
         includeDocs: true,
-        template: undefined
+        template: undefined,
       })
     })
 
@@ -523,7 +513,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Error Handling', () => {
+  describe('error Handling', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -561,7 +551,7 @@ describe('Generate Command', () => {
     })
   })
 
-  describe('Success Flow', () => {
+  describe('success Flow', () => {
     beforeEach(() => {
       mockValidateIdentifier.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })

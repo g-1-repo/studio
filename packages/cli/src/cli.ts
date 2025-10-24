@@ -26,7 +26,8 @@ program.exitOverride()
 
 try {
   program.parse()
-} catch (error) {
+}
+catch (error) {
   if (error instanceof Error) {
     console.error(chalk.red('Error:'), error.message)
     process.exit(1)

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Use dynamic imports with vi.doMock for proper hoisting
 vi.doMock('commander', () => ({
   Command: vi.fn(() => {
-    let mockActionHandler: any = null
+    let _mockActionHandler: any = null
     let mockDescription = ''
     let mockName = ''
     const mockOptions: any[] = []
@@ -24,26 +24,21 @@ vi.doMock('commander', () => ({
         return mockDescription
       }),
       option: vi.fn((flags: string, description: string, defaultValue?: any) => {
-        const [short, long] = flags.split(', ')
-        mockOptions.push({
-          flags,
-          description,
-          defaultValue,
-          short: short?.replace('-', ''),
-          long: long || short
-        })
+        mockOptions.push({ flags, description, defaultValue })
         return instance
       }),
-      action: vi.fn((handler) => {
-        mockActionHandler = handler
-        instance._actionHandler = handler
+      action: vi.fn((handler: any) => {
+        _mockActionHandler = handler
         return instance
       }),
-      options: mockOptions,
-      _actionHandler: null
+      getActionHandler: vi.fn(() => _mockActionHandler),
+      getMockOptions: vi.fn(() => mockOptions),
+      getMockDescription: vi.fn(() => mockDescription),
+      getMockName: vi.fn(() => mockName),
     }
+
     return instance
-  })
+  }),
 }))
 
 vi.doMock('fs-extra', () => {
@@ -51,11 +46,11 @@ vi.doMock('fs-extra', () => {
     existsSync: vi.fn(),
     readFileSync: vi.fn(),
     pathExists: vi.fn(),
-    readdir: vi.fn()
+    readdir: vi.fn(),
   }
   return {
     default: mockFsExtra,
-    ...mockFsExtra
+    ...mockFsExtra,
   }
 })
 
@@ -63,38 +58,38 @@ vi.doMock('path', () => ({
   default: {
     join: vi.fn(),
     resolve: vi.fn(),
-    dirname: vi.fn()
+    dirname: vi.fn(),
   },
   join: vi.fn(),
   resolve: vi.fn(),
-  dirname: vi.fn()
+  dirname: vi.fn(),
 }))
 
 vi.doMock('child_process', () => ({
-  execSync: vi.fn()
+  execSync: vi.fn(),
 }))
 
 vi.doMock('os', () => ({
   platform: vi.fn(),
   arch: vi.fn(),
   totalmem: vi.fn(),
-  cpus: vi.fn()
+  cpus: vi.fn(),
 }))
 
 vi.doMock('../utils/file-system.js', () => ({
   readJsonFile: vi.fn(),
   getDirectorySize: vi.fn(),
-  formatFileSize: vi.fn()
+  formatFileSize: vi.fn(),
 }))
 
 vi.doMock('../utils/package-manager.js', () => ({
   detectPackageManager: vi.fn(),
-  getAvailablePackageManagers: vi.fn()
+  getAvailablePackageManagers: vi.fn(),
 }))
 
 vi.doMock('../utils/git.js', () => ({
   isGitRepository: vi.fn(),
-  getGitUserInfo: vi.fn()
+  getGitUserInfo: vi.fn(),
 }))
 
 vi.doMock('../utils/logger.js', () => {
@@ -105,19 +100,20 @@ vi.doMock('../utils/logger.js', () => {
     header: vi.fn(),
     subheader: vi.fn(),
     listItem: vi.fn(),
-    newLine: vi.fn()
+    newLine: vi.fn(),
   }
 
   return {
     Logger: vi.fn().mockImplementation(() => mockLogger),
-    logger: mockLogger
+    logger: mockLogger,
   }
 })
 
 // Dynamic imports
-const { Command } = await import('commander')
+// Import the Command class after mocking
+const { Command: _Command } = await import('commander')
 const fs = await import('fs-extra')
-const path = await import('path')
+const path = await import('node:path')
 const { Logger } = await import('../utils/logger.js')
 const { detectPackageManager, getAvailablePackageManagers } = await import('../utils/package-manager.js')
 const { isGitRepository, getGitUserInfo } = await import('../utils/git.js')
@@ -132,7 +128,7 @@ const mockLogger = vi.mocked(MockLoggerClass).mock.results[0]?.value || {
   subheader: vi.fn(),
   listItem: vi.fn(),
   newLine: vi.fn(),
-  error: vi.fn()
+  error: vi.fn(),
 }
 const mockDetectPackageManager = detectPackageManager as any
 const mockGetAvailablePackageManagers = getAvailablePackageManagers as any
@@ -145,7 +141,7 @@ const mockFormatFileSize = formatFileSize as any
 // Mock Logger constructor - use the mock from the doMock
 vi.mocked(Logger).mockImplementation(() => mockLogger as any)
 
-describe('Info Command', () => {
+describe('info Command', () => {
   let infoCommand: Command
   let consoleSpy: any
 
@@ -178,12 +174,15 @@ describe('Info Command', () => {
     mockFs.default.readdir.mockResolvedValue([])
 
     // Mock execSync for git commands
-    const { execSync } = await import('child_process')
+    const { execSync } = await import('node:child_process')
     const mockExecSync = execSync as any
     mockExecSync.mockImplementation((command: string) => {
-      if (command === 'git branch --show-current') return 'main'
-      if (command === 'git config --get remote.origin.url') return 'https://github.com/user/repo.git'
-      if (command === 'git log -1 --format="%h %s"') return 'abc1234 Initial commit'
+      if (command === 'git branch --show-current')
+        return 'main'
+      if (command === 'git config --get remote.origin.url')
+        return 'https://github.com/user/repo.git'
+      if (command === 'git log -1 --format="%h %s"')
+        return 'abc1234 Initial commit'
       return ''
     })
 
@@ -200,7 +199,7 @@ describe('Info Command', () => {
     vi.restoreAllMocks()
   })
 
-  describe('Command Configuration', () => {
+  describe('command Configuration', () => {
     it('should be configured with correct description and options', () => {
       expect(infoCommand.description()).toBe('Display project and environment information')
 
@@ -212,7 +211,7 @@ describe('Info Command', () => {
     })
   })
 
-  describe('Basic Project Information', () => {
+  describe('basic Project Information', () => {
     it('should gather basic project information from package.json', async () => {
       const mockPackageJson = {
         name: 'test-project',
@@ -222,7 +221,7 @@ describe('Info Command', () => {
         main: 'index.js',
         scripts: { start: 'node index.js', test: 'vitest' },
         dependencies: { express: '^4.18.0' },
-        devDependencies: { vitest: '^0.34.0' }
+        devDependencies: { vitest: '^0.34.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -254,7 +253,7 @@ describe('Info Command', () => {
     it('should detect G1 framework projects', async () => {
       const mockPackageJson = {
         name: 'my-g1-project',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -268,7 +267,7 @@ describe('Info Command', () => {
 
     it('should detect G1 projects by name prefix', async () => {
       const mockPackageJson = {
-        name: '@g-1/my-plugin'
+        name: '@g-1/my-plugin',
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -281,7 +280,7 @@ describe('Info Command', () => {
     })
   })
 
-  describe('Environment Information', () => {
+  describe('environment Information', () => {
     it('should display environment information', async () => {
       // Mock process.version
       Object.defineProperty(process, 'version', { value: 'v18.17.0' })
@@ -310,7 +309,7 @@ describe('Info Command', () => {
       // Mock dynamic import and execSync
       const mockExecSync = vi.fn().mockReturnValue('git version 2.39.0')
       vi.doMock('child_process', () => ({
-        execSync: mockExecSync
+        execSync: mockExecSync,
       }))
 
       const actionFn = infoCommand._actionHandler
@@ -322,11 +321,11 @@ describe('Info Command', () => {
     })
   })
 
-  describe('Verbose Mode', () => {
+  describe('verbose Mode', () => {
     beforeEach(() => {
       const mockPackageJson = {
         name: 'test-project',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
       mockFs.pathExists.mockResolvedValue(true)
@@ -349,16 +348,18 @@ describe('Info Command', () => {
       const mockPackageJson = {
         name: '@g-1/test-project',
         version: '1.0.0',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
       mockReadJsonFile.mockImplementation((path: string) => {
-        if (path.includes('package.json')) return Promise.resolve(mockPackageJson)
+        if (path.includes('package.json'))
+          return Promise.resolve(mockPackageJson)
         return Promise.resolve(null)
       })
 
       // Mock plugins directory to exist and contain 2 plugin files
       mockFs.pathExists.mockImplementation((path: string) => {
-        if (path.includes('src/plugins')) return Promise.resolve(true)
+        if (path.includes('src/plugins'))
+          return Promise.resolve(true)
         return Promise.resolve(false)
       })
       mockFs.readdir.mockResolvedValue(['plugin1.ts', 'plugin2.js', 'readme.md'])
@@ -384,8 +385,8 @@ describe('Info Command', () => {
       // Mock os module
       const mockOs = {
         totalmem: () => 16 * 1024 * 1024 * 1024, // 16GB
-        freemem: () => 8 * 1024 * 1024 * 1024,   // 8GB
-        cpus: () => [{ model: 'Intel Core i7' }]
+        freemem: () => 8 * 1024 * 1024 * 1024, // 8GB
+        cpus: () => [{ model: 'Intel Core i7' }],
       }
       vi.doMock('os', () => mockOs)
 
@@ -405,8 +406,8 @@ describe('Info Command', () => {
         compilerOptions: {
           target: 'ES2020',
           module: 'ESNext',
-          strict: true
-        }
+          strict: true,
+        },
       }
 
       mockReadJsonFile
@@ -438,7 +439,7 @@ describe('Info Command', () => {
       const mockPackageJson = {
         name: 'test-project',
         dependencies: { express: '^4.18.0', lodash: '^4.17.0' },
-        devDependencies: { vitest: '^0.34.0', typescript: '^5.0.0', eslint: '^8.0.0' }
+        devDependencies: { vitest: '^0.34.0', typescript: '^5.0.0', eslint: '^8.0.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -453,11 +454,11 @@ describe('Info Command', () => {
     })
   })
 
-  describe('JSON Output', () => {
+  describe('jSON Output', () => {
     it('should output JSON when --json flag is used', async () => {
       const mockPackageJson = {
         name: 'test-project',
-        version: '1.0.0'
+        version: '1.0.0',
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -467,7 +468,7 @@ describe('Info Command', () => {
       await actionFn({ json: true })
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"name": "test-project"')
+        expect.stringContaining('"name": "test-project"'),
       )
       expect(mockLogger.header).not.toHaveBeenCalled()
     })
@@ -476,7 +477,7 @@ describe('Info Command', () => {
       const mockPackageJson = {
         name: 'test-project',
         version: '1.0.0',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -497,7 +498,7 @@ describe('Info Command', () => {
     })
   })
 
-  describe('Error Handling', () => {
+  describe('error Handling', () => {
     it('should handle errors gracefully', async () => {
       mockReadJsonFile.mockRejectedValue(new Error('File read error'))
 
@@ -524,7 +525,7 @@ describe('Info Command', () => {
       mockIsGitRepository.mockResolvedValue(true)
 
       // Mock execSync to throw for git commands
-      const { execSync } = await import('child_process')
+      const { execSync } = await import('node:child_process')
       const mockExecSync = execSync as any
       mockExecSync.mockImplementation(() => {
         throw new Error('Git command failed')
@@ -541,7 +542,7 @@ describe('Info Command', () => {
     it('should handle missing plugin directory gracefully', async () => {
       const mockPackageJson = {
         name: 'test-project',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -558,7 +559,7 @@ describe('Info Command', () => {
     it('should handle plugin directory read errors', async () => {
       const mockPackageJson = {
         name: 'test-project',
-        dependencies: { '@g-1/core': '^1.0.0' }
+        dependencies: { '@g-1/core': '^1.0.0' },
       }
 
       mockReadJsonFile.mockResolvedValue(mockPackageJson)
@@ -574,9 +575,9 @@ describe('Info Command', () => {
     })
   })
 
-  describe('Tool Version Detection', () => {
+  describe('tool Version Detection', () => {
     it('should detect available tool versions', async () => {
-      const { execSync } = await import('child_process')
+      const { execSync } = await import('node:child_process')
       const mockExecSync = execSync as any
       mockExecSync
         .mockReturnValueOnce('8.19.2') // npm
@@ -597,7 +598,7 @@ describe('Info Command', () => {
       })
 
       vi.doMock('child_process', () => ({
-        execSync: mockExecSync
+        execSync: mockExecSync,
       }))
 
       const actionFn = infoCommand._actionHandler

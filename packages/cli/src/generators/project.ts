@@ -1,7 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import fs from 'fs-extra'
 import { logger } from '../utils/logger.js'
-import { renderTemplate } from '../utils/template.js'
 import { initializeGit } from '../utils/git.js'
 import { installDependencies } from '../utils/package-manager.js'
 import type { CreateProjectOptions, TemplateVariables } from '../types/index.js'
@@ -33,7 +32,8 @@ export async function createProject(options: CreateProjectOptions): Promise<void
       if (files.length > 0) {
         throw new Error(`Directory ${projectPath} is not empty`)
       }
-    } else {
+    }
+    else {
       await fs.ensureDir(projectPath)
     }
 
@@ -80,8 +80,8 @@ export async function createProject(options: CreateProjectOptions): Promise<void
       await installDependencies(projectPath, packageManager)
       logger.succeedSpinner('Dependencies installed')
     }
-
-  } catch (error) {
+  }
+  catch (error) {
     logger.failSpinner('Failed to create project')
     throw error
   }
@@ -118,17 +118,17 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
       '@g-1/util': '^1.0.0',
       '@hono/zod-openapi': '^1.1.4',
       'drizzle-orm': '^0.44.6',
-      hono: '^4.10.1',
-      zod: '^4.1.12',
+      'hono': '^4.10.1',
+      'zod': '^4.1.12',
       '@libsql/client': '^0.10.0',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      typescript: '^5.2.2',
-      vitest: '^0.34.6',
+      'typescript': '^5.2.2',
+      'vitest': '^0.34.6',
       'drizzle-kit': '^0.20.0',
       ...(vars.eslint && {
-        eslint: '^8.51.0',
+        'eslint': '^8.51.0',
         '@typescript-eslint/eslint-plugin': '^6.7.4',
         '@typescript-eslint/parser': '^6.7.4',
       }),
@@ -406,12 +406,12 @@ async function generateMinimalProject(projectPath: string, vars: TemplateVariabl
     dependencies: {
       '@g-1/core': '^1.15.9',
       '@g-1/util': '^1.0.0',
-      hono: '^4.10.1',
+      'hono': '^4.10.1',
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      typescript: '^5.2.2',
-      vitest: '^0.34.6',
+      'typescript': '^5.2.2',
+      'vitest': '^0.34.6',
     },
     engines: {
       node: '>=18.0.0',
@@ -424,7 +424,7 @@ async function generateMinimalProject(projectPath: string, vars: TemplateVariabl
 
   // Simple app file
   await fs.ensureDir(path.join(projectPath, 'src'))
-  
+
   const appContent = `import { Hono } from 'hono'
 
 const app = new Hono()
@@ -485,8 +485,8 @@ async function generatePluginProject(projectPath: string, vars: TemplateVariable
     },
     devDependencies: {
       '@types/node': '^20.8.0',
-      typescript: '^5.2.2',
-      vitest: '^0.34.6',
+      'typescript': '^5.2.2',
+      'vitest': '^0.34.6',
     },
     peerDependencies: {
       hono: '^4.10.1',
@@ -501,7 +501,7 @@ async function generatePluginProject(projectPath: string, vars: TemplateVariable
 
   // Plugin source
   await fs.ensureDir(path.join(projectPath, 'src'))
-  
+
   const pluginContent = `import { createPlugin } from '@g-1/core'
 
 export const ${vars.projectName.replace(/-/g, '')}Plugin = createPlugin({

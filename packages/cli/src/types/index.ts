@@ -94,7 +94,7 @@ export interface GeneratorPrompt {
   name: string
   message: string
   default?: unknown
-  choices?: string[] | { name: string; value: unknown }[]
+  choices?: string[] | { name: string, value: unknown }[]
   validate?: (input: unknown) => boolean | string
 }
 

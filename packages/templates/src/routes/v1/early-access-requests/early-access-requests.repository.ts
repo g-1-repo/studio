@@ -1,3 +1,4 @@
+import type { PaginationResult } from '@g-1/core'
 import type { EarlyAccessRequest } from '../../../db/tables/early-access-request.table'
 import type { Environment } from '../../../env'
 import { BaseRepository, createPaginationResult } from '@g-1/core'
@@ -27,7 +28,7 @@ type Create = Pick<EarlyAccessRequest, 'email'>
  */
 export class EarlyAccessRequestsRepository extends BaseRepository {
   // Override getDb to use templates-specific createDb with schema
-  protected getDb(env: Environment) {
+  protected getDb(env: Environment): any {
     // Create a cache key based on environment
     const cacheKey = `${env.CLOUDFLARE_ACCOUNT_ID || 'default'}-${env.CLOUDFLARE_DATABASE_ID || 'default'}`
 
@@ -41,7 +42,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   /**
    * Get all early access requests
    */
-  async getAll(env: Environment) {
+  async getAll(env: Environment): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -54,7 +55,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   /**
    * Find early access request by email
    */
-  async findOneByEmail(email: string, env: Environment) {
+  async findOneByEmail(email: string, env: Environment): Promise<EarlyAccessRequest | undefined> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -68,7 +69,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   /**
    * Create new early access request
    */
-  async create(data: Create, env: Environment) {
+  async create(data: Create, env: Environment): Promise<EarlyAccessRequest> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -82,7 +83,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   /**
    * Remove early access request by ID
    */
-  async remove(id: string, env: Environment) {
+  async remove(id: string, env: Environment): Promise<void> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -97,7 +98,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
    * OPTIMIZATION: Create multiple early access requests in a single transaction
    * Significantly improves performance for batch operations
    */
-  async createBatch(data: Create[], env: Environment) {
+  async createBatch(data: Create[], env: Environment): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -114,7 +115,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
    * OPTIMIZATION: Get paginated early access requests for large datasets
    * Uses standardized pagination from @g-1/util
    */
-  async getAllPaginated(env: Environment, page = 1, limit = 50) {
+  async getAllPaginated(env: Environment, page = 1, limit = 50): Promise<PaginationResult<EarlyAccessRequest>> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -153,7 +154,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
    * OPTIMIZATION: Count total early access requests efficiently
    * Useful for dashboard statistics without loading all data
    */
-  async getCount(env: Environment) {
+  async getCount(env: Environment): Promise<number> {
     return this.executeQuery(
       env,
       async (db) => {
@@ -184,7 +185,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
   /**
    * OPTIMIZATION: Get recent early access requests for dashboard
    */
-  async getRecent(env: Environment, limit = 10) {
+  async getRecent(env: Environment, limit = 10): Promise<EarlyAccessRequest[]> {
     return this.executeQuery(
       env,
       async (db) => {

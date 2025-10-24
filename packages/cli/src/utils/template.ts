@@ -1,6 +1,6 @@
+import path from 'node:path'
 import Mustache from 'mustache'
 import fs from 'fs-extra'
-import path from 'path'
 import type { TemplateVariables } from '../types/index.js'
 
 /**
@@ -15,7 +15,7 @@ export function renderTemplate(template: string, variables: TemplateVariables): 
  */
 export async function renderTemplateFile(
   templatePath: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): Promise<string> {
   const template = await fs.readFile(templatePath, 'utf-8')
   return renderTemplate(template, variables)
@@ -28,18 +28,18 @@ export async function renderTemplateToFile(
   template: string,
   outputPath: string,
   variables: TemplateVariables,
-  options: { overwrite?: boolean } = {}
+  options: { overwrite?: boolean } = {},
 ): Promise<void> {
   const { overwrite = false } = options
-  
+
   // Check if file exists and overwrite is not allowed
   if (!overwrite && await fs.pathExists(outputPath)) {
     throw new Error(`File already exists: ${outputPath}`)
   }
-  
+
   // Ensure directory exists
   await fs.ensureDir(path.dirname(outputPath))
-  
+
   // Render and write template
   const rendered = renderTemplate(template, variables)
   await fs.writeFile(outputPath, rendered, 'utf-8')
@@ -55,13 +55,13 @@ export async function copyTemplateFiles(
   options: {
     overwrite?: boolean
     filter?: (src: string, dest: string) => boolean
-  } = {}
+  } = {},
 ): Promise<void> {
   const { overwrite = false, filter } = options
 
   await fs.ensureDir(destinationDir)
 
-  const copyFile = async (src: string, dest: string) => {
+  const copyFile = async (src: string, dest: string): Promise<void> => {
     // Apply filter if provided
     if (filter && !filter(src, dest)) {
       return
@@ -73,24 +73,26 @@ export async function copyTemplateFiles(
     }
 
     const stats = await fs.stat(src)
-    
+
     if (stats.isDirectory()) {
       await fs.ensureDir(dest)
       const files = await fs.readdir(src)
-      
+
       for (const file of files) {
         await copyFile(path.join(src, file), path.join(dest, file))
       }
-    } else {
+    }
+    else {
       const content = await fs.readFile(src, 'utf-8')
-      
+
       // Check if file should be templated (has .mustache extension or contains mustache syntax)
       const shouldTemplate = src.endsWith('.mustache') || content.includes('{{')
-      
+
       if (shouldTemplate) {
         const rendered = renderTemplate(content, variables)
         await fs.writeFile(dest.replace('.mustache', ''), rendered)
-      } else {
+      }
+      else {
         await fs.copy(src, dest)
       }
     }
@@ -108,7 +110,8 @@ export async function getAvailableTemplates(templatesDir: string): Promise<strin
     return entries
       .filter(entry => entry.isDirectory())
       .map(entry => entry.name)
-  } catch (error) {
+  }
+  catch {
     return []
   }
 }
@@ -122,7 +125,7 @@ export async function validateTemplatePath(templatePath: string): Promise<{
 }> {
   try {
     const stats = await fs.stat(templatePath)
-    
+
     if (!stats.isDirectory()) {
       return {
         valid: false,
@@ -132,10 +135,10 @@ export async function validateTemplatePath(templatePath: string): Promise<{
 
     // Check for required files
     const requiredFiles = ['package.json']
-    
+
     for (const file of requiredFiles) {
       const filePath = path.join(templatePath, file)
-      
+
       if (!await fs.pathExists(filePath)) {
         return {
           valid: false,
@@ -148,7 +151,8 @@ export async function validateTemplatePath(templatePath: string): Promise<{
       valid: true,
       message: 'Valid template',
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       valid: false,
       message: `Cannot access template: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -207,7 +211,7 @@ export function createTemplateVariables(options: {
  */
 function toCamelCase(str: string): string {
   return str
-    .replace(/[@\/\-_\s]+/g, ' ') // Replace special chars with spaces
+    .replace(/[@/\-_\s]+/g, ' ') // Replace special chars with spaces
     .trim()
     .split(' ')
     .map((word, index) => {
@@ -224,7 +228,7 @@ function toCamelCase(str: string): string {
  */
 function toPascalCase(str: string): string {
   return str
-    .replace(/[@\/\-_\s]+/g, ' ') // Replace special chars with spaces
+    .replace(/[@/\-_\s]+/g, ' ') // Replace special chars with spaces
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -236,7 +240,7 @@ function toPascalCase(str: string): string {
  */
 function toKebabCase(str: string): string {
   return str
-    .replace(/[@\/]/g, '') // Remove @ and / characters
+    .replace(/[@/]/g, '') // Remove @ and / characters
     .replace(/([a-z])([A-Z])/g, '$1-$2')
     .replace(/[\s_]+/g, '-')
     .toLowerCase()
@@ -247,7 +251,7 @@ function toKebabCase(str: string): string {
  */
 function toSnakeCase(str: string): string {
   return str
-    .replace(/[@\/]/g, '') // Remove @ and / characters
+    .replace(/[@/]/g, '') // Remove @ and / characters
     .replace(/([a-z])([A-Z])/g, '$1_$2')
     .replace(/[\s-]+/g, '_')
     .toLowerCase()

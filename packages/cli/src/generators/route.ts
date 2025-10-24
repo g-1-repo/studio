@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import { ensureWritableDirectory } from '../utils/file-system.js'
-import { renderTemplateToFile, createTemplateVariables } from '../utils/template.js'
+import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
 import type { GenerateOptions } from '../types/index.js'
 
 export async function generateRoute(options: GenerateOptions): Promise<string[]> {
@@ -9,19 +9,19 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
     directory = '.',
     force = false,
     includeTests = true,
-    includeDocs = true
+    includeDocs = true,
   } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
-  
+
   // Ensure output directory exists
   await ensureWritableDirectory(outputDir)
 
   // Create template variables
   const variables = createTemplateVariables({
     projectName: name,
-    ...options
+    ...options,
   })
 
   // Route handler file
@@ -30,7 +30,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
     getRouteTemplate(),
     routeFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(routeFile)
 
@@ -40,7 +40,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
     getRouteTypesTemplate(),
     typesFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(typesFile)
 
@@ -50,7 +50,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
     getRouteValidationTemplate(),
     validationFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(validationFile)
 
@@ -60,7 +60,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
     getRouteServiceTemplate(),
     serviceFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(serviceFile)
 
@@ -71,7 +71,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
       getRouteTestTemplate(),
       testFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(testFile)
   }
@@ -83,7 +83,7 @@ export async function generateRoute(options: GenerateOptions): Promise<string[]>
       getRouteDocsTemplate(),
       docsFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(docsFile)
   }

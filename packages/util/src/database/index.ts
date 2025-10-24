@@ -149,7 +149,7 @@ export async function retryOperation<T>(
   operation: () => Promise<T>,
   config: RetryConfig = DEFAULT_RETRY_CONFIG,
 ): Promise<T> {
-  let lastError: Error
+  let lastError: Error | undefined
 
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
@@ -167,7 +167,7 @@ export async function retryOperation<T>(
     }
   }
 
-  throw lastError!
+  throw new Error(lastError?.message || 'Operation failed after retries')
 }
 
 /**

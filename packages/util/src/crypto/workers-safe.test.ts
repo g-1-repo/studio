@@ -95,7 +95,7 @@ describe('workers-safe crypto functions', () => {
       const mockRandomUUID = vi.fn(() => '550e8400-e29b-41d4-a716-446655440000')
 
       // Mock crypto.randomUUID
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: {
           randomUUID: mockRandomUUID,
           getRandomValues: vi.fn(),
@@ -118,7 +118,7 @@ describe('workers-safe crypto functions', () => {
       })
 
       // Mock crypto without randomUUID
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: {
           getRandomValues: mockGetRandomValues,
         },

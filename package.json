@@ -12,6 +12,7 @@
     "build": "bun run --filter='*' build",
     "dev": "bun run --filter='@g-1/core' dev",
     "test": "bun run --filter='@g-1/*' test",
+    "test:dashboard": "bun run --filter='@g-1/core' test:dashboard",
     "lint": "bun run --filter='*' lint",
     "lint:fix": "bun run --filter='*' lint:fix",
     "typecheck": "bun run --filter='*' typecheck",

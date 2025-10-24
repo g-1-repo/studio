@@ -13,14 +13,14 @@ declare global {
   }
 }
 
-function ensureBox() {
+function ensureBox(): TestEmail[] {
   const g = globalThis as any
   if (!g.__TEST_EMAIL_OUTBOX__)
     g.__TEST_EMAIL_OUTBOX__ = []
   return g.__TEST_EMAIL_OUTBOX__ as TestEmail[]
 }
 
-export function recordEmail(email: TestEmail) {
+export function recordEmail(email: TestEmail): void {
   const box = ensureBox()
   box.push(email)
 }
@@ -30,7 +30,7 @@ export function getEmails(): TestEmail[] {
   return [...box]
 }
 
-export function clearEmails() {
+export function clearEmails(): void {
   const box = ensureBox()
   box.length = 0
 }

@@ -13,7 +13,7 @@ export class EarlyAccessRequestsService extends BaseService {
     super(earlyAccessRequestsRepository)
   }
 
-  async requestEarlyAccess(email: string, env: Environment) {
+  async requestEarlyAccess(email: string, env: Environment): Promise<any> {
     // Validate and normalize email using BaseService methods
     const validation = this.validateAndNormalizeEmail({ email })
     if (!validation.success) {

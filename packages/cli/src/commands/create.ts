@@ -1,7 +1,6 @@
+import path from 'node:path'
 import { Command } from 'commander'
 import inquirer from 'inquirer'
-import chalk from 'chalk'
-import path from 'path'
 import { logger } from '../utils/logger.js'
 import { validateProjectName } from '../utils/validation.js'
 import { createProject } from '../generators/project.js'
@@ -129,24 +128,24 @@ export const createCommand = new Command('create')
 
       logger.newLine()
       logger.success(`🎉 Project "${createOptions.name}" created successfully!`)
-      
+
       // Show next steps
       logger.subheader('🚀 Next Steps')
       const projectPath = path.resolve(createOptions.directory!, createOptions.name)
       const relativeProjectPath = path.relative(process.cwd(), projectPath)
-      
+
       logger.listItem(`cd ${relativeProjectPath}`)
-      
+
       if (!createOptions.install) {
         logger.listItem(`${createOptions.packageManager} install`)
       }
-      
+
       logger.listItem(`${createOptions.packageManager} run dev`)
       logger.newLine()
-      
-      logger.info('Happy coding! 🎯')
 
-    } catch (error) {
+      logger.info('Happy coding! 🎯')
+    }
+    catch (error) {
       logger.error(`Failed to create project: ${error instanceof Error ? error.message : 'Unknown error'}`)
       process.exit(1)
     }

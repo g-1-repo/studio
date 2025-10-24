@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 let mockActionHandler: any = null
 
 vi.doMock('commander', () => ({
-  Command: vi.fn().mockImplementation((name?: string) => {
+  Command: vi.fn().mockImplementation((_name?: string) => {
     const instance = {
       name: vi.fn().mockReturnThis(),
       description: vi.fn().mockImplementation((desc?: string) => {
@@ -31,25 +31,25 @@ vi.doMock('commander', () => ({
         { long: '--package-manager' },
         { long: '--typescript' },
         { long: '--no-eslint' },
-        { long: '--no-prettier' }
-      ]
+        { long: '--no-prettier' },
+      ],
     }
     return instance
-  })
+  }),
 }))
 
 vi.doMock('inquirer', () => ({
   default: {
-    prompt: vi.fn()
-  }
+    prompt: vi.fn(),
+  },
 }))
 
 vi.doMock('../utils/validation.js', () => ({
-  validateProjectName: vi.fn()
+  validateProjectName: vi.fn(),
 }))
 
 vi.doMock('../generators/project.js', () => ({
-  createProject: vi.fn()
+  createProject: vi.fn(),
 }))
 
 vi.doMock('../utils/logger.js', () => ({
@@ -69,7 +69,7 @@ vi.doMock('../utils/logger.js', () => ({
     listItem: vi.fn(),
     newLine: vi.fn(),
     code: vi.fn(),
-    table: vi.fn()
+    table: vi.fn(),
   })),
   logger: {
     info: vi.fn(),
@@ -87,12 +87,12 @@ vi.doMock('../utils/logger.js', () => ({
     listItem: vi.fn(),
     newLine: vi.fn(),
     code: vi.fn(),
-    table: vi.fn()
-  }
+    table: vi.fn(),
+  },
 }))
 
 // Import modules after mocking
-const { Command } = await import('commander')
+const { Command: _Command } = await import('commander')
 const inquirer = await import('inquirer')
 const { logger } = await import('../utils/logger.js')
 const { validateProjectName } = await import('../utils/validation.js')
@@ -109,8 +109,8 @@ mockInquirer.prompt = vi.fn()
 mockValidateProjectName.mockReturnValue({ valid: true })
 mockCreateProject.mockResolvedValue(undefined)
 
-describe('Create Command', () => {
-  let mockProcessExit: any
+describe('create Command', () => {
+  let _mockProcessExit: any
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -119,7 +119,7 @@ describe('Create Command', () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/current/directory')
 
     // Store the process.exit mock for individual test control - don't throw by default
-    mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+    _mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => {
       return undefined as never
     })
   })
@@ -128,7 +128,7 @@ describe('Create Command', () => {
     vi.restoreAllMocks()
   })
 
-  describe('Command Configuration', () => {
+  describe('command Configuration', () => {
     it('should be configured with correct description and options', () => {
       expect(createCommand.description()).toBe('Create a new G1 API project')
 
@@ -147,7 +147,7 @@ describe('Create Command', () => {
     })
   })
 
-  describe('Project Name Validation', () => {
+  describe('project Name Validation', () => {
     it('should validate project name when provided', async () => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
@@ -163,7 +163,7 @@ describe('Create Command', () => {
         install: true,
         typescript: true,
         eslint: true,
-        prettier: true
+        prettier: true,
       })
 
       expect(mockValidateProjectName).toHaveBeenCalledWith('test-project')
@@ -177,7 +177,7 @@ describe('Create Command', () => {
 
       mockValidateProjectName.mockReturnValue({
         valid: false,
-        message: 'Invalid project name'
+        message: 'Invalid project name',
       })
       mockLogger.error = vi.fn()
 
@@ -197,7 +197,7 @@ describe('Create Command', () => {
 
       await actionFn(undefined, {
         template: 'api',
-        packageManager: 'bun'
+        packageManager: 'bun',
       })
 
       expect(mockInquirer.prompt).toHaveBeenCalledWith([
@@ -205,13 +205,13 @@ describe('Create Command', () => {
           type: 'input',
           name: 'name',
           message: 'What is your project name?',
-          validate: expect.any(Function)
-        }
+          validate: expect.any(Function),
+        },
       ])
     })
   })
 
-  describe('Interactive Prompts', () => {
+  describe('interactive Prompts', () => {
     beforeEach(() => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockCreateProject.mockResolvedValue(undefined)
@@ -220,7 +220,7 @@ describe('Create Command', () => {
     it('should prompt for template if not provided', async () => {
       mockInquirer.prompt.mockResolvedValue({
         template: 'minimal',
-        packageManager: 'npm'
+        packageManager: 'npm',
       })
 
       const actionFn = mockActionHandler || (createCommand as any)._actionHandler
@@ -229,7 +229,7 @@ describe('Create Command', () => {
 
       const promptCalls = mockInquirer.prompt.mock.calls
       const templatePrompt = promptCalls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'template')
+        call[0].some((prompt: any) => prompt.name === 'template'),
       )
 
       expect(templatePrompt).toBeDefined()
@@ -237,7 +237,7 @@ describe('Create Command', () => {
 
     it('should prompt for package manager if not provided', async () => {
       mockInquirer.prompt.mockResolvedValue({
-        packageManager: 'yarn'
+        packageManager: 'yarn',
       })
 
       const actionFn = mockActionHandler || (createCommand as any)._actionHandler
@@ -246,7 +246,7 @@ describe('Create Command', () => {
 
       const promptCalls = mockInquirer.prompt.mock.calls
       const packageManagerPrompt = promptCalls.find(call =>
-        call[0].some((prompt: any) => prompt.name === 'packageManager')
+        call[0].some((prompt: any) => prompt.name === 'packageManager'),
       )
 
       expect(packageManagerPrompt).toBeDefined()
@@ -265,7 +265,7 @@ describe('Create Command', () => {
         install: true,
         typescript: true,
         eslint: true,
-        prettier: true
+        prettier: true,
       })
 
       // Should be called twice: once for empty prompts array, once for confirmation
@@ -282,7 +282,7 @@ describe('Create Command', () => {
     })
   })
 
-  describe('Project Creation', () => {
+  describe('project Creation', () => {
     beforeEach(() => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({})
@@ -302,7 +302,7 @@ describe('Create Command', () => {
         install: false,
         typescript: true,
         eslint: false,
-        prettier: false
+        prettier: false,
       })
 
       expect(mockCreateProject).toHaveBeenCalledWith({
@@ -314,7 +314,7 @@ describe('Create Command', () => {
         install: false,
         typescript: true,
         eslint: false,
-        prettier: false
+        prettier: false,
       })
     })
 
@@ -323,27 +323,27 @@ describe('Create Command', () => {
 
       await actionFn('test-project', {
         template: 'api',
-        packageManager: 'bun'
+        packageManager: 'bun',
       })
 
       expect(mockCreateProject).toHaveBeenCalledWith(
         expect.objectContaining({
-          directory: '/current/directory'
-        })
+          directory: '/current/directory',
+        }),
       )
     })
 
     it('should merge prompted answers with provided options', async () => {
       mockInquirer.prompt.mockResolvedValue({
         template: 'minimal',
-        packageManager: 'yarn'
+        packageManager: 'yarn',
       })
 
       const actionFn = mockActionHandler || createCommand._actionHandler
 
       await actionFn('test-project', {
         git: false,
-        typescript: false
+        typescript: false,
       })
 
       expect(mockCreateProject).toHaveBeenCalledWith({
@@ -355,7 +355,7 @@ describe('Create Command', () => {
         install: undefined,
         typescript: false,
         eslint: undefined,
-        prettier: undefined
+        prettier: undefined,
       })
     })
 
@@ -368,7 +368,7 @@ describe('Create Command', () => {
       await actionFn('test-project', {
         template: 'api',
         packageManager: 'bun',
-        directory: '/test/dir'
+        directory: '/test/dir',
       })
 
       expect(mockLogger.subheader).toHaveBeenCalledWith('📋 Project Configuration')
@@ -381,7 +381,7 @@ describe('Create Command', () => {
         { key: 'ESLint', value: 'No' },
         { key: 'Prettier', value: 'No' },
         { key: 'Git Init', value: 'No' },
-        { key: 'Install Dependencies', value: 'No' }
+        { key: 'Install Dependencies', value: 'No' },
       ])
     })
 
@@ -393,23 +393,23 @@ describe('Create Command', () => {
       // Mock inquirer to skip prompts
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
 
-      // Configure process.exit to throw for this specific test
-      mockProcessExit.mockImplementation(() => {
-        throw new Error('process.exit called')
+      // Make process.exit throw for this test
+      _mockProcessExit.mockImplementation(() => {
+        throw new Error('Process exit called')
       })
 
       const actionFn = mockActionHandler || (createCommand as any)._actionHandler
 
       await expect(actionFn('test-project', {
         template: 'api',
-        packageManager: 'bun'
+        packageManager: 'bun',
       })).rejects.toThrow('process.exit called')
 
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Creation failed')
     })
   })
 
-  describe('Template Choices', () => {
+  describe('template Choices', () => {
     it('should provide correct template choices', async () => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({ template: 'api' })
@@ -420,7 +420,7 @@ describe('Create Command', () => {
       await actionFn('test-project', {})
 
       const promptCall = mockInquirer.prompt.mock.calls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'template')
+        call[0].some((prompt: any) => prompt.name === 'template'),
       )
 
       if (promptCall) {
@@ -428,13 +428,13 @@ describe('Create Command', () => {
         expect(templatePrompt.choices).toEqual([
           { name: 'API Server - Full-featured API with auth, database, and middleware', value: 'api' },
           { name: 'Minimal API - Basic API structure with minimal dependencies', value: 'minimal' },
-          { name: 'Plugin - Create a G1 framework plugin', value: 'plugin' }
+          { name: 'Plugin - Create a G1 framework plugin', value: 'plugin' },
         ])
       }
     })
   })
 
-  describe('Package Manager Choices', () => {
+  describe('package Manager Choices', () => {
     it('should provide correct package manager choices', async () => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockInquirer.prompt.mockResolvedValue({
@@ -444,7 +444,7 @@ describe('Create Command', () => {
         git: true,
         install: true,
         eslint: true,
-        prettier: true
+        prettier: true,
       })
       mockCreateProject.mockResolvedValue(undefined)
 
@@ -453,7 +453,7 @@ describe('Create Command', () => {
       await actionFn('test-project', { template: 'api' })
 
       const promptCall = mockInquirer.prompt.mock.calls.find((call: any) =>
-        call[0].some((prompt: any) => prompt.name === 'packageManager')
+        call[0].some((prompt: any) => prompt.name === 'packageManager'),
       )
 
       if (promptCall) {
@@ -462,7 +462,7 @@ describe('Create Command', () => {
           { name: 'Bun (recommended)', value: 'bun' },
           { name: 'npm', value: 'npm' },
           { name: 'yarn', value: 'yarn' },
-          { name: 'pnpm', value: 'pnpm' }
+          { name: 'pnpm', value: 'pnpm' },
         ])
       }
     })

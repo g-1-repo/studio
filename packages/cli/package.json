@@ -1,8 +1,29 @@
 {
   "name": "@g-1/cli",
-  "version": "1.2.3",
-  "description": "G1 API Framework CLI for project scaffolding and management",
   "type": "module",
+  "version": "1.2.3",
+  "packageManager": "bun@1.1.38",
+  "description": "G1 API Framework CLI for project scaffolding and management",
+  "author": "G1 Studio",
+  "license": "MIT",
+  "homepage": "https://github.com/g1-studio/api-framework#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g1-studio/api-framework.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/g1-studio/api-framework/issues"
+  },
+  "keywords": [
+    "g1",
+    "api",
+    "framework",
+    "cli",
+    "scaffolding",
+    "generator",
+    "boilerplate"
+  ],
   "main": "dist/index.js",
   "bin": {
     "g1": "dist/cli.js",
@@ -12,6 +33,10 @@
     "dist",
     "templates"
   ],
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -24,38 +49,19 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "bun run clean && bun run build"
   },
-  "keywords": [
-    "g1",
-    "api",
-    "framework",
-    "cli",
-    "scaffolding",
-    "generator",
-    "boilerplate"
-  ],
-  "author": "G1 Studio",
-  "license": "MIT",
-  "homepage": "https://github.com/g1-studio/api-framework#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/g1-studio/api-framework.git",
-    "directory": "packages/cli"
-  },
-  "bugs": {
-    "url": "https://github.com/g1-studio/api-framework/issues"
-  },
   "dependencies": {
     "@g-1/core": "workspace:*",
-    "commander": "^11.1.0",
-    "inquirer": "^9.2.12",
     "chalk": "^5.3.0",
-    "ora": "^7.0.1",
+    "commander": "^11.1.0",
     "fs-extra": "^11.1.1",
+    "inquirer": "^9.2.12",
     "mustache": "^4.2.0",
+    "ora": "^7.0.1",
     "semver": "^7.5.4",
     "validate-npm-package-name": "^5.0.0"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^2.6.4",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/mustache": "^4.2.5",
@@ -67,10 +73,5 @@
     "eslint": "^8.51.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "bun": ">=1.0.0"
-  },
-  "packageManager": "bun@1.1.38"
+  }
 }

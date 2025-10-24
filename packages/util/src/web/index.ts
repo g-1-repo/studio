@@ -26,7 +26,7 @@ export class AppError extends Error {
   /**
    * Convert error to JSON for API responses
    */
-  toJSON() {
+  toJSON(): { error: { name: string, message: string, statusCode: number, timestamp: string, isOperational: boolean } } {
     return {
       error: {
         name: this.name,

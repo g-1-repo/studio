@@ -199,6 +199,7 @@ export function url(message: string = 'Must be a valid URL'): ValidationRule {
     }
 
     try {
+      // eslint-disable-next-line no-new
       new URL(value)
       return true
     }

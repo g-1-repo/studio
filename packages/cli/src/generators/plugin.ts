@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import { ensureWritableDirectory, writeJsonFile } from '../utils/file-system.js'
-import { renderTemplateToFile, createTemplateVariables } from '../utils/template.js'
+import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
 import type { GenerateOptions } from '../types/index.js'
 
 export async function generatePlugin(options: GenerateOptions): Promise<string[]> {
@@ -9,19 +9,19 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
     directory = '.',
     force = false,
     includeTests = true,
-    includeDocs = true
+    includeDocs = true,
   } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
-  
+
   // Ensure output directory exists
   await ensureWritableDirectory(outputDir)
 
   // Create template variables
   const variables = createTemplateVariables({
     projectName: name,
-    ...options
+    ...options,
   })
 
   // Plugin main file
@@ -30,7 +30,7 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
     getPluginTemplate(),
     pluginFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(pluginFile)
 
@@ -40,7 +40,7 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
     getPluginTypesTemplate(),
     typesFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(typesFile)
 
@@ -50,7 +50,7 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
     getPluginConfigTemplate(),
     configFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(configFile)
 
@@ -61,7 +61,7 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
       getPluginTestTemplate(),
       testFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(testFile)
   }
@@ -73,7 +73,7 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
       getPluginDocsTemplate(),
       docsFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(docsFile)
   }
@@ -91,25 +91,25 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
       '*.js',
       '*.d.ts',
       '*.json',
-      'README.md'
+      'README.md',
     ],
     scripts: {
-      build: 'tsc',
-      test: 'jest',
+      'build': 'tsc',
+      'test': 'jest',
       'test:watch': 'jest --watch',
-      lint: 'eslint src --ext .ts',
-      'lint:fix': 'eslint src --ext .ts --fix'
+      'lint': 'eslint src --ext .ts',
+      'lint:fix': 'eslint src --ext .ts --fix',
     },
     keywords: [
       'g1',
       'g1-framework',
       'plugin',
-      variables.kebabName
+      variables.kebabName,
     ],
     author: '',
     license: 'MIT',
     peerDependencies: {
-      '@g-1/core': '^1.0.0'
+      '@g-1/core': '^1.0.0',
     },
     devDependencies: {
       '@types/jest': '^29.0.0',
@@ -119,8 +119,8 @@ export async function generatePlugin(options: GenerateOptions): Promise<string[]
       'eslint': '^8.0.0',
       'jest': '^29.0.0',
       'ts-jest': '^29.0.0',
-      'typescript': '^5.0.0'
-    }
+      'typescript': '^5.0.0',
+    },
   }
 
   await writeJsonFile(packageJsonFile, packageJsonData, { spaces: 2 })

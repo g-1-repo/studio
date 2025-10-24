@@ -1,7 +1,9 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import { Buffer } from 'node:buffer'
 import fs from 'fs-extra'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  type PackageManager,
   addDependencies,
   detectPackageManager,
   getAvailablePackageManagers,
@@ -13,34 +15,33 @@ import {
   isPackageManagerAvailable,
   removeDependencies,
   runScript,
-  type PackageManager
 } from './package-manager'
 
 // Mock child_process
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execSync: vi.fn(),
 }))
 
 // Mock fs-extra
 vi.mock('fs-extra', () => ({
   default: {
     pathExists: vi.fn(),
-    readJson: vi.fn()
-  }
+    readJson: vi.fn(),
+  },
 }))
 
 // Mock path
 vi.mock('path', () => ({
   default: {
-    join: vi.fn((...args) => args.join('/'))
+    join: vi.fn((...args) => args.join('/')),
   },
-  join: vi.fn((...args) => args.join('/'))
+  join: vi.fn((...args) => args.join('/')),
 }))
 
 const mockExecSync = vi.mocked(execSync)
 const mockFs = vi.mocked(fs)
 
-describe('Package Manager Utilities', () => {
+describe('package Manager Utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset mock implementations to default behavior
@@ -61,7 +62,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('bun install', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -72,7 +73,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('npm install', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -82,17 +83,17 @@ describe('Package Manager Utilities', () => {
       })
 
       await expect(installDependencies('/test/project')).rejects.toThrow(
-        'Failed to install dependencies: Installation failed'
+        'Failed to install dependencies: Installation failed',
       )
     })
 
     it('should handle unknown errors', async () => {
       mockExecSync.mockImplementation(() => {
-        throw 'Unknown error'
+        throw new Error('Unknown error')
       })
 
       await expect(installDependencies('/test/project')).rejects.toThrow(
-        'Failed to install dependencies: Unknown error'
+        'Failed to install dependencies: Unknown error',
       )
     })
   })
@@ -116,7 +117,7 @@ describe('Package Manager Utilities', () => {
 
     it('should throw error for unknown package manager', () => {
       expect(() => getInstallCommand('unknown' as PackageManager)).toThrow(
-        'Unknown package manager: unknown'
+        'Unknown package manager: unknown',
       )
     })
   })
@@ -140,7 +141,7 @@ describe('Package Manager Utilities', () => {
 
     it('should throw error for unknown package manager', () => {
       expect(() => getRunCommand('unknown' as PackageManager, 'test')).toThrow(
-        'Unknown package manager: unknown'
+        'Unknown package manager: unknown',
       )
     })
   })
@@ -270,7 +271,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('bun add express lodash', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -281,7 +282,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('bun add --dev jest typescript', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -292,7 +293,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('npm install express', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -302,7 +303,7 @@ describe('Package Manager Utilities', () => {
       })
 
       await expect(addDependencies('/test/project', ['express'])).rejects.toThrow(
-        'Failed to add dependencies: Add failed'
+        'Failed to add dependencies: Add failed',
       )
     })
   })
@@ -315,7 +316,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('bun remove express lodash', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -326,7 +327,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('npm uninstall express', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -336,7 +337,7 @@ describe('Package Manager Utilities', () => {
       })
 
       await expect(removeDependencies('/test/project', ['express'])).rejects.toThrow(
-        'Failed to remove dependencies: Remove failed'
+        'Failed to remove dependencies: Remove failed',
       )
     })
   })
@@ -349,7 +350,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('bun run test', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -360,7 +361,7 @@ describe('Package Manager Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('npm run build', {
         cwd: '/test/project',
-        stdio: 'inherit'
+        stdio: 'inherit',
       })
     })
 
@@ -370,7 +371,7 @@ describe('Package Manager Utilities', () => {
       })
 
       await expect(runScript('/test/project', 'test')).rejects.toThrow(
-        'Failed to run script: Script failed'
+        'Failed to run script: Script failed',
       )
     })
   })
@@ -380,8 +381,8 @@ describe('Package Manager Utilities', () => {
       const mockPackageJson = {
         scripts: {
           test: 'vitest',
-          build: 'tsc'
-        }
+          build: 'tsc',
+        },
       }
 
       mockFs.readJson.mockResolvedValue(mockPackageJson)
@@ -395,8 +396,8 @@ describe('Package Manager Utilities', () => {
     it('should return false if script does not exist', async () => {
       const mockPackageJson = {
         scripts: {
-          build: 'tsc'
-        }
+          build: 'tsc',
+        },
       }
 
       mockFs.readJson.mockResolvedValue(mockPackageJson)

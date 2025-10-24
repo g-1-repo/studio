@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import { ensureWritableDirectory } from '../utils/file-system.js'
-import { renderTemplateToFile, createTemplateVariables } from '../utils/template.js'
+import { createTemplateVariables, renderTemplateToFile } from '../utils/template.js'
 import type { GenerateOptions } from '../types/index.js'
 
 export async function generateMiddleware(options: GenerateOptions): Promise<string[]> {
@@ -9,19 +9,19 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
     directory = '.',
     force = false,
     includeTests = true,
-    includeDocs = true
+    includeDocs = true,
   } = options
 
   const generatedFiles: string[] = []
   const outputDir = path.resolve(directory)
-  
+
   // Ensure output directory exists
   await ensureWritableDirectory(outputDir)
 
   // Create template variables
   const variables = createTemplateVariables({
     projectName: name,
-    ...options
+    ...options,
   })
 
   // Middleware main file
@@ -30,7 +30,7 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
     getMiddlewareTemplate(),
     middlewareFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(middlewareFile)
 
@@ -40,7 +40,7 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
     getMiddlewareTypesTemplate(),
     typesFile,
     variables,
-    { overwrite: force }
+    { overwrite: force },
   )
   generatedFiles.push(typesFile)
 
@@ -51,7 +51,7 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
       getMiddlewareTestTemplate(),
       testFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(testFile)
   }
@@ -63,7 +63,7 @@ export async function generateMiddleware(options: GenerateOptions): Promise<stri
       getMiddlewareDocsTemplate(),
       docsFile,
       variables,
-      { overwrite: force }
+      { overwrite: force },
     )
     generatedFiles.push(docsFile)
   }
@@ -763,8 +763,8 @@ describe('{{pascalName}}Middleware', () => {
       middleware.updateConfig({ timeout: 100 })
       
       // Mock setTimeout
-      const originalSetTimeout = global.setTimeout
-      global.setTimeout = jest.fn((callback, delay) => {
+      const originalSetTimeout = globalThis.setTimeout
+    globalThis.setTimeout = jest.fn((callback, delay) => {
         expect(delay).toBe(100)
         // Don't actually call the timeout callback in tests
         return 123 as any
@@ -772,10 +772,10 @@ describe('{{pascalName}}Middleware', () => {
       
       middleware.middleware(mockReq, mockRes, mockNext)
       
-      expect(global.setTimeout).toHaveBeenCalled()
-      
-      // Restore setTimeout
-      global.setTimeout = originalSetTimeout
+      expect(globalThis.setTimeout).toHaveBeenCalled()
+
+      // Restore original setTimeout
+      globalThis.setTimeout = originalSetTimeout
       done()
     })
   })

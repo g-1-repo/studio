@@ -38,7 +38,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:dashboard": "node test-runner.js"
   },
   "dependencies": {
     "@g-1/util": "^1.0.0",
@@ -56,6 +57,7 @@
     "@types/node": "^24.8.1",
     "eslint": "^9.38.0",
     "typescript": "^5.7.3",
-    "vitest": "~3.2.4"
+    "vitest": "~3.2.4",
+    "ws": "^8.18.0"
   }
 }

@@ -1,5 +1,5 @@
+import path from 'node:path'
 import { Command } from 'commander'
-import path from 'path'
 import { readJsonFile } from '../utils/file-system.js'
 import { Logger } from '../utils/logger.js'
 
@@ -13,7 +13,8 @@ export function createVersionCommand(): Command {
     .action(async (options: any = {}) => {
       try {
         await versionCommand(options)
-      } catch (error) {
+      }
+      catch (error) {
         logger.error(`Failed to get version information: ${error instanceof Error ? error.message : String(error)}`)
         process.exit(1)
       }
@@ -37,7 +38,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
   const info: any = {
     cli: null,
     project: null,
-    g1Dependencies: {}
+    g1Dependencies: {},
   }
 
   // Get CLI version
@@ -49,7 +50,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
   if (cliPackageJson) {
     info.cli = {
       name: cliPackageJson.name,
-      version: cliPackageJson.version
+      version: cliPackageJson.version,
     }
   }
 
@@ -61,14 +62,14 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
   if (projectPackageJson) {
     info.project = {
       name: projectPackageJson.name,
-      version: projectPackageJson.version
+      version: projectPackageJson.version,
     }
 
     // Check for G1 dependencies
     const g1Dependencies: Record<string, string> = {}
     const allDeps = {
       ...projectPackageJson.dependencies,
-      ...projectPackageJson.devDependencies
+      ...projectPackageJson.devDependencies,
     }
 
     for (const [name, version] of Object.entries(allDeps)) {
@@ -86,10 +87,11 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
 
     // Get npm version
     try {
-      const { execSync } = await import('child_process')
+      const { execSync } = await import('node:child_process')
       const npmVersion = execSync('npm --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.npm = npmVersion
-    } catch {
+    }
+    catch {
       info.npm = 'Not available'
     }
 
@@ -97,29 +99,32 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
     const packageManagers = ['yarn', 'pnpm', 'bun']
     for (const pm of packageManagers) {
       try {
-        const { execSync } = await import('child_process')
+        const { execSync } = await import('node:child_process')
         const version = execSync(`${pm} --version`, { encoding: 'utf8', stdio: 'pipe' }).trim()
         info[pm] = version
-      } catch {
+      }
+      catch {
         info[pm] = 'Not available'
       }
     }
 
     // Get TypeScript version if available
     try {
-      const { execSync } = await import('child_process')
+      const { execSync } = await import('node:child_process')
       const tsVersion = execSync('npx tsc --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.typescript = tsVersion.replace('Version ', '')
-    } catch {
+    }
+    catch {
       info.typescript = 'Not available'
     }
 
     // Get Git version
     try {
-      const { execSync } = await import('child_process')
+      const { execSync } = await import('node:child_process')
       const gitVersion = execSync('git --version', { encoding: 'utf8', stdio: 'pipe' }).trim()
       info.git = gitVersion.replace('git version ', '')
-    } catch {
+    }
+    catch {
       info.git = 'Not available'
     }
 
@@ -127,7 +132,7 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<any> {
     info.system = {
       platform: process.platform,
       arch: process.arch,
-      nodeEnv: process.env.NODE_ENV || 'development'
+      nodeEnv: process.env.NODE_ENV || 'development',
     }
   }
 

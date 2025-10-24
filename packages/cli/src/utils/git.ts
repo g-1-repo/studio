@@ -1,6 +1,6 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import path from 'node:path'
 import fs from 'fs-extra'
-import path from 'path'
 
 /**
  * Initialize a git repository in the specified directory
@@ -9,20 +9,20 @@ export async function initializeGit(projectPath: string): Promise<void> {
   try {
     // Initialize git repository
     execSync('git init', { cwd: projectPath, stdio: 'pipe' })
-    
+
     // Create initial .gitignore if it doesn't exist
     const gitignorePath = path.join(projectPath, '.gitignore')
     if (!await fs.pathExists(gitignorePath)) {
       await createDefaultGitignore(gitignorePath)
     }
-    
+
     // Add all files
     execSync('git add .', { cwd: projectPath, stdio: 'pipe' })
-    
+
     // Create initial commit
     execSync('git commit -m "Initial commit"', { cwd: projectPath, stdio: 'pipe' })
-    
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to initialize git repository: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -34,7 +34,8 @@ export function isGitAvailable(): boolean {
   try {
     execSync('git --version', { stdio: 'pipe' })
     return true
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -42,23 +43,27 @@ export function isGitAvailable(): boolean {
 /**
  * Get git user configuration
  */
-export function getGitUserInfo(): { name?: string; email?: string } {
-  const result: { name?: string; email?: string } = {}
-  
+export function getGitUserInfo(): { name?: string, email?: string } {
+  const result: { name?: string, email?: string } = {}
+
   try {
     const name = execSync('git config user.name', { stdio: 'pipe', encoding: 'utf-8' }).trim()
-    if (name) result.name = name
-  } catch {
+    if (name)
+      result.name = name
+  }
+  catch {
     // Ignore error, name will be undefined
   }
-  
+
   try {
     const email = execSync('git config user.email', { stdio: 'pipe', encoding: 'utf-8' }).trim()
-    if (email) result.email = email
-  } catch {
+    if (email)
+      result.email = email
+  }
+  catch {
     // Ignore error, email will be undefined
   }
-  
+
   return result
 }
 
@@ -69,7 +74,8 @@ export async function isGitRepository(dirPath: string): Promise<boolean> {
   try {
     const gitDir = path.join(dirPath, '.git')
     return await fs.pathExists(gitDir)
-  } catch {
+  }
+  catch {
     return false
   }
 }
@@ -226,16 +232,17 @@ Thumbs.db
 export async function gitAddAndCommit(
   projectPath: string,
   message: string,
-  files: string[] = ['.']
+  files: string[] = ['.'],
 ): Promise<void> {
   try {
     // Add files - combine all files into a single command
     const filesArg = files.join(' ')
     execSync(`git add ${filesArg}`, { cwd: projectPath, stdio: 'pipe' })
-    
+
     // Commit
     execSync(`git commit -m "${message}"`, { cwd: projectPath, stdio: 'pipe' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to add and commit files: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -246,7 +253,8 @@ export async function gitAddAndCommit(
 export async function createBranch(projectPath: string, branchName: string): Promise<void> {
   try {
     execSync(`git checkout -b ${branchName}`, { cwd: projectPath, stdio: 'pipe' })
-  } catch (error) {
+  }
+  catch (error) {
     throw new Error(`Failed to create branch: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
@@ -256,15 +264,16 @@ export async function createBranch(projectPath: string, branchName: string): Pro
  */
 export function getCurrentBranch(projectPath: string): string | null {
   try {
-    const branch = execSync('git rev-parse --abbrev-ref HEAD', { 
-      cwd: projectPath, 
-      stdio: 'pipe', 
-      encoding: 'utf-8' 
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+      cwd: projectPath,
+      stdio: 'pipe',
+      encoding: 'utf-8',
     }).trim()
-    
+
     // Return null if branch name is empty (e.g., detached HEAD)
     return branch || null
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -274,14 +283,15 @@ export function getCurrentBranch(projectPath: string): string | null {
  */
 export function hasUncommittedChanges(projectPath: string): boolean {
   try {
-    const status = execSync('git status --porcelain', { 
-      cwd: projectPath, 
-      stdio: 'pipe', 
-      encoding: 'utf-8' 
+    const status = execSync('git status --porcelain', {
+      cwd: projectPath,
+      stdio: 'pipe',
+      encoding: 'utf-8',
     }).trim()
-    
+
     return status.length > 0
-  } catch {
+  }
+  catch {
     return false
   }
 }

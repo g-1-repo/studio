@@ -1,5 +1,5 @@
+import path from 'node:path'
 import fs from 'fs-extra'
-import path from 'path'
 
 /**
  * Ensure directory exists and is writable
@@ -7,12 +7,13 @@ import path from 'path'
 export async function ensureWritableDirectory(dirPath: string): Promise<void> {
   try {
     await fs.ensureDir(dirPath)
-    
+
     // Test write access by creating a temporary file
     const testFile = path.join(dirPath, '.write-test')
     await fs.writeFile(testFile, 'test')
     await fs.remove(testFile)
-  } catch (error) {
+  }
+  catch {
     throw new Error(`Directory is not writable: ${dirPath}`)
   }
 }
@@ -24,7 +25,8 @@ export async function isDirectoryEmpty(dirPath: string): Promise<boolean> {
   try {
     const files = await fs.readdir(dirPath)
     return files.length === 0
-  } catch {
+  }
+  catch {
     return true // Directory doesn't exist, so it's "empty"
   }
 }
@@ -38,7 +40,7 @@ export async function copyDirectory(
   options: {
     filter?: (src: string, dest: string) => boolean
     overwrite?: boolean
-  } = {}
+  } = {},
 ): Promise<void> {
   const { filter, overwrite = false } = options
 
@@ -57,7 +59,8 @@ export async function copyDirectory(
 
     if (entry.isDirectory()) {
       await copyDirectory(srcPath, destPath, options)
-    } else {
+    }
+    else {
       // Check if destination exists and overwrite is disabled
       if (!overwrite && await fs.pathExists(destPath)) {
         continue
@@ -77,7 +80,7 @@ export async function findFiles(
   options: {
     recursive?: boolean
     includeDirectories?: boolean
-  } = {}
+  } = {},
 ): Promise<string[]> {
   const { recursive = true, includeDirectories = false } = options
   const results: string[] = []
@@ -97,11 +100,13 @@ export async function findFiles(
           const subResults = await findFiles(fullPath, pattern, options)
           results.push(...subResults)
         }
-      } else if (pattern.test(entry.name)) {
+      }
+      else if (pattern.test(entry.name)) {
         results.push(fullPath)
       }
     }
-  } catch {
+  }
+  catch {
     // Ignore errors (e.g., permission denied)
   }
 
@@ -115,7 +120,8 @@ export async function getFileSize(filePath: string): Promise<number> {
   try {
     const stats = await fs.stat(filePath)
     return stats.size
-  } catch {
+  }
+  catch {
     return 0
   }
 }
@@ -134,11 +140,13 @@ export async function getDirectorySize(dirPath: string): Promise<number> {
 
       if (entry.isDirectory()) {
         totalSize += await getDirectorySize(fullPath)
-      } else {
+      }
+      else {
         totalSize += await getFileSize(fullPath)
       }
     }
-  } catch {
+  }
+  catch {
     // Ignore errors
   }
 
@@ -166,13 +174,13 @@ export function formatFileSize(bytes: number): string {
  */
 export async function createBackup(
   sourcePath: string,
-  backupDir?: string
+  backupDir?: string,
 ): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const basename = path.basename(sourcePath)
   const backupName = `${basename}.backup.${timestamp}`
-  
-  const backupPath = backupDir 
+
+  const backupPath = backupDir
     ? path.join(backupDir, backupName)
     : path.join(path.dirname(sourcePath), backupName)
 
@@ -187,7 +195,8 @@ export async function cleanup(paths: string[]): Promise<void> {
   for (const filePath of paths) {
     try {
       await fs.remove(filePath)
-    } catch {
+    }
+    catch {
       // Ignore cleanup errors
     }
   }
@@ -199,7 +208,7 @@ export async function cleanup(paths: string[]): Promise<void> {
 export function isSafePath(targetPath: string, basePath: string): boolean {
   const resolvedTarget = path.resolve(targetPath)
   const resolvedBase = path.resolve(basePath)
-  
+
   return resolvedTarget.startsWith(resolvedBase)
 }
 
@@ -209,9 +218,10 @@ export function isSafePath(targetPath: string, basePath: string): boolean {
 export async function makeExecutable(filePath: string): Promise<void> {
   try {
     const stats = await fs.stat(filePath)
-    const mode = stats.mode | parseInt('755', 8)
+    const mode = stats.mode | Number.parseInt('755', 8)
     await fs.chmod(filePath, mode)
-  } catch {
+  }
+  catch {
     // Ignore errors on systems that don't support chmod
   }
 }
@@ -222,7 +232,8 @@ export async function makeExecutable(filePath: string): Promise<void> {
 export async function readJsonFile<T = any>(filePath: string): Promise<T | null> {
   try {
     return await fs.readJson(filePath)
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -236,7 +247,7 @@ export async function writeJsonFile(
   options: {
     spaces?: number
     ensureDir?: boolean
-  } = {}
+  } = {},
 ): Promise<void> {
   const { spaces = 2, ensureDir = true } = options
 
@@ -252,8 +263,8 @@ export async function writeJsonFile(
  */
 export function hasExtension(filePath: string, extensions: string[]): boolean {
   const ext = path.extname(filePath).toLowerCase()
-  return extensions.some(extension => 
-    ext === (extension.startsWith('.') ? extension : `.${extension}`)
+  return extensions.some(extension =>
+    ext === (extension.startsWith('.') ? extension : `.${extension}`),
   )
 }
 

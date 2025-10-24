@@ -20,7 +20,7 @@ export const sessionManagement: MiddlewareHandler = createMiddleware<AppBindings
     c.set('session', session.session)
     return next()
   }
-  catch (error) {
+  catch {
     // If session retrieval fails, treat as unauthenticated
     c.set('user', null)
     c.set('session', null)

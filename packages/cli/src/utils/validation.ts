@@ -1,5 +1,5 @@
+import path from 'node:path'
 import validateNpmPackageName from 'validate-npm-package-name'
-import path from 'path'
 import fs from 'fs-extra'
 
 /**
@@ -29,7 +29,7 @@ export function validateProjectName(name: string): ValidationResult {
     const errors = npmValidation.errors || []
     const warnings = npmValidation.warnings || []
     const issues = [...errors, ...warnings]
-    
+
     return {
       valid: false,
       message: `Invalid project name: ${issues.join(', ')}`,
@@ -104,7 +104,7 @@ export function validateDirectory(dirPath: string): ValidationResult {
   try {
     // Check if parent directory exists and is writable
     const parentDir = path.dirname(resolvedPath)
-    
+
     if (!fs.existsSync(parentDir)) {
       return {
         valid: false,
@@ -115,7 +115,7 @@ export function validateDirectory(dirPath: string): ValidationResult {
     // Check if target directory already exists
     if (fs.existsSync(resolvedPath)) {
       const stats = fs.statSync(resolvedPath)
-      
+
       if (!stats.isDirectory()) {
         return {
           valid: false,
@@ -137,7 +137,8 @@ export function validateDirectory(dirPath: string): ValidationResult {
       valid: true,
       message: '',
     }
-  } catch (error) {
+  }
+  catch (error) {
     return {
       valid: false,
       message: `Error checking directory: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -176,7 +177,7 @@ export function validateTemplate(template: string, availableTemplates: string[])
  */
 export function validatePackageManager(pm: string): ValidationResult {
   const validPackageManagers = ['npm', 'yarn', 'pnpm', 'bun']
-  
+
   if (!pm || pm.trim().length === 0) {
     return {
       valid: false,
@@ -204,7 +205,7 @@ export function validatePackageManager(pm: string): ValidationResult {
  */
 export function validateGeneratorType(type: string): ValidationResult {
   const validTypes = ['route', 'middleware', 'plugin', 'model', 'service']
-  
+
   if (!type || type.trim().length === 0) {
     return {
       valid: false,
@@ -241,17 +242,17 @@ export function validateIdentifier(identifier: string): ValidationResult {
   const trimmedIdentifier = identifier.trim()
 
   // Check if it's a valid JavaScript identifier
-  const identifierRegex = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
-  
+  const identifierRegex = /^[a-z_$][\w$]*$/i
+
   if (!identifierRegex.test(trimmedIdentifier)) {
     // Check if it starts with a number
-    if (/^[0-9]/.test(trimmedIdentifier)) {
+    if (/^\d/.test(trimmedIdentifier)) {
       return {
         valid: false,
         message: 'Identifier cannot start with a number',
       }
     }
-    
+
     return {
       valid: false,
       message: 'Identifier can only contain letters, numbers, underscore, and dollar sign',
@@ -260,15 +261,70 @@ export function validateIdentifier(identifier: string): ValidationResult {
 
   // Check for reserved JavaScript keywords
   const reservedKeywords = [
-    'abstract', 'arguments', 'await', 'boolean', 'break', 'byte', 'case', 'catch',
-    'char', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do',
-    'double', 'else', 'enum', 'eval', 'export', 'extends', 'false', 'final',
-    'finally', 'float', 'for', 'function', 'goto', 'if', 'implements', 'import',
-    'in', 'instanceof', 'int', 'interface', 'let', 'long', 'native', 'new',
-    'null', 'package', 'private', 'protected', 'public', 'return', 'short',
-    'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws',
-    'transient', 'true', 'try', 'typeof', 'var', 'void', 'volatile', 'while',
-    'with', 'yield',
+    'abstract',
+    'arguments',
+    'await',
+    'boolean',
+    'break',
+    'byte',
+    'case',
+    'catch',
+    'char',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'double',
+    'else',
+    'enum',
+    'eval',
+    'export',
+    'extends',
+    'false',
+    'final',
+    'finally',
+    'float',
+    'for',
+    'function',
+    'goto',
+    'if',
+    'implements',
+    'import',
+    'in',
+    'instanceof',
+    'int',
+    'interface',
+    'let',
+    'long',
+    'native',
+    'new',
+    'null',
+    'package',
+    'private',
+    'protected',
+    'public',
+    'return',
+    'short',
+    'static',
+    'super',
+    'switch',
+    'synchronized',
+    'this',
+    'throw',
+    'throws',
+    'transient',
+    'true',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'volatile',
+    'while',
+    'with',
+    'yield',
   ]
 
   if (reservedKeywords.includes(trimmedIdentifier)) {

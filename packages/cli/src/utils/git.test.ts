@@ -1,29 +1,29 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import fs from 'fs-extra'
-import path from 'path'
 import {
-  initializeGit,
-  isGitAvailable,
-  getGitUserInfo,
-  isGitRepository,
-  gitAddAndCommit,
   createBranch,
   getCurrentBranch,
-  hasUncommittedChanges
+  getGitUserInfo,
+  gitAddAndCommit,
+  hasUncommittedChanges,
+  initializeGit,
+  isGitAvailable,
+  isGitRepository,
 } from './git'
 
 // Mock child_process
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execSync: vi.fn(),
 }))
 
 // Mock fs-extra
 vi.mock('fs-extra', () => ({
   default: {
     pathExists: vi.fn(),
-    writeFile: vi.fn()
-  }
+    writeFile: vi.fn(),
+  },
 }))
 
 // Mock path
@@ -31,21 +31,21 @@ vi.mock('path', () => ({
   default: {
     join: vi.fn(),
     resolve: vi.fn(),
-    dirname: vi.fn()
+    dirname: vi.fn(),
   },
   join: vi.fn(),
   resolve: vi.fn(),
-  dirname: vi.fn()
+  dirname: vi.fn(),
 }))
 
 const mockExecSync = execSync as any
 const mockFs = fs as any
 const mockPath = path as any
 
-describe('Git Utilities', () => {
+describe('git Utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Mock path.join
     mockPath.join.mockImplementation((...args: string[]) => {
       return args.join('/')
@@ -66,15 +66,15 @@ describe('Git Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('git init', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git add .', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git commit -m "Initial commit"', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
     })
 
@@ -88,7 +88,7 @@ describe('Git Utilities', () => {
 
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         '/test/project/.gitignore',
-        expect.stringContaining('node_modules/')
+        expect.stringContaining('node_modules/'),
       )
     })
 
@@ -101,17 +101,17 @@ describe('Git Utilities', () => {
       })
 
       await expect(initializeGit('/test/project')).rejects.toThrow(
-        'Failed to initialize git repository: Git init failed'
+        'Failed to initialize git repository: Git init failed',
       )
     })
 
     it('should handle unknown errors', async () => {
       mockExecSync.mockImplementation(() => {
-        throw 'Unknown error'
+        throw new Error('Unknown error')
       })
 
       await expect(initializeGit('/test/project')).rejects.toThrow(
-        'Failed to initialize git repository: Unknown error'
+        'Failed to initialize git repository: Unknown error',
       )
     })
   })
@@ -147,15 +147,15 @@ describe('Git Utilities', () => {
 
       expect(result).toEqual({
         name: 'John Doe',
-        email: 'john.doe@example.com'
+        email: 'john.doe@example.com',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git config user.name', {
         stdio: 'pipe',
-        encoding: 'utf-8'
+        encoding: 'utf-8',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git config user.email', {
         stdio: 'pipe',
-        encoding: 'utf-8'
+        encoding: 'utf-8',
       })
     })
 
@@ -217,11 +217,11 @@ describe('Git Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('git add .', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git commit -m "Test commit"', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
     })
 
@@ -232,11 +232,11 @@ describe('Git Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('git add file1.js file2.js', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
       expect(mockExecSync).toHaveBeenCalledWith('git commit -m "Test commit"', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
     })
 
@@ -249,7 +249,7 @@ describe('Git Utilities', () => {
       })
 
       await expect(gitAddAndCommit('/test/project', 'Test commit')).rejects.toThrow(
-        'Failed to add and commit files: Git add failed'
+        'Failed to add and commit files: Git add failed',
       )
     })
 
@@ -262,7 +262,7 @@ describe('Git Utilities', () => {
       })
 
       await expect(gitAddAndCommit('/test/project', 'Test commit')).rejects.toThrow(
-        'Failed to add and commit files: Git commit failed'
+        'Failed to add and commit files: Git commit failed',
       )
     })
   })
@@ -275,7 +275,7 @@ describe('Git Utilities', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('git checkout -b feature-branch', {
         cwd: '/test/project',
-        stdio: 'pipe'
+        stdio: 'pipe',
       })
     })
 
@@ -285,7 +285,7 @@ describe('Git Utilities', () => {
       })
 
       await expect(createBranch('/test/project', 'feature-branch')).rejects.toThrow(
-        'Failed to create branch: Branch creation failed'
+        'Failed to create branch: Branch creation failed',
       )
     })
   })
@@ -300,7 +300,7 @@ describe('Git Utilities', () => {
       expect(mockExecSync).toHaveBeenCalledWith('git rev-parse --abbrev-ref HEAD', {
         cwd: '/test/project',
         stdio: 'pipe',
-        encoding: 'utf-8'
+        encoding: 'utf-8',
       })
     })
 
@@ -333,7 +333,7 @@ describe('Git Utilities', () => {
       expect(mockExecSync).toHaveBeenCalledWith('git status --porcelain', {
         cwd: '/test/project',
         stdio: 'pipe',
-        encoding: 'utf-8'
+        encoding: 'utf-8',
       })
     })
 

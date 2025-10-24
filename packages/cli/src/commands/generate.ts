@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import inquirer from 'inquirer'
 import { Logger } from '../utils/logger.js'
 import { validateIdentifier } from '../utils/validation.js'
-import { generatePlugin, generateMiddleware, generateRoute } from '../generators/index.js'
+import { generateMiddleware, generatePlugin, generateRoute } from '../generators/index.js'
 import type { GenerateOptions } from '../types/index.js'
 
 const logger = new Logger()
@@ -21,7 +21,8 @@ export function createGenerateCommand(): Command {
     .action(async (type: string, name?: string, options: any = {}) => {
       try {
         await generateCommand(type, name, options)
-      } catch (error) {
+      }
+      catch (error) {
         logger.error(`Generation failed: ${error instanceof Error ? error.message : String(error)}`)
         process.exit(1)
       }
@@ -33,7 +34,7 @@ export function createGenerateCommand(): Command {
 export async function generateCommand(
   type: string,
   name?: string,
-  options: any = {}
+  options: any = {},
 ): Promise<void> {
   logger.header('🔧 G1 Code Generator')
 
@@ -58,8 +59,8 @@ export async function generateCommand(
           }
           const validation = validateIdentifier(input)
           return validation.valid || validation.message
-        }
-      }
+        },
+      },
     ])
     name = answers.name
   }
@@ -79,7 +80,7 @@ export async function generateCommand(
     force: options.force,
     includeTests: options.tests !== false,
     includeDocs: options.docs !== false,
-    template: options.template
+    template: options.template,
   }
 
   // Show configuration
@@ -100,8 +101,8 @@ export async function generateCommand(
       type: 'confirm',
       name: 'confirm',
       message: `Generate ${type} "${name}"?`,
-      default: true
-    }
+      default: true,
+    },
   ])
 
   if (!confirm) {
@@ -140,7 +141,7 @@ export async function generateCommand(
     // Show next steps
     logger.newLine()
     logger.subheader('Next steps:')
-    
+
     switch (type) {
       case 'plugin':
         logger.listItem('1. Implement your plugin logic in the generated files')
@@ -165,8 +166,8 @@ export async function generateCommand(
 
     logger.newLine()
     logger.success('🎉 Generation completed!')
-
-  } catch (error) {
+  }
+  catch (error) {
     logger.failSpinner('Generation failed')
     throw error
   }

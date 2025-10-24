@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Mustache from 'mustache'
 import fs from 'fs-extra'
-import path from 'path'
 import {
+  copyTemplateFiles,
+  createTemplateVariables,
+  getAvailableTemplates,
   renderTemplate,
   renderTemplateFile,
   renderTemplateToFile,
-  copyTemplateFiles,
-  getAvailableTemplates,
-  validateTemplatePath,
   transformFileName,
-  createTemplateVariables
+  validateTemplatePath,
 } from './template'
-import type { TemplateVariables } from '../types/index.js'
 
 // Mock Mustache
 vi.mock('mustache', () => ({
   default: {
-    render: vi.fn()
-  }
+    render: vi.fn(),
+  },
 }))
 
 // Mock fs-extra
@@ -30,8 +29,8 @@ vi.mock('fs-extra', () => ({
     ensureDir: vi.fn(),
     readdir: vi.fn(),
     stat: vi.fn(),
-    copy: vi.fn()
-  }
+    copy: vi.fn(),
+  },
 }))
 
 // Mock path
@@ -46,8 +45,8 @@ vi.mock('path', () => ({
     normalize: vi.fn(),
     sep: '/',
     posix: {
-      normalize: vi.fn()
-    }
+      normalize: vi.fn(),
+    },
   },
   join: vi.fn(),
   resolve: vi.fn(),
@@ -58,15 +57,15 @@ vi.mock('path', () => ({
   normalize: vi.fn(),
   sep: '/',
   posix: {
-    normalize: vi.fn()
-  }
+    normalize: vi.fn(),
+  },
 }))
 
 const mockMustache = Mustache as any
 const mockFs = fs as any
 const mockPath = path as any
 
-describe('Template Utilities', () => {
+describe('template Utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -106,8 +105,8 @@ describe('Template Utilities', () => {
       const variables = {
         items: [
           { name: 'item1', value: 'value1' },
-          { name: 'item2', value: 'value2' }
-        ]
+          { name: 'item2', value: 'value2' },
+        ],
       }
       const expected = 'item1: value1item2: value2'
 
@@ -176,7 +175,7 @@ describe('Template Utilities', () => {
       mockFs.pathExists.mockResolvedValue(true)
 
       await expect(renderTemplateToFile(template, outputPath, variables)).rejects.toThrow(
-        'File already exists: /output/existing.txt'
+        'File already exists: /output/existing.txt',
       )
     })
 
@@ -207,7 +206,7 @@ describe('Template Utilities', () => {
       const mockEntries = [
         { name: 'file1.mustache', isDirectory: () => false },
         { name: 'file2.txt', isDirectory: () => false },
-        { name: 'subdir', isDirectory: () => true }
+        { name: 'subdir', isDirectory: () => true },
       ]
 
       mockFs.ensureDir.mockResolvedValue(undefined)
@@ -223,7 +222,7 @@ describe('Template Utilities', () => {
       })
       mockPath.join.mockImplementation((...args: string[]) => args.join('/'))
       mockMustache.render.mockReturnValue('Template content test')
-      mockPath.extname.mockImplementation((p) => p.endsWith('.mustache') ? '.mustache' : '.txt')
+      mockPath.extname.mockImplementation(p => p.endsWith('.mustache') ? '.mustache' : '.txt')
 
       await copyTemplateFiles(templateDir, destinationDir, variables)
 
@@ -263,7 +262,7 @@ describe('Template Utilities', () => {
       const mockEntries = [
         { name: 'template1', isDirectory: () => true },
         { name: 'template2', isDirectory: () => true },
-        { name: 'file.txt', isDirectory: () => false }
+        { name: 'file.txt', isDirectory: () => false },
       ]
 
       mockFs.readdir.mockResolvedValue(mockEntries)
@@ -296,7 +295,7 @@ describe('Template Utilities', () => {
 
       expect(result).toEqual({
         valid: true,
-        message: 'Valid template'
+        message: 'Valid template',
       })
     })
 
@@ -309,7 +308,7 @@ describe('Template Utilities', () => {
 
       expect(result).toEqual({
         valid: false,
-        message: 'Cannot access template: ENOENT: no such file or directory'
+        message: 'Cannot access template: ENOENT: no such file or directory',
       })
     })
 
@@ -323,7 +322,7 @@ describe('Template Utilities', () => {
 
       expect(result).toEqual({
         valid: false,
-        message: 'Template path is not a directory'
+        message: 'Template path is not a directory',
       })
     })
 
@@ -337,7 +336,7 @@ describe('Template Utilities', () => {
 
       expect(result).toEqual({
         valid: false,
-        message: 'Cannot access template: Permission denied'
+        message: 'Cannot access template: Permission denied',
       })
     })
   })
@@ -374,7 +373,7 @@ describe('Template Utilities', () => {
         description: 'A test project',
         author: 'John Doe',
         license: 'MIT',
-        customField: 'custom value'
+        customField: 'custom value',
       }
 
       const result = createTemplateVariables(options)
@@ -394,13 +393,13 @@ describe('Template Utilities', () => {
         pascalName: 'MyAwesomeProject',
         kebabName: 'my-awesome-project',
         snakeName: 'my_awesome_project',
-        customField: 'custom value'
+        customField: 'custom value',
       })
     })
 
     it('should handle minimal options', () => {
       const options = {
-        projectName: 'simple'
+        projectName: 'simple',
       }
 
       const result = createTemplateVariables(options)
@@ -419,13 +418,13 @@ describe('Template Utilities', () => {
         camelName: 'simple',
         pascalName: 'Simple',
         kebabName: 'simple',
-        snakeName: 'simple'
+        snakeName: 'simple',
       })
     })
 
     it('should handle project names with special characters', () => {
       const options = {
-        projectName: '@scope/my-package_name'
+        projectName: '@scope/my-package_name',
       }
 
       const result = createTemplateVariables(options)
