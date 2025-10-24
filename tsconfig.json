@@ -13,14 +13,21 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@g-1/core": ["packages/core/src"],
+      "@g-1/core/*": ["packages/core/src/*"],
+      "@g-1/templates": ["packages/templates/src"],
+      "@g-1/templates/*": ["packages/templates/src/*"],
+      "@g-1/example": ["./packages/example/src"],
+      "@g-1/example/*": ["./packages/example/src/*"],
+      "@g-1/util": ["packages/util/src"],
+      "@g-1/util/*": ["packages/util/src/*"],
+      "@g-1/cli": ["packages/cli/src"],
+      "@g-1/cli/*": ["packages/cli/src/*"]
     },
     "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+  "include": ["packages/*/src/**/*", "packages/*/test/**/*", "packages/*/*.ts"],
+  "exclude": ["node_modules", "**/node_modules", "dist", "**/dist", "**/*.test.ts", "**/*.spec.ts"]
 }

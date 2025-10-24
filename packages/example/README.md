@@ -1,6 +1,6 @@
-# @g-1/boilerplate
+# @g-1/example
 
-A clean, production-ready API boilerplate built with the @g-1/core framework.
+A complete example application demonstrating how to build production-ready APIs with the `@g-1/core` framework.the @g-1/core framework.
 
 ## Features
 

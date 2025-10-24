@@ -102,7 +102,12 @@ Releases are automated via GitHub Actions when changes are merged to `main`:
 ```
 api-framework/
 ├── packages/
-│   └── core/           # Core API framework
+│   ├── core/           # @g-1/core - Core API framework
+│   ├── cli/            # @g-1/cli - CLI scaffolding tool
+│   ├── example/        # @g-1/example - Example application
+│   ├── templates/      # @g-1/templates - Code templates
+│   ├── util/           # @g-1/util - Utility functions
+│   └── starters/       # Complete starter projects (empty)
 ├── test-package/       # Integration tests
 ├── .github/           # GitHub Actions workflows
 ├── .changeset/        # Version management

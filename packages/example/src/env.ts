@@ -21,8 +21,8 @@ const envSchema = z.object({
   // Rate limiting and security
   RATE_LIMIT_ENABLED: z
     .string()
-    .transform(val => val === 'true')
-    .default('true'),
+    .default('true')
+    .transform(val => val === 'true'),
 
   // Logging
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),

@@ -1,4 +1,4 @@
-# @g-1/boilerplate
+# @g-1/example
 
 ## 0.1.2
 
@@ -26,7 +26,7 @@
 
   - **@g-1/core**: Security middleware, base repository, types, and OpenAPI utilities
   - **@g-1/templates**: Email template constructors and imports
-  - **@g-1/boilerplate**: Environment parsing functions
+  - **@g-1/example**: Environment parsing functions
 
   ## 🎯 Impact
 

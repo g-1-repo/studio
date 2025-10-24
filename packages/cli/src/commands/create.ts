@@ -42,7 +42,7 @@ export const createCommand = new Command('create')
         logger.error('Project name is required')
         process.exit(1)
       }
-      
+
       const nameValidation = validateProjectName(projectName)
       if (!nameValidation.valid) {
         logger.error(nameValidation.message)
@@ -107,7 +107,7 @@ export const createCommand = new Command('create')
       logger.subheader('📋 Project Configuration')
       const targetDirectory = createOptions.directory || process.cwd()
       const packageManager = createOptions.packageManager || 'bun'
-      
+
       logger.table([
         { key: 'Project Name', value: createOptions.name },
         { key: 'Template', value: createOptions.template },

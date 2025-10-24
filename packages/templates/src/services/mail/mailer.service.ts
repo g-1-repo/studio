@@ -56,7 +56,7 @@ export class MailerService implements Mailer {
       if (!this.resend) {
         throw new Error('Resend client is not initialized')
       }
-      
+
       const result = await this.resend.emails.send({
         from: `${this.config.fromName} <${this.config.fromEmail}>`,
         to: [data.to],

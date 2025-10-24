@@ -248,7 +248,7 @@ export async function hasScript(projectPath: string, script: string): Promise<bo
   try {
     const packageJsonPath = path.join(projectPath, 'package.json')
     const packageJson = await fs.readJson(packageJsonPath)
-    return !!(packageJson.scripts?.[script])
+    return !!packageJson.scripts?.[script]
   } catch {
     return false
   }

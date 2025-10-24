@@ -13,17 +13,20 @@ export class EarlyAccessRequestsService extends BaseService {
     super(earlyAccessRequestsRepository)
   }
 
-  async requestEarlyAccess(email: string, env: Environment): Promise<{ success: boolean; message: string }> {
+  async requestEarlyAccess(
+    email: string,
+    env: Environment
+  ): Promise<{ success: boolean; message: string }> {
     // Validate and normalize email using BaseService methods
     const validation = this.validateAndNormalizeEmail({ email })
     if (!validation.success) {
       this.handleValidationError(validation)
     }
-    
+
     if (!validation.data) {
       throw new Error('Validation data is missing')
     }
-    
+
     const normalizedEmail = validation.data.email
 
     // Check if email already exists

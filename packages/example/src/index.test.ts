@@ -9,7 +9,7 @@ describe('boilerplate Package', () => {
 
   it('should have proper package structure', () => {
     // Test that basic imports work
-    expect(packageJson.name).toBe('@g-1/boilerplate')
+    expect(packageJson.name).toBe('@g-1/example')
     expect(packageJson.version).toBeDefined()
   })
 })

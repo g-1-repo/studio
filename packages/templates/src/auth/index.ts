@@ -17,7 +17,10 @@ function getMailer(env?: Environment): MailService | null {
 }
 
 // Single auth configuration that handles both CLI and runtime scenarios
-function createAuth(env?: Environment, cf?: IncomingRequestCfProperties): ReturnType<typeof betterAuth> {
+function createAuth(
+  env?: Environment,
+  cf?: IncomingRequestCfProperties
+): ReturnType<typeof betterAuth> {
   // Use actual DB for runtime, empty object for CLI
   const { db } = env ? createDb(env) : ({} as ReturnType<typeof createDb>)
 

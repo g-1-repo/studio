@@ -1,11 +1,11 @@
 {
-  "name": "@g-1/boilerplate",
+  "name": "@g-1/example",
   "type": "module",
   "version": "0.1.2",
-  "description": "Clean boilerplate application using the @g-1/core framework",
+  "description": "Example application demonstrating the `@g-1/core` framework",
   "keywords": [
     "api",
-    "boilerplate",
+    "example",
     "cloudflare-workers",
     "hono",
     "typescript"

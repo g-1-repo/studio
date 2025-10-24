@@ -164,8 +164,8 @@ export type Awaited<T> = T extends Promise<infer U> ? U : T
  */
 export type DotNotation<T, Prefix extends string = ''> = {
   [K in keyof T]: T[K] extends object
-  ? DotNotation<T[K], `${Prefix}${string & K}.`>
-  : `${Prefix}${string & K}`
+    ? DotNotation<T[K], `${Prefix}${string & K}.`>
+    : `${Prefix}${string & K}`
 }[keyof T]
 
 /**
@@ -173,8 +173,8 @@ export type DotNotation<T, Prefix extends string = ''> = {
  */
 export type PickByPath<T, Path extends string> = Path extends `${infer Key}.${infer Rest}`
   ? Key extends keyof T
-  ? PickByPath<T[Key], Rest>
-  : never
+    ? PickByPath<T[Key], Rest>
+    : never
   : Path extends keyof T
-  ? T[Path]
-  : never
+    ? T[Path]
+    : never
