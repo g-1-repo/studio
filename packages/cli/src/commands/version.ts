@@ -5,6 +5,13 @@ import { Logger } from '../utils/logger.js'
 
 const logger = new Logger()
 
+interface PackageJson {
+  name?: string
+  version?: string
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+}
+
 export function createVersionCommand(): Command {
   const command = new Command('version')
     .description('Display version information')
@@ -36,9 +43,21 @@ async function versionCommand(options: Record<string, unknown> = {}): Promise<vo
 }
 
 interface VersionInfo {
-  cli: string | null
-  project: string | null
+  cli: { name: string; version: string } | null
+  project: { name: string; version: string } | null
   g1Dependencies: Record<string, string>
+  node?: string
+  npm?: string
+  yarn?: string
+  pnpm?: string
+  bun?: string
+  typescript?: string
+  git?: string
+  system?: {
+    platform: string
+    arch: string
+    nodeEnv: string
+  }
 }
 
 async function gatherVersionInfo(includeAll: boolean = false): Promise<VersionInfo> {
@@ -49,39 +68,37 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<VersionIn
   }
 
   // Get CLI version
-  const currentFileUrl = new URL(import.meta.url)
-  const currentDir = path.dirname(currentFileUrl.pathname)
-  const cliPackageJsonPath = path.resolve(currentDir, '../../package.json')
-  const cliPackageJson = await readJsonFile(cliPackageJsonPath)
+  const cliPackageJsonPath = path.resolve(import.meta.dirname, '../../package.json')
+  const cliPackageJson = await readJsonFile<PackageJson>(cliPackageJsonPath)
 
   if (cliPackageJson) {
     info.cli = {
-      name: cliPackageJson.name,
-      version: cliPackageJson.version,
+      name: cliPackageJson.name || 'unknown',
+      version: cliPackageJson.version || 'unknown',
     }
   }
 
   // Get current project's G1 version if applicable
   const cwd = process.cwd()
   const projectPackageJsonPath = path.join(cwd, 'package.json')
-  const projectPackageJson = await readJsonFile(projectPackageJsonPath)
+  const projectPackageJson = await readJsonFile<PackageJson>(projectPackageJsonPath)
 
   if (projectPackageJson) {
     info.project = {
-      name: projectPackageJson.name,
-      version: projectPackageJson.version,
+      name: projectPackageJson.name || 'unknown',
+      version: projectPackageJson.version || 'unknown',
     }
 
     // Check for G1 dependencies
     const g1Dependencies: Record<string, string> = {}
     const allDeps = {
-      ...projectPackageJson.dependencies,
-      ...projectPackageJson.devDependencies,
+      ...(projectPackageJson.dependencies || {}),
+      ...(projectPackageJson.devDependencies || {}),
     }
 
     for (const [name, version] of Object.entries(allDeps)) {
       if (typeof name === 'string' && name.startsWith('@g-1/')) {
-        g1Dependencies[name] = version as string
+        g1Dependencies[name] = version
       }
     }
 
@@ -102,14 +119,14 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<VersionIn
     }
 
     // Get other package manager versions
-    const packageManagers = ['yarn', 'pnpm', 'bun']
+    const packageManagers = ['yarn', 'pnpm', 'bun'] as const
     for (const pm of packageManagers) {
       try {
         const { execSync } = await import('node:child_process')
         const version = execSync(`${pm} --version`, { encoding: 'utf8', stdio: 'pipe' }).trim()
-        info[pm] = version
+        ;(info as any)[pm] = version
       } catch {
-        info[pm] = 'Not available'
+        ;(info as any)[pm] = 'Not available'
       }
     }
 
@@ -207,11 +224,13 @@ export function displayVersionInfo(
     }
 
     // System information
-    loggerInstance.newLine()
-    loggerInstance.subheader('System:')
-    loggerInstance.listItem(`Platform: ${info.system.platform}`)
-    loggerInstance.listItem(`Architecture: ${info.system.arch}`)
-    loggerInstance.listItem(`Environment: ${info.system.nodeEnv}`)
+    if (info.system) {
+      loggerInstance.newLine()
+      loggerInstance.subheader('System:')
+      loggerInstance.listItem(`Platform: ${info.system.platform}`)
+      loggerInstance.listItem(`Architecture: ${info.system.arch}`)
+      loggerInstance.listItem(`Environment: ${info.system.nodeEnv}`)
+    }
   }
 
   // Show help for getting more information

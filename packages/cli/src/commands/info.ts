@@ -9,6 +9,26 @@ import { detectPackageManager, getAvailablePackageManagers } from '../utils/pack
 
 const logger = new Logger()
 
+interface TsConfig {
+  compilerOptions?: {
+    target?: string
+    module?: string
+    strict?: boolean
+  }
+}
+
+interface PackageJson {
+  name?: string
+  version?: string
+  description?: string
+  type?: string
+  main?: string
+  scripts?: Record<string, string>
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  engines?: Record<string, string>
+}
+
 export function createInfoCommand(): Command {
   const command = new Command('info')
     .description('Display project and environment information')
@@ -40,9 +60,55 @@ async function infoCommand(options: Record<string, unknown> = {}): Promise<void>
 }
 
 interface ProjectInfo {
-  project: Record<string, unknown>
-  environment: Record<string, unknown>
-  system: Record<string, unknown>
+  project: {
+    name?: string
+    version?: string
+    description?: string
+    type?: string
+    main?: string
+    scripts?: string[]
+    dependencies?: string[]
+    devDependencies?: string[]
+    engines?: Record<string, string>
+    isG1Project?: boolean
+    hasG1Config?: boolean
+    hasPlugins?: boolean
+    pluginCount?: number
+    size?: string
+    typescript?: {
+      target: string
+      module: string
+      strict: boolean
+    }
+  }
+  environment: {
+    nodeVersion?: string
+    npmVersion?: string | null
+    yarnVersion?: string | null
+    pnpmVersion?: string | null
+    bunVersion?: string | null
+    gitVersion?: string | null
+    packageManager?: string | null
+    availablePackageManagers?: string[]
+    git?: {
+      isRepository?: boolean
+      branch?: string
+      lastCommit?: string
+      user?: { name?: string; email?: string }
+    }
+  }
+  system: {
+    platform?: string
+    arch?: string
+    nodeEnv?: string
+    cwd?: string
+    memory?: {
+      free: number
+      total: number
+    }
+    cpu?: string
+    projectSize?: string
+  }
 }
 
 async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo> {
@@ -55,7 +121,7 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
 
   // Project information
   const packageJsonPath = path.join(cwd, 'package.json')
-  const packageJson = await readJsonFile(packageJsonPath)
+  const packageJson = await readJsonFile<PackageJson>(packageJsonPath)
 
   if (packageJson) {
     info.project = {
@@ -117,24 +183,20 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
 
   // Git information
   if (await isGitRepository(cwd)) {
+    const userInfo = await getGitUserInfo()
     info.environment.git = {
       isRepository: true,
-      userInfo: await getGitUserInfo(),
+      user: userInfo,
     }
 
     if (verbose) {
       try {
         const { execSync } = await import('node:child_process')
         const branch = execSync('git branch --show-current', { cwd, encoding: 'utf8' }).trim()
-        const remoteUrl = execSync('git config --get remote.origin.url', {
-          cwd,
-          encoding: 'utf8',
-        }).trim()
         const lastCommit = execSync('git log -1 --format="%h %s"', { cwd, encoding: 'utf8' }).trim()
 
-        info.environment.git.branch = branch
-        info.environment.git.remoteUrl = remoteUrl
-        info.environment.git.lastCommit = lastCommit
+        info.environment.git!.branch = branch
+        info.environment.git!.lastCommit = lastCommit
       } catch {
         // Ignore git command errors
       }
@@ -162,14 +224,14 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
     // Project size
     try {
       const projectSize = await getDirectorySize(cwd)
-      info.project.size = formatFileSize(projectSize)
+      info.system.projectSize = formatFileSize(projectSize)
     } catch {
-      info.project.size = 'Unknown'
+      info.system.projectSize = 'Unknown'
     }
 
     // TypeScript configuration
     const tsconfigPath = path.join(cwd, 'tsconfig.json')
-    const tsconfig = await readJsonFile(tsconfigPath)
+    const tsconfig = await readJsonFile<TsConfig>(tsconfigPath)
     if (tsconfig) {
       info.project.typescript = {
         target: tsconfig.compilerOptions?.target || 'Unknown',
@@ -213,7 +275,7 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
       logger.listItem(`Size: ${info.project.size}`)
     }
 
-    if (info.project.scripts.length > 0) {
+    if (info.project.scripts && info.project.scripts.length > 0) {
       logger.listItem(`Scripts: ${info.project.scripts.join(', ')}`)
     }
 
@@ -247,7 +309,7 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   }
 
   // Git information
-  if (info.environment.git.isRepository) {
+  if (info.environment.git?.isRepository) {
     logger.listItem('📁 Git Repository')
 
     if (verbose && info.environment.git.branch) {
@@ -280,17 +342,17 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   // Dependencies
   if (
     verbose &&
-    (info.project.dependencies.length > 0 || info.project.devDependencies.length > 0)
+    ((info.project.dependencies?.length || 0) > 0 || (info.project.devDependencies?.length || 0) > 0)
   ) {
     logger.newLine()
     logger.subheader('Dependencies:')
 
-    if (info.project.dependencies.length > 0) {
-      logger.listItem(`Production: ${info.project.dependencies.length} packages`)
+    if ((info.project.dependencies?.length || 0) > 0) {
+      logger.listItem(`Production: ${info.project.dependencies?.length} packages`)
     }
 
-    if (info.project.devDependencies.length > 0) {
-      logger.listItem(`Development: ${info.project.devDependencies.length} packages`)
+    if ((info.project.devDependencies?.length || 0) > 0) {
+      logger.listItem(`Development: ${info.project.devDependencies?.length} packages`)
     }
   }
 }

@@ -5,6 +5,28 @@ All notable changes to the G1 API Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2024-12-19
+
+### Fixed
+- **Core Package**: Fixed TypeScript compilation errors across multiple modules
+  - Fixed `ContentfulStatusCode` type imports in exception utilities
+  - Resolved Env constraint issues in OpenAPI default hook
+  - Fixed Context type compatibility in pino-logger middleware
+  - Added proper type assertions for error message property access in security middleware
+  - Removed unsupported `sources` property from OpenAPI configuration
+  - Fixed constructor signature issues in Drizzle utilities
+- **CLI Package**: Resolved TypeScript errors in info and version commands
+  - Added proper optional chaining for git property access
+  - Fixed TypeScript configuration typing with proper interfaces
+  - Added null checks for scripts property access
+  - Improved error handling and type safety across CLI commands
+
+### Technical Improvements
+- All packages now compile successfully with TypeScript strict mode
+- Enhanced type safety across the entire framework
+- Improved error handling and runtime stability
+- Better integration between Hono framework and custom middleware
+
 ## [1.1.1] - 2024-12-19
 
 ### Fixed

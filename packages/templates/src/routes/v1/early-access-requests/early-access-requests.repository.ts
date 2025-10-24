@@ -35,7 +35,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
       BaseRepository.dbCache.set(cacheKey, createDb(env))
     }
 
-    const db = BaseRepository.dbCache.get(cacheKey)
+    const db = BaseRepository.dbCache.get(cacheKey) as unknown as ReturnType<typeof createDb>
     if (!db) {
       throw new Error('Failed to get database instance from cache')
     }
@@ -94,10 +94,9 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
     return this.executeQuery(
       env,
       async db => {
-        const result = await db
+        await db
           .delete(earlyAccessRequestsTable)
           .where(eq(earlyAccessRequestsTable.id, id))
-        return { meta: { changes: (result as { changes?: number }).changes || 0 } }
       },
       'remove'
     )
@@ -146,7 +145,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
         const paginationResult = createPaginationResult(items, totalCount, page, limit)
 
         return {
-          items,
+          data: items,
           pagination: {
             ...paginationResult.pagination,
             totalCount,

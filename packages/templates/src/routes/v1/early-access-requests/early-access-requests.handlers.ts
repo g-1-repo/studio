@@ -25,14 +25,6 @@ export const create: AppRouteHandler<CreateRoute> = async c => {
 
 export const remove: AppRouteHandler<RemoveRoute> = async c => {
   const { id } = c.req.valid('param')
-  const result = await earlyAccessRequestsRepository.remove(id, c.env)
-  if (result.meta.changes === 0) {
-    return c.json(
-      {
-        message: getStatusPhrase(NOT_FOUND),
-      },
-      NOT_FOUND
-    )
-  }
+  await earlyAccessRequestsRepository.remove(id, c.env)
   return c.body(null, NO_CONTENT)
 }

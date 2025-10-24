@@ -7,11 +7,11 @@ export type TemplateFactory<T extends unknown[] = unknown[]> = (
 ) => EmailTemplate
 
 export class TemplateRegistry {
-  private templates = new Map<string, TemplateFactory>()
+  private templates = new Map<string, TemplateFactory<any>>()
   private cache = new Map<string, EmailTemplate>()
 
   register<T extends unknown[]>(name: string, factory: TemplateFactory<T>): void {
-    this.templates.set(name, factory)
+    this.templates.set(name, factory as TemplateFactory<any>)
   }
 
   create<T extends unknown[]>(name: string, config: TemplateConfig, ...args: T): EmailTemplate {

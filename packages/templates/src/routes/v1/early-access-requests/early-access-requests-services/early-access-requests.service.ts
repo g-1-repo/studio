@@ -16,7 +16,7 @@ export class EarlyAccessRequestsService extends BaseService {
   async requestEarlyAccess(
     email: string,
     env: Environment
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<{ id: string; email: string; createdAt: string | null; updatedAt: string | null }> {
     // Validate and normalize email using BaseService methods
     const validation = this.validateAndNormalizeEmail({ email })
     if (!validation.success) {
@@ -49,7 +49,12 @@ export class EarlyAccessRequestsService extends BaseService {
     // Send welcome email
     await this.sendEarlyAccessEmail(insertedEarlyAccessRequest.email, env)
 
-    return insertedEarlyAccessRequest
+    return {
+      id: insertedEarlyAccessRequest.id,
+      email: insertedEarlyAccessRequest.email,
+      createdAt: insertedEarlyAccessRequest.createdAt?.toISOString() || null,
+      updatedAt: insertedEarlyAccessRequest.updatedAt?.toISOString() || null,
+    }
   }
 
   /**

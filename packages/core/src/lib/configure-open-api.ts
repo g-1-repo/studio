@@ -20,10 +20,6 @@ export default function configureOpenAPI(app: AppOpenAPI) {
         targetKey: 'js',
         clientKey: 'fetch',
       },
-      sources: [
-        { url: '/doc', title: 'API' },
-        { url: '/api/auth/open-api/generate-schema', title: 'Auth' },
-      ],
-    })
+    } as any)
   )
 }

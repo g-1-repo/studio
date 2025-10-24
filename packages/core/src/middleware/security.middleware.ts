@@ -364,7 +364,7 @@ export function securityAuditLog(): MiddlewareHandler<AppBindings> {
               duration,
               error: error
                 ? {
-                    message: error.message,
+                    message: (error as Error).message,
                     type: error.constructor.name,
                   }
                 : null,

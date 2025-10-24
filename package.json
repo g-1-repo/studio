@@ -1,6 +1,6 @@
 {
   "name": "@g1-studio/api-framework",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "G1 Studio API Framework - A high-performance, enterprise TypeScript API framework monorepo",
   "type": "module",
   "private": true,
@@ -11,8 +11,8 @@
   "scripts": {
     "build": "bun run --filter='*' build",
     "dev": "bun run --filter='@g-1/core' dev",
-    "test": "bun run --filter='@g-1/*' test",
-    "test:dashboard": "bun run --filter='@g-1/core' test:dashboard",
+    "test": "bun run --filter='*' test",
+    "test:ci": "bun run --filter='*' test --run",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format .",
@@ -20,12 +20,11 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "typecheck": "bun run --filter='*' typecheck",
-    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist",
-    "setup": "bun install && bun run build",
+    "clean": "bun run --filter='*' clean",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish",
-    "release": "bun run build && bun run changeset:version && bun run changeset:publish"
+    "version-packages": "changeset version",
+    "release": "bun run build && changeset publish",
+    "new-branch": "./scripts/new-branch.sh"
   },
   "keywords": [
     "api-framework",

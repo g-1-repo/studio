@@ -81,11 +81,11 @@ export async function generateCommand(
   const generateOptions: GenerateOptions = {
     name: name,
     type: type as 'plugin' | 'middleware' | 'route' | 'model' | 'service',
-    directory: options.directory,
-    force: options.force,
+    directory: options.directory as string | undefined,
+    force: options.force as boolean | undefined,
     includeTests: options.tests !== false,
     includeDocs: options.docs !== false,
-    template: options.template,
+    template: options.template as string | undefined,
   }
 
   // Show configuration

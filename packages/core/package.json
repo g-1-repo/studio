@@ -1,7 +1,7 @@
 {
   "name": "@g-1/core",
   "type": "module",
-  "version": "1.15.13",
+  "version": "1.15.14",
   "description": "G1 Studio API Framework - A plugin-first, high-performance TypeScript API framework built on Hono for Cloudflare Workers",
   "author": "G1 Studio",
   "license": "MIT",

@@ -1,6 +1,5 @@
 import { createWorkerSafeCuid2 } from '@g-1/util'
 import type { Context, MiddlewareHandler } from 'hono'
-import type { Env } from 'hono-pino'
 import type { AppBindings } from '../lib/types'
 
 function pinoLogger() {
@@ -19,16 +18,16 @@ function pinoLogger() {
       const transport =
         typeof pretty === 'function' ? (pretty as unknown as () => unknown)() : undefined
       return baseLogger({
-        pino: pino({ level: c.env.LOG_LEVEL || 'info' }, transport as unknown),
+        pino: pino({ level: c.env.LOG_LEVEL || 'info' }, transport as any),
         http: { reqId: () => createWorkerSafeCuid2() },
-      })(c as unknown as Context<Env>, next)
+      })(c as any, next)
     }
 
     // Production: plain pino
     return baseLogger({
       pino: pino({ level: c.env.LOG_LEVEL || 'info' }),
       http: { reqId: () => createWorkerSafeCuid2() },
-    })(c as unknown as Context<Env>, next)
+    })(c as any, next)
   }) satisfies MiddlewareHandler<AppBindings>
 }
 

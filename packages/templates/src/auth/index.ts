@@ -22,7 +22,7 @@ function createAuth(
   cf?: IncomingRequestCfProperties
 ): ReturnType<typeof betterAuth> {
   // Use actual DB for runtime, empty object for CLI
-  const { db } = env ? createDb(env) : ({} as ReturnType<typeof createDb>)
+  const dbInstance = env ? createDb(env) : ({} as ReturnType<typeof createDb>)
 
   const isDev = process.env.NODE_ENV === 'development'
   return betterAuth({
@@ -31,18 +31,10 @@ function createAuth(
         autoDetectIpAddress: true,
         geolocationTracking: true,
         cf: cf || {},
-        d1: env
-          ? {
-              db,
-              options: {
-                usePlural: true,
-                debugLogs: isDev,
-              },
-            }
-          : undefined,
         kv: env?.MY_API_PROJECT_KV_AUTH as import('@cloudflare/workers-types').KVNamespace<string>,
       },
       {
+        database: env ? drizzleAdapter(dbInstance, { provider: 'sqlite' }) : undefined,
         user: {
           changeEmail: {
             enabled: true,
@@ -159,7 +151,7 @@ function createAuth(
     ),
     // Add database adapter for both runtime and CLI
     database: env
-      ? drizzleAdapter(db, {
+      ? drizzleAdapter(dbInstance, {
           provider: 'sqlite',
           usePlural: true,
           debugLogs: isDev,
@@ -194,7 +186,7 @@ export const auth = {
     if (!_authInstance) {
       _authInstance = createAuth()
     }
-    return (_authInstance.api as unknown)(...args)
+    return (_authInstance.api as any)(...args)
   },
 }
 
