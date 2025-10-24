@@ -1,7 +1,7 @@
 {
   "name": "@g-1/boilerplate",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Clean boilerplate application using the @g-1/core framework",
   "keywords": [
     "api",

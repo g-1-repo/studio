@@ -1,7 +1,7 @@
 {
   "name": "@g-1/cli",
   "type": "module",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "packageManager": "bun@1.1.38",
   "description": "G1 API Framework CLI for project scaffolding and management",
   "author": "G1 Studio",

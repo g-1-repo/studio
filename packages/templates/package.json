@@ -1,7 +1,7 @@
 {
   "name": "@g-1/templates",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Templates and boilerplate code for G1 Studio API projects",
   "author": "G1 Studio",
   "license": "MIT",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@g-1/core": "workspace:*",
-    "@g-1/util": "2.0.4",
+    "@g-1/util": "1.0.1",
     "@hono/zod-openapi": "1.1.4",
     "better-auth": "^1.3.28",
     "better-auth-cloudflare": "^0.2.7",
