@@ -1,0 +1,63 @@
+{
+  "name": "@g-1/templates",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Templates and boilerplate code for G1 Studio API projects",
+  "author": "G1 Studio",
+  "license": "MIT",
+  "homepage": "https://github.com/g1-studio/g1-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g1-studio/g1-studio.git",
+    "directory": "packages/templates"
+  },
+  "keywords": [
+    "templates",
+    "boilerplate",
+    "g1",
+    "g-1",
+    "api"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@g-1/core": "workspace:*",
+    "@g-1/util": "2.0.4",
+    "@hono/zod-openapi": "1.1.4",
+    "better-auth": "^1.3.28",
+    "better-auth-cloudflare": "^0.2.7",
+    "drizzle-orm": "^0.44.6",
+    "drizzle-zod": "^0.8.3",
+    "hono": "^4.10.1",
+    "resend": "6.2.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.0.0",
+    "@types/node": "^24.8.1",
+    "eslint": "^9.38.0",
+    "typescript": "^5.7.3"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth/index.js",
+      "types": "./dist/auth/index.d.ts"
+    },
+    "./db": {
+      "import": "./dist/db/index.js",
+      "types": "./dist/db/index.d.ts"
+    },
+    "./routes": {
+      "import": "./dist/routes/index.js",
+      "types": "./dist/routes/index.d.ts"
+    }
+  }
+}

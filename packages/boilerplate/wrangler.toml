@@ -1,0 +1,39 @@
+name = "g1-api-boilerplate"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+BETTER_AUTH_URL = "https://g1-api-boilerplate.your-subdomain.workers.dev"
+FROM_EMAIL = "noreply@yourdomain.com"
+LOG_LEVEL = "info"
+RATE_LIMIT_ENABLED = "true"
+
+# Uncomment and configure these bindings for your deployment
+# [[d1_databases]]
+# binding = "MY_API_PROJECT_DB"
+# database_name = "g1-api-db"
+# database_id = "your-database-id"
+
+# [[kv_namespaces]]
+# binding = "MY_API_PROJECT_KV_AUTH"
+# id = "your-kv-namespace-id"
+
+[env.development]
+name = "g1-api-boilerplate-dev"
+
+[env.development.vars]
+NODE_ENV = "development"
+BETTER_AUTH_URL = "http://localhost:8787"
+LOG_LEVEL = "debug"
+
+# Development database binding
+[[env.development.d1_databases]]
+binding = "MY_API_PROJECT_DB"
+database_name = "g1-api-db-dev"
+database_id = "your-dev-database-id"
+
+[[env.development.kv_namespaces]]
+binding = "MY_API_PROJECT_KV_AUTH"
+id = "your-dev-kv-namespace-id"

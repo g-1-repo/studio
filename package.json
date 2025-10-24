@@ -1,6 +1,6 @@
 {
   "name": "@g1-studio/api-framework",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "G1 Studio API Framework - A high-performance, enterprise TypeScript API framework monorepo",
   "type": "module",
   "private": true,
@@ -48,6 +48,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.9",
     "@types/node": "^22.0.0",
+    "@cloudflare/workers-types": "^4.20241022.0",
     "typescript": "^5.6.0"
   },
   "packageManager": "bun@1.1.38"

@@ -1,0 +1,47 @@
+{
+  "name": "@g-1/boilerplate",
+  "version": "0.1.0",
+  "description": "Clean boilerplate application using the @g-1/core framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "wrangler dev src/index.ts --compatibility-date 2024-09-23",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply MY_API_PROJECT_DB --local",
+    "db:migrate:prod": "wrangler d1 migrations apply MY_API_PROJECT_DB",
+    "db:studio": "drizzle-kit studio",
+    "auth:generate": "bun run src/auth/generate-secret.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "cf:login": "wrangler auth login",
+    "cf:whoami": "wrangler auth whoami"
+  },
+  "dependencies": {
+    "@g-1/core": "workspace:*",
+    "@g-1/util": "workspace:*",
+    "hono": "^4.10.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.7.3",
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/node": "^22.10.1",
+    "drizzle-kit": "^0.30.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.94.0"
+  },
+  "keywords": [
+    "api",
+    "boilerplate",
+    "cloudflare-workers",
+    "hono",
+    "typescript"
+  ]
+}

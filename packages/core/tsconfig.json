@@ -1,36 +1,36 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "lib": [
-      "ESNext"
-    ],
-    "baseUrl": "./",
+    "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "src/*"
       ]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@cloudflare"
-    ],
     "types": [
+      "@cloudflare/workers-types",
       "node"
-    ],
-    "strict": true,
-    "outDir": "./dist",
-    "skipLibCheck": true
+    ]
   },
   "include": [
-    "./**/*.ts",
-    "./worker-configuration.d.ts",
-    "./env.d.ts"
+    "src/**/*"
   ],
-  "tsc-alias": {
-    "resolveFullPaths": true
-  }
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

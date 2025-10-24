@@ -1,11 +1,14 @@
 import type { NotFoundHandler } from 'hono'
-
-import { HTTP_STATUS_PHRASES, NOT_FOUND } from '@/lib/utils/http-status'
+import { HTTP_STATUS, HTTP_STATUS_PHRASES } from '@g-1/util'
 
 const notFound: NotFoundHandler = (c) => {
   return c.json({
-    message: `${HTTP_STATUS_PHRASES.NOT_FOUND} - ${c.req.path}`,
-  }, NOT_FOUND)
+    error: {
+      code: 'NOT_FOUND',
+      message: `${HTTP_STATUS_PHRASES[HTTP_STATUS.NOT_FOUND]} - ${c.req.path}`,
+      timestamp: new Date().toISOString(),
+    },
+  }, HTTP_STATUS.NOT_FOUND)
 }
 
-export default notFound
+export { notFound }

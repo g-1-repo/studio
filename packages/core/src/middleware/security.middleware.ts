@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 
-import type { AppBindings } from '@/lib/types'
+import type { AppBindings } from '../lib/types'
 import { createMiddleware } from 'hono/factory'
 
 import { HTTPException } from 'hono/http-exception'
@@ -34,6 +34,9 @@ export function rateLimitOptimized(options: {
     }
 
     const kv = c.env.MY_API_PROJECT_KV_AUTH
+    if (!kv) {
+      throw new HTTPException(500, { message: 'KV store not available' })
+    }
     const now = Date.now()
 
     // Use sliding window algorithm for more accurate rate limiting
@@ -392,6 +395,9 @@ export function simpleRateLimit(options: {
     }
 
     const kv = c.env.MY_API_PROJECT_KV_AUTH
+    if (!kv) {
+      throw new HTTPException(500, { message: 'KV store not available' })
+    }
     const now = Date.now()
     const _windowStart = now - windowMs
 

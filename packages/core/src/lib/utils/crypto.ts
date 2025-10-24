@@ -1,20 +1,15 @@
 // Import Workers-safe crypto utilities from @g-1/util
 export {
   createWorkerSafeCuid2,
-  generateWorkerSafeHexId,
-  generateWorkerSafeId,
-  generateWorkerSafeIdWith,
-  generateWorkerSafeNumericId,
-  generateWorkerSafeUrlSafeId,
-  WORKERS_SAFE_ALPHABETS,
+  createWorkerSafeNanoid,
+  generateSecureRandomString,
+  generateUUID,
 } from '@g-1/util/crypto/workers-safe'
 
 // Aliases for backward compatibility
 export {
-  WORKERS_SAFE_ALPHABETS as ALPHABETS,
-  generateWorkerSafeHexId as generateHexId,
-  generateWorkerSafeId as generateId,
-  generateWorkerSafeIdWith as generateIdWith,
-  generateWorkerSafeNumericId as generateNumericId,
-  generateWorkerSafeUrlSafeId as generateUrlSafeId,
+  createWorkerSafeCuid2 as createCuid2,
+  createWorkerSafeNanoid as createNanoid,
+  generateSecureRandomString as generateRandomString,
+  generateUUID as createUUID,
 } from '@g-1/util/crypto/workers-safe'

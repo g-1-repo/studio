@@ -1,16 +1,35 @@
-import { EventEmitter } from 'node:events'
-import { setupCloudflareWorkerTests } from '@g-1/test'
-import { afterEach } from 'vitest'
-import { clearRepositoryCaches } from '@/lib/base-repository'
+import { beforeAll, afterEach, vi } from 'vitest'
 
-// Increase EventEmitter max listeners for test environment
-EventEmitter.defaultMaxListeners = 20
+/**
+ * Global test setup for G1 Core package
+ */
 
-// Set up test environment with enhanced utilities
-setupCloudflareWorkerTests()
-
-afterEach(() => {
-  clearRepositoryCaches()
+beforeAll(() => {
+  // Set test environment
+  process.env.NODE_ENV = 'test'
+  
+  // Mock console methods to reduce noise during tests
+  vi.spyOn(console, 'info').mockImplementation(() => {})
+  vi.spyOn(console, 'debug').mockImplementation(() => {})
 })
 
-// EOF
+afterEach(() => {
+  // Clear all mocks after each test
+  vi.clearAllMocks()
+})
+
+// Global test utilities
+global.testUtils = {
+  createMockContext: () => ({
+    env: {},
+    var: vi.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    json: vi.fn(),
+    text: vi.fn(),
+    html: vi.fn(),
+    redirect: vi.fn(),
+    status: vi.fn(),
+    header: vi.fn(),
+  }),
+}

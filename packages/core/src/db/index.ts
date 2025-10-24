@@ -1,14 +1,34 @@
-import type { Environment } from '@/env'
+/**
+ * Database connection factory for Drizzle ORM with Cloudflare D1
+ */
 
-// import { env } from "cloudflare:workers";
 import { drizzle } from 'drizzle-orm/d1'
+import type { Environment } from '../env'
 
-import * as schema from './schema'
+export interface DatabaseConfig {
+  database: D1Database
+}
 
 export function createDb(env: Environment) {
-  const db = drizzle(env.DB, {
-    casing: 'snake_case',
-    schema,
-  })
-  return { db }
+  if (!env.DB) {
+    throw new Error('Database binding (DB) is not available in environment')
+  }
+  
+  return drizzle(env.DB)
+}
+
+// Database utilities
+export const db = {
+  // Connection helper
+  connect: (env: Environment) => createDb(env),
+  
+  // Health check
+  healthCheck: async (database: D1Database) => {
+    try {
+      await database.prepare('SELECT 1').first()
+      return true
+    } catch {
+      return false
+    }
+  },
 }

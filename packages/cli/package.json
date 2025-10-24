@@ -1,0 +1,76 @@
+{
+  "name": "@g-1/cli",
+  "version": "1.2.3",
+  "description": "G1 API Framework CLI for project scaffolding and management",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "g1": "dist/cli.js",
+    "g1-cli": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "keywords": [
+    "g1",
+    "api",
+    "framework",
+    "cli",
+    "scaffolding",
+    "generator",
+    "boilerplate"
+  ],
+  "author": "G1 Studio",
+  "license": "MIT",
+  "homepage": "https://github.com/g1-studio/api-framework#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g1-studio/api-framework.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/g1-studio/api-framework/issues"
+  },
+  "dependencies": {
+    "@g-1/core": "workspace:*",
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "fs-extra": "^11.1.1",
+    "mustache": "^4.2.0",
+    "semver": "^7.5.4",
+    "validate-npm-package-name": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/mustache": "^4.2.5",
+    "@types/node": "^20.8.0",
+    "@types/semver": "^7.5.4",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.51.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "packageManager": "bun@1.1.38"
+}

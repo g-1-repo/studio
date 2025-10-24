@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@g-1/core": "file:../core"
+    "@g-1/core": "workspace:*"
   }
 }

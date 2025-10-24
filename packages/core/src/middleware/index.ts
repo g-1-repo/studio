@@ -1,5 +1,6 @@
-export { default as notFound } from './not-found.js'
-export { default as onError } from './on-error.js'
+export { notFound } from './not-found.js'
+export { onError } from './on-error.js'
+export { pinoLogger } from './pino-logger.js'
 
 // Enhanced security middleware
 export {

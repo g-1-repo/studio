@@ -26,7 +26,7 @@ preload = ["./packages/core/test/setup.ts"]
 
 [run]
 # Enable shell expansion for scripts
-shell = true
+shell = "system"
 
 # Set environment for scripts
 env = "development"

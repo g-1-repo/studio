@@ -1,7 +1,7 @@
-import type { Environment } from '@/env'
+import type { Environment } from '../env'
 
-import { createDb } from '@/db'
-import { DatabaseError } from '@/lib/errors'
+import { createDb } from '../db'
+import { DatabaseError } from './errors'
 
 // Simple cache management utilities
 function clearCache() {
@@ -61,10 +61,10 @@ export abstract class BaseRepository {
     operationName?: string,
   ): Promise<T> {
     const startTime = Date.now()
-    const { db } = this.getDb(env)
+    const db = this.getDb(env)
 
     try {
-      const result = await operation({ db })
+      const result = await operation(db)
 
       // Log slow queries in development and warn in production
       const duration = Date.now() - startTime
@@ -107,12 +107,12 @@ export abstract class BaseRepository {
     operationName?: string,
   ): Promise<T[]> {
     const startTime = Date.now()
-    const { db } = this.getDb(env)
+    const db = this.getDb(env)
 
     try {
       // Execute all operations in parallel for better performance
       const results = await Promise.all(
-        operations.map(operation => operation({ db })),
+        operations.map(operation => operation(db)),
       )
 
       const duration = Date.now() - startTime
@@ -200,7 +200,7 @@ export abstract class BaseRepository {
     }
 
     try {
-      const { db } = this.getDb(env)
+      const db = this.getDb(env)
       // Simple query to test connection
       await db.run('SELECT 1')
 
@@ -228,9 +228,7 @@ export abstract class BaseRepository {
     const isHealthy = await this.checkDatabaseHealth(env)
     if (!isHealthy) {
       throw new DatabaseError(
-        `Database health check failed for operation: ${operationName || 'unknown'}`,
-        undefined,
-        { operation: operationName },
+        `Database health check failed for operation: ${operationName || 'unknown'}`
       )
     }
 

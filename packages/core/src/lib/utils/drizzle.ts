@@ -1,33 +1,76 @@
 import {
-  DatabaseQueryError as DatabaseError,
-  QueryNotFoundError as NotFoundError,
-  takeFirst as takeFirstGeneric,
-  takeFirstOrThrow as takeFirstOrThrowGeneric,
-} from '@g-1/util/database'
+  NotFoundError,
+  DatabaseNotFoundError,
+  takeFirstOrThrow,
+  takeFirst,
+  PaginationParams,
+  PaginationResult,
+  calculateOffset,
+  createPaginationResult,
+  normalizePagination,
+  TransactionCallback,
+  RetryConfig,
+  DEFAULT_RETRY_CONFIG,
+  calculateRetryDelay,
+  sleep,
+  retryOperation,
+  isConstraintViolation,
+  isConnectionError,
+} from '@g-1/util'
+
 import { text } from 'drizzle-orm/sqlite-core'
-import { InternalError, NotFound } from './exceptions'
+import { NotFound, InternalError } from '../utils/exceptions'
+
+// Re-export database utilities
+export {
+  NotFoundError,
+  DatabaseNotFoundError,
+  takeFirstOrThrow,
+  takeFirst,
+  PaginationParams,
+  PaginationResult,
+  calculateOffset,
+  createPaginationResult,
+  normalizePagination,
+  TransactionCallback,
+  RetryConfig,
+  DEFAULT_RETRY_CONFIG,
+  calculateRetryDelay,
+  sleep,
+  retryOperation,
+  isConstraintViolation,
+  isConnectionError,
+}
+
+// Legacy alias
+export const QueryNotFoundError = DatabaseNotFoundError
 
 /* -------------------------------------------------------------------------- */
 /*                                 Repository                                 */
 /* -------------------------------------------------------------------------- */
 
-// Re-export takeFirst directly (no error handling needed)
-export const takeFirst = takeFirstGeneric
+/**
+ * Take the first result from a query or throw a generic error
+ */
+export function takeFirstOrThrowGeneric<T>(values: T[], message?: string): T {
+  if (values.length === 0) {
+    throw new NotFoundError(message || 'Record not found')
+  }
+  return values[0]
+}
 
-// Wrapper that converts @g-1/util errors to HTTPException
-export function takeFirstOrThrow<T>(values: T[], message?: string): T {
+/**
+ * Take the first result from a query or throw an HTTP error
+ */
+export function takeFirstOrThrowHttp<T>(values: T[], message?: string): T {
   try {
     return takeFirstOrThrowGeneric(values, message)
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof NotFoundError) {
       throw NotFound(error.message)
+    } else {
+      throw InternalError((error as Error).message)
     }
-    if (error instanceof DatabaseError) {
-      // eslint-disable-next-line unicorn/throw-new-error
-      throw InternalError(error.message)
-    }
-    throw error
   }
 }
 

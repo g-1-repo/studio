@@ -1,130 +1,121 @@
+import { ValidationError, ConflictError } from '@g-1/util'
 import {
-  normalizeEmail,
-  validateAndNormalizeEmail,
-  validatePagination,
-  validateRequired as validateRequiredFields,
-} from '@g-1/util/validation'
-import { ConflictError, NotFoundError, ValidationError } from '@/lib/errors'
+  validate,
+  required,
+  email as emailRule,
+  ValidationResult,
+} from '@g-1/util'
 
-/**
- * Base service class for business logic layer
- *
- * Features:
- * - Standardized error handling
- * - Input validation helpers
- * - Business logic abstraction
- * - Cross-cutting concerns (logging, metrics)
- */
+import { BaseRepository } from './base-repository'
+import { createBadRequest, createConflict } from './utils/exceptions'
+
 export abstract class BaseService {
-  /**
-   * Validate required fields in input data
-   */
-  protected validateRequired<T extends Record<string, unknown>>(
-    data: T,
-    requiredFields: (keyof T)[],
-  ): void {
-    const validation = validateRequiredFields(data, requiredFields)
+  constructor(protected repository: BaseRepository) {}
 
-    if (!validation.isValid) {
-      throw new ValidationError(
-        `Missing required fields: ${validation.missingFields.join(', ')}`,
-        { missingFields: validation.missingFields },
-      )
+  /**
+   * Validate required fields
+   */
+  protected validateRequiredFields(
+    data: Record<string, unknown>,
+    requiredFields: string[]
+  ): ValidationResult {
+    const missingFields = requiredFields.filter(field => {
+      const value = data[field]
+      return value === undefined || value === null || value === ''
+    })
+    
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        error: new ValidationError(`Missing required fields: ${missingFields.join(', ')}`),
+      }
     }
+    
+    return { success: true, data }
   }
 
   /**
    * Validate email format
    */
-  protected validateEmail(email: string): void {
-    const validation = validateAndNormalizeEmail(email)
-    if (!validation.isValid) {
-      throw new ValidationError(validation.error || 'Invalid email format', { email })
-    }
+  protected validateEmail(email: string): ValidationResult {
+    const schema = { email: [required(), emailRule()] }
+    return validate({ email }, schema)
   }
 
   /**
-   * Normalize email address (lowercase, trim)
+   * Validate and normalize email
    */
-  protected normalizeEmail(email: string): string {
-    return normalizeEmail(email)
-  }
-
-  /**
-   * Validate and normalize input data
-   */
-  protected validateAndNormalize<T extends { email?: string }>(data: T): T {
-    if (data.email) {
-      const validation = validateAndNormalizeEmail(data.email)
-      if (!validation.isValid) {
-        throw new ValidationError(validation.error || 'Invalid email format', { email: data.email })
+  protected validateAndNormalizeEmail(data: { email: string }): ValidationResult<{ email: string }> {
+    const validation = this.validateEmail(data.email)
+    if (!validation.success) {
+      return {
+        success: false,
+        error: validation.error
       }
-      data.email = validation.normalizedEmail
     }
-    return data
+    
+    return {
+      success: true,
+      data: { email: data.email.toLowerCase().trim() }
+    }
   }
 
   /**
-   * Check if resource exists and throw error if not found
+   * Validate pagination parameters
    */
-  protected ensureExists<T>(
-    resource: T | null | undefined,
-    resourceName: string,
-    identifier?: string,
-  ): T {
-    if (resource === null || resource === undefined) {
-      throw new NotFoundError(resourceName, identifier)
+  protected validatePagination(params: { page?: number; limit?: number }): ValidationResult {
+    const page = params.page ?? 1
+    const limit = params.limit ?? 20
+    
+    if (page < 1 || limit < 1 || limit > 100) {
+      return {
+        success: false,
+        error: new ValidationError('Invalid pagination parameters')
+      }
     }
-    return resource
+    
+    return { success: true, data: { page, limit } }
   }
 
   /**
-   * Check if resource doesn't exist and throw conflict error if it does
+   * Handle validation errors
+   */
+  protected handleValidationError(validation: ValidationResult, context?: Record<string, unknown>): never {
+    if (validation.error) {
+      throw createBadRequest(validation.error.message)
+    }
+    throw createBadRequest('Validation failed')
+  }
+
+  /**
+   * Handle conflict errors
+   */
+  protected handleConflictError(message: string, details?: Record<string, unknown>): never {
+    throw createConflict(message)
+  }
+
+  /**
+   * Ensure entity does not exist (throws conflict if it does)
    */
   protected ensureNotExists<T>(
-    resource: T | null | undefined,
-    conflictMessage: string,
-    details?: unknown,
+    entity: T | null | undefined,
+    message: string,
+    details?: Record<string, unknown>
   ): void {
-    if (resource !== null && resource !== undefined) {
-      throw new ConflictError(conflictMessage, details)
+    if (entity) {
+      this.handleConflictError(message, details)
     }
   }
 
   /**
-   * Execute operation with logging and error handling
+   * Ensure entity exists (throws not found if it doesn't)
    */
-  protected async executeOperation<T>(
-    operationName: string,
-    operation: () => Promise<T>,
-  ): Promise<T> {
-    const startTime = Date.now()
-
-    try {
-      const result = await operation()
-      const duration = Date.now() - startTime
-
-      // Log slow operations
-      if (duration > 1000) {
-        console.warn(`Slow service operation: ${operationName} took ${duration}ms`)
-      }
-
-      return result
+  protected ensureExists<T>(
+    entity: T | null | undefined,
+    message: string = 'Entity not found'
+  ): asserts entity is T {
+    if (!entity) {
+      throw createBadRequest(message)
     }
-    catch (error) {
-      const duration = Date.now() - startTime
-      console.error(`Service operation failed: ${operationName}`, {
-        error: error instanceof Error ? error.message : String(error),
-        duration,
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Pagination helper
-   */
-  protected validatePagination(page: number, limit: number): { page: number, limit: number } {
-    return validatePagination(page, limit, 100) // Max 100 items per page
   }
 }

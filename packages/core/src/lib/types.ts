@@ -2,8 +2,8 @@ import type { OpenAPIHono, RouteConfig, RouteHandler } from '@hono/zod-openapi'
 import type { Schema } from 'hono'
 import type { PinoLogger } from 'hono-pino'
 
-import type { auth, createAuth } from '@/auth'
-import type { Environment } from '@/env'
+import type { auth, createAuth } from '../auth'
+import type { Environment } from '../env'
 
 export interface AppBindings {
   Bindings: Environment
@@ -11,8 +11,8 @@ export interface AppBindings {
     logger: PinoLogger
     requestId: string
     auth: ReturnType<typeof createAuth>
-    user: typeof auth.$Infer.Session.user | null
-    session: typeof auth.$Infer.Session.session | null
+    user: any | null
+    session: any | null
   }
 };
 

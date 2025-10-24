@@ -1,10 +1,12 @@
 import type { Context, MiddlewareHandler } from 'hono'
 import type { Env } from 'hono-pino'
 
-import type { AppBindings } from '@/lib/types'
-import { createWorkerSafeCuid2 } from '@g-1/util/crypto/workers-safe'
+import type { AppBindings } from '../lib/types'
+import { createWorkerSafeCuid2 } from '@g-1/util'
 
-export function pinoLogger() {
+export { pinoLogger }
+
+function pinoLogger() {
   return (async (c, next) => {
     if (c.env.NODE_ENV === 'test') {
       // No logging and avoid importing node-only deps in tests

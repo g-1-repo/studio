@@ -8,7 +8,7 @@ export {
   isNumber,
   isObject,
   isString,
-} from '@g-1/util/types'
+} from '@g-1/util'
 
 export {
   type DeepPartial,
@@ -17,4 +17,4 @@ export {
   type Prettify,
   type RequiredKeys,
   type UnionToIntersection,
-} from '@g-1/util/types'
+} from '@g-1/util'

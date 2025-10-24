@@ -1,22 +1,48 @@
-// Import HTTP status utilities from @g-1/util
-export {
-  BAD_REQUEST,
-  CONFLICT,
-  CREATED,
-  FORBIDDEN,
-  getStatusPhrase,
-  HTTP_STATUS_CODES,
+/**
+ * HTTP status utilities
+ */
+
+import {
+  HTTP_STATUS,
   HTTP_STATUS_PHRASES,
-  type HttpStatusCode,
-  type HttpStatusPhrase,
-  INTERNAL_SERVER_ERROR,
+  getStatusPhrase,
+  isSuccessStatus,
   isClientError,
   isServerError,
-  isSuccess,
-  NO_CONTENT,
-  NOT_FOUND,
+  isErrorStatus,
+} from '@g-1/util'
+
+// Re-export all HTTP utilities
+export {
+  HTTP_STATUS,
+  HTTP_STATUS_PHRASES,
+  getStatusPhrase,
+  isSuccessStatus,
+  isClientError,
+  isServerError,
+  isErrorStatus,
+}
+
+// Re-export individual status codes for convenience
+export const {
   OK,
-  TOO_MANY_REQUESTS,
+  CREATED,
+  NO_CONTENT,
+  BAD_REQUEST,
   UNAUTHORIZED,
+  FORBIDDEN,
+  NOT_FOUND,
+  CONFLICT,
   UNPROCESSABLE_ENTITY,
-} from '@g-1/util/http'
+  TOO_MANY_REQUESTS,
+  INTERNAL_SERVER_ERROR,
+} = HTTP_STATUS
+
+// Legacy aliases
+export const SUCCESS = OK
+export const ERROR = INTERNAL_SERVER_ERROR
+
+// Helper functions
+export function isSuccess(statusCode: number): boolean {
+  return isSuccessStatus(statusCode)
+}

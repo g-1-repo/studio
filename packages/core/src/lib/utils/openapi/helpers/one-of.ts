@@ -4,10 +4,11 @@ import {
   OpenApiGeneratorV3,
   OpenAPIRegistry,
 } from '@asteasolutions/zod-to-openapi'
+import type { ReferenceObject, SchemaObject } from 'openapi3-ts/oas30'
 
 function oneOf<
   T extends ZodSchema,
->(schemas: T[]) {
+>(schemas: T[]): (ReferenceObject | SchemaObject)[] {
   const registry = new OpenAPIRegistry()
 
   schemas.forEach((schema, index) => {

@@ -1,15 +1,16 @@
 import type { ErrorHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import process from 'node:process'
+import { isOperationalError } from '@g-1/util'
 
-import { AppError, getErrorCode, getErrorMessage } from '@/lib/errors'
-import { INTERNAL_SERVER_ERROR, OK } from '@/lib/utils/http-status'
+import { AppError, getErrorCode, getErrorMessage } from '../lib/errors'
+import { INTERNAL_SERVER_ERROR, OK } from '../lib/utils/http-status'
 
 const onError: ErrorHandler = (err, c) => {
   // Use structured error handling
   if (err instanceof AppError) {
     // Log operational errors for monitoring
-    if (err.isOperational) {
+    if (isOperationalError(err)) {
       console.warn('Operational error:', err.toJSON())
     }
     else {
@@ -47,5 +48,7 @@ const onError: ErrorHandler = (err, c) => {
     statusCode,
   )
 }
+
+export { onError }
 
 export default onError
