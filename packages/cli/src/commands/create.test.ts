@@ -1,58 +1,65 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Use dynamic imports to avoid hoisting issues
-let mockActionHandler: any = null
+vi.mock('commander', () => ({
+  Command: class MockCommand {
+    _description = ''
+    _actionHandler: any = null
+    options = [
+      { long: '--template' },
+      { long: '--directory' },
+      { long: '--no-git' },
+      { long: '--no-install' },
+      { long: '--package-manager' },
+      { long: '--typescript' },
+      { long: '--no-eslint' },
+      { long: '--no-prettier' },
+    ]
 
-vi.doMock('commander', () => ({
-  Command: vi.fn().mockImplementation((_name?: string) => {
-    const instance = {
-      name: vi.fn().mockReturnThis(),
-      description: vi.fn().mockImplementation((desc?: string) => {
-        if (desc !== undefined) {
-          instance._description = desc
-          return instance
-        }
-        return instance._description
-      }),
-      argument: vi.fn().mockReturnThis(),
-      option: vi.fn().mockReturnThis(),
-      action: vi.fn().mockImplementation(handler => {
-        mockActionHandler = handler
-        instance._actionHandler = handler
-        return instance
-      }),
-      _actionHandler: null,
-      _description: '',
-      options: [
-        { long: '--template' },
-        { long: '--directory' },
-        { long: '--no-git' },
-        { long: '--no-install' },
-        { long: '--package-manager' },
-        { long: '--typescript' },
-        { long: '--no-eslint' },
-        { long: '--no-prettier' },
-      ],
+    name() { return this }
+    description(desc?: string) {
+      if (desc !== undefined) {
+        this._description = desc
+        return this
+      }
+      return this._description
     }
-    return instance
-  }),
+    argument() { return this }
+    option() { return this }
+    action(handler: any) {
+      this._actionHandler = handler
+      return this
+    }
+  }
 }))
 
-vi.doMock('inquirer', () => ({
+vi.mock('inquirer', () => ({
   default: {
     prompt: vi.fn(),
   },
 }))
 
-vi.doMock('../utils/validation.js', () => ({
+vi.mock('../utils/validation.js', () => ({
   validateProjectName: vi.fn(),
 }))
 
-vi.doMock('../generators/project.js', () => ({
+vi.mock('../generators/project.js', () => ({
   createProject: vi.fn(),
 }))
 
-vi.doMock('../utils/logger.js', () => ({
+vi.mock('../plugins/manager.js', () => ({
+  CliPluginManager: vi.fn().mockImplementation(() => ({
+    selectAndConfigurePlugins: vi.fn().mockResolvedValue({
+      selectedPlugins: [],
+      pluginConfigs: {},
+    }),
+    parseCliOptions: vi.fn().mockReturnValue({
+      selectedPlugins: [],
+      pluginConfigs: {},
+    }),
+  })),
+}))
+
+vi.mock('../utils/logger.js', () => ({
   Logger: vi.fn().mockImplementation(() => ({
     info: vi.fn(),
     success: vi.fn(),
@@ -92,14 +99,14 @@ vi.doMock('../utils/logger.js', () => ({
 }))
 
 // Import modules after mocking
-const { Command: _Command } = await import('commander')
-const inquirer = await import('inquirer')
-const { logger } = await import('../utils/logger.js')
-const { validateProjectName } = await import('../utils/validation.js')
-const { createProject } = await import('../generators/project.js')
-const { createCommand } = await import('./create')
+import { Command as _Command } from 'commander'
+import inquirer from 'inquirer'
+import { logger } from '../utils/logger.js'
+import { validateProjectName } from '../utils/validation.js'
+import { createProject } from '../generators/project.js'
+import { createCommand } from './create'
 
-const mockInquirer = inquirer.default as any
+const mockInquirer = inquirer as any
 const mockLogger = logger as any
 const mockValidateProjectName = validateProjectName as any
 const mockCreateProject = createProject as any
@@ -153,8 +160,8 @@ describe('create Command', () => {
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
       mockCreateProject.mockResolvedValue(undefined)
 
-      // Simulate the action function from createCommand
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      // Get the action handler from the command
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         template: 'api',
@@ -181,7 +188,7 @@ describe('create Command', () => {
       })
       mockLogger.error = vi.fn()
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await expect(actionFn('invalid-name', {})).rejects.toThrow('Process exit called')
 
@@ -193,7 +200,7 @@ describe('create Command', () => {
       mockValidateProjectName.mockReturnValue({ valid: true })
       mockCreateProject.mockResolvedValue(undefined)
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn(undefined, {
         template: 'api',
@@ -223,7 +230,7 @@ describe('create Command', () => {
         packageManager: 'npm',
       })
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {})
 
@@ -240,7 +247,7 @@ describe('create Command', () => {
         packageManager: 'yarn',
       })
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', { template: 'api' })
 
@@ -255,7 +262,7 @@ describe('create Command', () => {
     it('should not prompt if all options are provided', async () => {
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         template: 'minimal', // Use 'minimal' instead of 'api' to avoid template prompt
@@ -292,7 +299,7 @@ describe('create Command', () => {
     })
 
     it('should create project with correct options', async () => {
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         template: 'api',
@@ -319,7 +326,7 @@ describe('create Command', () => {
     })
 
     it('should use default directory if not provided', async () => {
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         template: 'api',
@@ -339,7 +346,7 @@ describe('create Command', () => {
         packageManager: 'yarn',
       })
 
-      const actionFn = mockActionHandler || createCommand._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         git: false,
@@ -363,7 +370,7 @@ describe('create Command', () => {
       // Mock inquirer to return confirmation
       mockInquirer.prompt.mockResolvedValue({ confirm: true })
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {
         template: 'api',
@@ -398,7 +405,7 @@ describe('create Command', () => {
         throw new Error('Process exit called')
       })
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await expect(
         actionFn('test-project', {
@@ -407,7 +414,7 @@ describe('create Command', () => {
         })
       ).rejects.toThrow('Process exit called')
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Creation failed')
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Invalid plugin \'security\': Plugin must have a valid category (feature, service, deployment)')
     })
   })
 
@@ -417,7 +424,7 @@ describe('create Command', () => {
       mockInquirer.prompt.mockResolvedValue({ template: 'api' })
       mockCreateProject.mockResolvedValue(undefined)
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', {})
 
@@ -453,7 +460,7 @@ describe('create Command', () => {
       })
       mockCreateProject.mockResolvedValue(undefined)
 
-      const actionFn = mockActionHandler || (createCommand as any)._actionHandler
+      const actionFn = (createCommand as any)._actionHandler
 
       await actionFn('test-project', { template: 'api' })
 

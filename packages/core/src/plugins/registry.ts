@@ -128,8 +128,8 @@ export class PluginRegistry {
       errors.push('Plugin must have a valid id')
     }
 
-    if (!plugin.category || !['feature', 'service', 'deployment'].includes(plugin.category)) {
-      errors.push('Plugin must have a valid category (feature, service, deployment)')
+    if (!plugin.category || !['feature', 'service', 'deployment', 'middleware'].includes(plugin.category)) {
+      errors.push('Plugin must have a valid category (feature, service, deployment, middleware)')
     }
 
     if (!plugin.description || typeof plugin.description !== 'string') {
