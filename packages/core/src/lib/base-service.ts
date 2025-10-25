@@ -1,6 +1,6 @@
 import type { ValidationResult } from '@g-1/util'
 import { email as emailRule, required, ValidationError, validate } from '@g-1/util'
-import { BaseRepository } from './base-repository.js'
+import type { BaseRepository } from './base-repository.js'
 
 import { createBadRequest, createConflict } from './utils/exceptions.js'
 

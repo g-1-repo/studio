@@ -5,8 +5,8 @@ import { Command } from 'commander'
 import { createCommand } from './commands/create.js'
 import createGenerateCommand from './commands/generate.js'
 import createInfoCommand from './commands/info.js'
-import createVersionCommand from './commands/version.js'
 import createPluginCommand from './commands/plugin.js'
+import createVersionCommand from './commands/version.js'
 
 const program = new Command()
 

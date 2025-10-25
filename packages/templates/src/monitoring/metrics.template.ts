@@ -51,7 +51,7 @@ export class PrometheusCollector implements MetricsCollector {
   increment(name: string, value = 1, labels?: Record<string, string>): void {
     const key = this.getMetricKey(name, labels)
     const existing = this.metrics.get(key)
-    
+
     this.metrics.set(key, {
       name,
       value: (existing?.value || 0) + value,
@@ -63,7 +63,7 @@ export class PrometheusCollector implements MetricsCollector {
 
   gauge(name: string, value: number, labels?: Record<string, string>): void {
     const key = this.getMetricKey(name, labels)
-    
+
     this.metrics.set(key, {
       name,
       value,
@@ -75,7 +75,7 @@ export class PrometheusCollector implements MetricsCollector {
 
   histogram(name: string, value: number, labels?: Record<string, string>): void {
     const key = this.getMetricKey(name, labels)
-    
+
     this.metrics.set(key, {
       name,
       value,
@@ -92,17 +92,17 @@ export class PrometheusCollector implements MetricsCollector {
   async flush(): Promise<void> {
     if (this.config.endpoint) {
       const metricsData = Array.from(this.metrics.values())
-      
+
       try {
         await fetch(this.config.endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+            ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
           },
           body: JSON.stringify({ metrics: metricsData }),
         })
-        
+
         this.metrics.clear()
       } catch (error) {
         console.error('Failed to flush metrics:', error)
@@ -117,18 +117,18 @@ export class PrometheusCollector implements MetricsCollector {
 
   getMetricsText(): string {
     let output = ''
-    
+
     for (const metric of this.metrics.values()) {
-      const labelStr = metric.labels 
+      const labelStr = metric.labels
         ? Object.entries(metric.labels)
             .map(([key, value]) => `${key}="${value}"`)
             .join(',')
         : ''
-      
+
       const metricName = `${this.config.namespace}_${metric.name}`
       output += `${metricName}${labelStr ? `{${labelStr}}` : ''} ${metric.value}\n`
     }
-    
+
     return output
   }
 }
@@ -157,7 +157,12 @@ export class DatadogCollector implements MetricsCollector {
     this.addMetric(`${name}.duration`, duration, 'histogram', labels)
   }
 
-  private addMetric(name: string, value: number, type: MetricData['type'], labels?: Record<string, string>): void {
+  private addMetric(
+    name: string,
+    value: number,
+    type: MetricData['type'],
+    labels?: Record<string, string>
+  ): void {
     this.buffer.push({
       name: `${this.config.namespace}.${name}`,
       value,
@@ -175,7 +180,7 @@ export class DatadogCollector implements MetricsCollector {
     if (this.buffer.length === 0 || !this.config.endpoint) return
 
     const metrics = this.buffer.splice(0)
-    
+
     try {
       await fetch(this.config.endpoint, {
         method: 'POST',
@@ -213,11 +218,11 @@ export function createMetricsCollector(config: MetricsConfig): MetricsCollector 
 
 export function createMetricsMiddleware(config: MetricsConfig = DEFAULT_METRICS_CONFIG) {
   if (!config.enabled) {
-    return (c: any, next: any) => next()
+    return (_c: any, next: any) => next()
   }
 
   const collector = createMetricsCollector(config)
-  
+
   // Auto-flush metrics periodically
   if (config.flushInterval) {
     setInterval(() => {
@@ -229,7 +234,7 @@ export function createMetricsMiddleware(config: MetricsConfig = DEFAULT_METRICS_
     const start = Date.now()
     const method = c.req.method
     const path = c.req.path
-    
+
     // Increment request counter
     collector.increment('http_requests_total', 1, {
       method,
@@ -238,40 +243,39 @@ export function createMetricsMiddleware(config: MetricsConfig = DEFAULT_METRICS_
 
     try {
       await next()
-      
+
       const duration = Date.now() - start
       const status = c.res.status.toString()
-      
+
       // Record response time
       collector.timing('http_request_duration', duration, {
         method,
         path,
         status,
       })
-      
+
       // Increment response counter by status
       collector.increment('http_responses_total', 1, {
         method,
         path,
         status,
       })
-      
     } catch (error) {
       const duration = Date.now() - start
-      
+
       // Record error metrics
       collector.increment('http_errors_total', 1, {
         method,
         path,
         error: error instanceof Error ? error.name : 'Unknown',
       })
-      
+
       collector.timing('http_request_duration', duration, {
         method,
         path,
         status: '500',
       })
-      
+
       throw error
     }
   }
@@ -284,19 +288,19 @@ export const METRICS_CONFIGS = {
     collectInterval: 5000,
     flushInterval: 10000,
   } as MetricsConfig,
-  
+
   production: {
     ...DEFAULT_METRICS_CONFIG,
     collectInterval: 30000,
     flushInterval: 60000,
   } as MetricsConfig,
-  
+
   prometheus: {
     ...DEFAULT_METRICS_CONFIG,
     provider: 'prometheus' as const,
     endpoint: '/metrics',
   } as MetricsConfig,
-  
+
   datadog: {
     ...DEFAULT_METRICS_CONFIG,
     provider: 'datadog' as const,
@@ -313,7 +317,7 @@ export function createMetricsRoute(collector: MetricsCollector) {
         'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
       })
     }
-    
+
     return c.json({ error: 'Metrics not available for this collector type' }, 400)
   }
 }

@@ -54,7 +54,8 @@
       "*.ts",
       "*.js",
       "*.mjs",
-      "*.json"
+      "*.json",
+      "!packages/templates/sandbox/**"
     ],
     "ignoreUnknown": false
   },

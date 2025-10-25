@@ -1,8 +1,8 @@
+import { randomBytes } from 'node:crypto'
 import type { Context, MiddlewareHandler } from 'hono'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
-import { randomBytes, createHash } from 'node:crypto'
 
 export interface SessionConfig {
   sessionName?: string
@@ -30,7 +30,7 @@ export interface SessionData {
   createdAt: number
   lastAccessed: number
   expiresAt: number
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 export interface SessionStore {
@@ -96,18 +96,18 @@ export class MemorySessionStore implements SessionStore {
  * Redis session store (for production)
  */
 export class RedisSessionStore implements SessionStore {
-  private redis: any // Redis client
+  private redis: unknown // Redis client
   private keyPrefix: string
 
-  constructor(redis: any, keyPrefix = 'session:') {
+  constructor(redis: unknown, keyPrefix = 'session:') {
     this.redis = redis
     this.keyPrefix = keyPrefix
   }
 
   async get(sessionId: string): Promise<SessionData | null> {
     try {
-      const data = await this.redis.get(`${this.keyPrefix}${sessionId}`)
-      return data ? JSON.parse(data) : null
+      const data = await (this.redis as any).get(`${this.keyPrefix}${sessionId}`)
+      return data ? JSON.parse(data as string) : null
     } catch (error) {
       console.error('Redis session get error:', error)
       return null
@@ -117,7 +117,7 @@ export class RedisSessionStore implements SessionStore {
   async set(sessionId: string, session: SessionData): Promise<void> {
     try {
       const ttl = Math.ceil((session.expiresAt - Date.now()) / 1000)
-      await this.redis.setex(
+      await (this.redis as any).setex(
         `${this.keyPrefix}${sessionId}`,
         Math.max(ttl, 1),
         JSON.stringify(session)
@@ -129,7 +129,7 @@ export class RedisSessionStore implements SessionStore {
 
   async delete(sessionId: string): Promise<void> {
     try {
-      await this.redis.del(`${this.keyPrefix}${sessionId}`)
+      await (this.redis as any).del(`${this.keyPrefix}${sessionId}`)
     } catch (error) {
       console.error('Redis session delete error:', error)
     }
@@ -144,21 +144,17 @@ export class RedisSessionStore implements SessionStore {
  * Database session store
  */
 export class DatabaseSessionStore implements SessionStore {
-  private db: any // Database connection
+  private db: unknown // Database connection
   private tableName: string
 
-  constructor(db: any, tableName = 'sessions') {
+  constructor(db: unknown, tableName = 'sessions') {
     this.db = db
     this.tableName = tableName
   }
 
   async get(sessionId: string): Promise<SessionData | null> {
     try {
-      const result = await this.db
-        .select()
-        .from(this.tableName)
-        .where('id', sessionId)
-        .first()
+      const result = await (this.db as any).select().from(this.tableName).where('id', sessionId).first()
 
       if (!result) return null
 
@@ -173,12 +169,12 @@ export class DatabaseSessionStore implements SessionStore {
         userId: result.user_id,
         email: result.email,
         username: result.username,
-        roles: result.roles ? JSON.parse(result.roles) : [],
-        permissions: result.permissions ? JSON.parse(result.permissions) : [],
+        roles: result.roles ? JSON.parse(result.roles as string) : [],
+        permissions: result.permissions ? JSON.parse(result.permissions as string) : [],
         createdAt: result.created_at,
         lastAccessed: result.last_accessed,
         expiresAt: result.expires_at,
-        data: result.data ? JSON.parse(result.data) : {}
+        data: result.data ? JSON.parse(result.data as string) : {},
       }
     } catch (error) {
       console.error('Database session get error:', error)
@@ -186,9 +182,9 @@ export class DatabaseSessionStore implements SessionStore {
     }
   }
 
-  async set(sessionId: string, session: SessionData): Promise<void> {
+  async set(_sessionId: string, session: SessionData): Promise<void> {
     try {
-      await this.db
+      await (this.db as any)
         .insert({
           id: session.id,
           user_id: session.userId,
@@ -199,7 +195,7 @@ export class DatabaseSessionStore implements SessionStore {
           created_at: session.createdAt,
           last_accessed: session.lastAccessed,
           expires_at: session.expiresAt,
-          data: JSON.stringify(session.data)
+          data: JSON.stringify(session.data),
         })
         .into(this.tableName)
         .onConflict('id')
@@ -211,7 +207,7 @@ export class DatabaseSessionStore implements SessionStore {
 
   async delete(sessionId: string): Promise<void> {
     try {
-      await this.db.delete().from(this.tableName).where('id', sessionId)
+      await (this.db as any).delete().from(this.tableName).where('id', sessionId)
     } catch (error) {
       console.error('Database session delete error:', error)
     }
@@ -219,10 +215,7 @@ export class DatabaseSessionStore implements SessionStore {
 
   async cleanup(): Promise<void> {
     try {
-      await this.db
-        .delete()
-        .from(this.tableName)
-        .where('expires_at', '<', Date.now())
+      await (this.db as any).delete().from(this.tableName).where('expires_at', '<', Date.now())
     } catch (error) {
       console.error('Database session cleanup error:', error)
     }
@@ -242,11 +235,11 @@ export class SessionManager {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        path: '/'
+        path: '/',
       },
       store: new MemorySessionStore(),
       generateId: () => randomBytes(32).toString('hex'),
-      ...config
+      ...config,
     }
     this.store = this.config.store
   }
@@ -264,7 +257,7 @@ export class SessionManager {
   async createSession(userId?: string, userData: Partial<SessionData> = {}): Promise<SessionData> {
     const sessionId = this.generateSessionId()
     const now = Date.now()
-    const expiresAt = now + (this.config.maxAge * 1000)
+    const expiresAt = now + this.config.maxAge * 1000
 
     const session: SessionData = {
       id: sessionId,
@@ -276,7 +269,7 @@ export class SessionManager {
       createdAt: now,
       lastAccessed: now,
       expiresAt,
-      data: userData.data || {}
+      data: userData.data || {},
     }
 
     await this.store.set(sessionId, session)
@@ -293,7 +286,7 @@ export class SessionManager {
     // Update last accessed time if rolling sessions
     if (this.config.rolling) {
       session.lastAccessed = Date.now()
-      session.expiresAt = Date.now() + (this.config.maxAge * 1000)
+      session.expiresAt = Date.now() + this.config.maxAge * 1000
       await this.store.set(sessionId, session)
     }
 
@@ -303,14 +296,17 @@ export class SessionManager {
   /**
    * Update session data
    */
-  async updateSession(sessionId: string, updates: Partial<SessionData>): Promise<SessionData | null> {
+  async updateSession(
+    sessionId: string,
+    updates: Partial<SessionData>
+  ): Promise<SessionData | null> {
     const session = await this.store.get(sessionId)
     if (!session) return null
 
     const updatedSession = {
       ...session,
       ...updates,
-      lastAccessed: Date.now()
+      lastAccessed: Date.now(),
     }
 
     await this.store.set(sessionId, updatedSession)
@@ -331,7 +327,7 @@ export class SessionManager {
     setCookie(c, this.config.sessionName, sessionId, {
       ...this.config.cookieOptions,
       maxAge: this.config.maxAge,
-      expires: new Date(Date.now() + (this.config.maxAge * 1000))
+      expires: new Date(Date.now() + this.config.maxAge * 1000),
     })
   }
 
@@ -341,7 +337,7 @@ export class SessionManager {
   clearSessionCookie(c: Context): void {
     deleteCookie(c, this.config.sessionName, {
       path: this.config.cookieOptions.path,
-      domain: this.config.cookieOptions.domain
+      domain: this.config.cookieOptions.domain,
     })
   }
 
@@ -350,30 +346,6 @@ export class SessionManager {
    */
   getSessionIdFromRequest(c: Context): string | null {
     return getCookie(c, this.config.sessionName) || null
-  }
-
-  /**
-   * Sign session ID for security
-   */
-  private signSessionId(sessionId: string): string {
-    const signature = createHash('sha256')
-      .update(sessionId + this.config.secret)
-      .digest('hex')
-    return `${sessionId}.${signature}`
-  }
-
-  /**
-   * Verify signed session ID
-   */
-  private verifySessionId(signedSessionId: string): string | null {
-    const [sessionId, signature] = signedSessionId.split('.')
-    if (!sessionId || !signature) return null
-
-    const expectedSignature = createHash('sha256')
-      .update(sessionId + this.config.secret)
-      .digest('hex')
-
-    return signature === expectedSignature ? sessionId : null
   }
 }
 
@@ -390,7 +362,7 @@ export function createSessionAuthMiddleware(
 ): MiddlewareHandler {
   return createMiddleware(async (c, next) => {
     const sessionId = sessionManager.getSessionIdFromRequest(c)
-    
+
     if (!sessionId) {
       if (options.required !== false) {
         throw new HTTPException(401, { message: 'Authentication required' })
@@ -400,7 +372,7 @@ export function createSessionAuthMiddleware(
 
     try {
       const session = await sessionManager.getSession(sessionId)
-      
+
       if (!session) {
         sessionManager.clearSessionCookie(c)
         if (options.required !== false) {
@@ -421,7 +393,9 @@ export function createSessionAuthMiddleware(
       // Check permissions if specified
       if (options.permissions && options.permissions.length > 0) {
         const userPermissions = session.permissions || []
-        const hasPermission = options.permissions.some(permission => userPermissions.includes(permission))
+        const hasPermission = options.permissions.some(permission =>
+          userPermissions.includes(permission)
+        )
         if (!hasPermission) {
           throw new HTTPException(403, { message: 'Insufficient permissions' })
         }
@@ -434,12 +408,13 @@ export function createSessionAuthMiddleware(
         email: session.email,
         username: session.username,
         roles: session.roles,
-        permissions: session.permissions
+        permissions: session.permissions,
       })
-
     } catch (error) {
       if (options.required !== false) {
-        throw new HTTPException(401, { message: `Authentication failed: ${(error as Error).message}` })
+        throw new HTTPException(401, {
+          message: `Authentication failed: ${(error as Error).message}`,
+        })
       }
     }
 
@@ -453,15 +428,15 @@ export function createSessionAuthMiddleware(
 export function createSessionAuthRoutes(
   sessionManager: SessionManager,
   options: {
-    loginHandler: (email: string, password: string) => Promise<any | null>
-    registerHandler?: (userData: any) => Promise<any>
+    loginHandler: (email: string, password: string) => Promise<SessionData | null>
+    registerHandler?: (userData: Record<string, unknown>) => Promise<SessionData>
   }
 ) {
   return {
     // Login endpoint
     login: async (c: Context) => {
       const { email, password } = await c.req.json()
-      
+
       if (!email || !password) {
         throw new HTTPException(400, { message: 'Email and password required' })
       }
@@ -475,7 +450,7 @@ export function createSessionAuthRoutes(
         email: user.email,
         username: user.username,
         roles: user.roles,
-        permissions: user.permissions
+        permissions: user.permissions,
       })
 
       sessionManager.setSessionCookie(c, session.id)
@@ -486,9 +461,9 @@ export function createSessionAuthRoutes(
           id: user.id,
           email: user.email,
           username: user.username,
-          roles: user.roles
+          roles: user.roles,
         },
-        sessionId: session.id
+        sessionId: session.id,
       })
     },
 
@@ -500,12 +475,12 @@ export function createSessionAuthRoutes(
 
       const userData = await c.req.json()
       const user = await options.registerHandler(userData)
-      
+
       const session = await sessionManager.createSession(user.id, {
         email: user.email,
         username: user.username,
         roles: user.roles,
-        permissions: user.permissions
+        permissions: user.permissions,
       })
 
       sessionManager.setSessionCookie(c, session.id)
@@ -516,9 +491,9 @@ export function createSessionAuthRoutes(
           id: user.id,
           email: user.email,
           username: user.username,
-          roles: user.roles
+          roles: user.roles,
         },
-        sessionId: session.id
+        sessionId: session.id,
       })
     },
 
@@ -536,21 +511,21 @@ export function createSessionAuthRoutes(
     profile: async (c: Context) => {
       const user = c.get('user')
       const session = c.get('session')
-      
+
       if (!user || !session) {
         throw new HTTPException(401, { message: 'Authentication required' })
       }
 
-      return c.json({ 
+      return c.json({
         user,
         session: {
           id: session.id,
           createdAt: session.createdAt,
           lastAccessed: session.lastAccessed,
-          expiresAt: session.expiresAt
-        }
+          expiresAt: session.expiresAt,
+        },
       })
-    }
+    },
   }
 }
 

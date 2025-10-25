@@ -1,8 +1,7 @@
+import { createHash, randomBytes } from 'node:crypto'
 import type { Context, MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
-import { randomBytes, createHash } from 'node:crypto'
 
 export interface OAuthProvider {
   name: string
@@ -26,7 +25,7 @@ export interface OAuthConfig {
     domain?: string
     path?: string
   }
-  onSuccess?: (user: any, provider: string) => Promise<any>
+  onSuccess?: (user: OAuthUser, provider: string) => Promise<unknown>
   onError?: (error: Error, provider: string) => Promise<void>
 }
 
@@ -53,7 +52,7 @@ export const OAUTH_PROVIDERS = {
     tokenUrl: 'https://oauth2.googleapis.com/token',
     userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
     scope: ['openid', 'email', 'profile'],
-    pkce: true
+    pkce: true,
   },
   github: {
     name: 'GitHub',
@@ -61,7 +60,7 @@ export const OAUTH_PROVIDERS = {
     tokenUrl: 'https://github.com/login/oauth/access_token',
     userInfoUrl: 'https://api.github.com/user',
     scope: ['user:email'],
-    pkce: false
+    pkce: false,
   },
   discord: {
     name: 'Discord',
@@ -69,7 +68,7 @@ export const OAUTH_PROVIDERS = {
     tokenUrl: 'https://discord.com/api/oauth2/token',
     userInfoUrl: 'https://discord.com/api/users/@me',
     scope: ['identify', 'email'],
-    pkce: true
+    pkce: true,
   },
   microsoft: {
     name: 'Microsoft',
@@ -77,7 +76,7 @@ export const OAUTH_PROVIDERS = {
     tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
     userInfoUrl: 'https://graph.microsoft.com/v1.0/me',
     scope: ['openid', 'email', 'profile'],
-    pkce: true
+    pkce: true,
   },
   twitter: {
     name: 'Twitter',
@@ -85,13 +84,13 @@ export const OAUTH_PROVIDERS = {
     tokenUrl: 'https://api.twitter.com/2/oauth2/token',
     userInfoUrl: 'https://api.twitter.com/2/users/me',
     scope: ['tweet.read', 'users.read'],
-    pkce: true
-  }
+    pkce: true,
+  },
 }
 
 export class OAuthManager {
   private config: OAuthConfig
-  private states = new Map<string, { provider: string, codeVerifier?: string, createdAt: number }>()
+  private states = new Map<string, { provider: string; codeVerifier?: string; createdAt: number }>()
 
   constructor(config: OAuthConfig) {
     this.config = {
@@ -99,9 +98,9 @@ export class OAuthManager {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
-        path: '/'
+        path: '/',
       },
-      ...config
+      ...config,
     }
 
     // Cleanup expired states every 10 minutes
@@ -120,10 +119,8 @@ export class OAuthManager {
    */
   private generatePKCE() {
     const codeVerifier = this.generateRandomString(32)
-    const codeChallenge = createHash('sha256')
-      .update(codeVerifier)
-      .digest('base64url')
-    
+    const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url')
+
     return { codeVerifier, codeChallenge }
   }
 
@@ -142,6 +139,13 @@ export class OAuthManager {
   }
 
   /**
+   * Get configured providers
+   */
+  getProviders(): Record<string, OAuthProvider> {
+    return this.config.providers
+  }
+
+  /**
    * Get authorization URL for a provider
    */
   getAuthorizationUrl(provider: string, redirectUri?: string): string {
@@ -156,7 +160,7 @@ export class OAuthManager {
       redirect_uri: redirectUri || providerConfig.redirectUri,
       scope: providerConfig.scope.join(' '),
       state,
-      response_type: 'code'
+      response_type: 'code',
     })
 
     let codeVerifier: string | undefined
@@ -173,7 +177,7 @@ export class OAuthManager {
     this.states.set(state, {
       provider,
       codeVerifier,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     })
 
     return `${providerConfig.authUrl}?${params.toString()}`
@@ -212,7 +216,7 @@ export class OAuthManager {
       client_secret: providerConfig.clientSecret,
       code,
       grant_type: 'authorization_code',
-      redirect_uri: redirectUri || providerConfig.redirectUri
+      redirect_uri: redirectUri || providerConfig.redirectUri,
     })
 
     // Add PKCE code verifier if used
@@ -224,9 +228,9 @@ export class OAuthManager {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      body: tokenParams.toString()
+      body: tokenParams.toString(),
     })
 
     if (!response.ok) {
@@ -234,13 +238,13 @@ export class OAuthManager {
       throw new Error(`Token exchange failed: ${error}`)
     }
 
-    const tokenData = await response.json()
-    
+    const tokenData = await response.json() as any
+
     return {
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       expiresIn: tokenData.expires_in,
-      tokenType: tokenData.token_type || 'Bearer'
+      tokenType: tokenData.token_type || 'Bearer',
     }
   }
 
@@ -255,17 +259,17 @@ export class OAuthManager {
 
     const response = await fetch(providerConfig.userInfoUrl, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/json'
-      }
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
     })
 
     if (!response.ok) {
       throw new Error(`Failed to fetch user info: ${response.statusText}`)
     }
 
-    const userData = await response.json()
-    
+    const userData = await response.json() as Record<string, unknown>
+
     // Normalize user data based on provider
     return this.normalizeUserData(provider, userData, accessToken)
   }
@@ -273,78 +277,83 @@ export class OAuthManager {
   /**
    * Normalize user data from different providers
    */
-  private normalizeUserData(provider: string, userData: any, accessToken: string): OAuthUser {
+  private normalizeUserData(
+    provider: string,
+    userData: Record<string, unknown>,
+    accessToken: string
+  ): OAuthUser {
     const baseUser: OAuthUser = {
       id: '',
       provider,
       providerId: '',
-      accessToken
+      accessToken,
     }
 
     switch (provider) {
       case 'google':
         return {
           ...baseUser,
-          id: userData.id,
-          providerId: userData.id,
-          email: userData.email,
-          name: userData.name,
-          avatar: userData.picture
+          id: (userData.sub as string),
+          providerId: (userData.sub as string),
+          email: (userData.email as string | undefined),
+          name: (userData.name as string | undefined),
+          username: (userData.email as string | undefined),
+          avatar: (userData.picture as string | undefined),
         }
 
       case 'github':
         return {
           ...baseUser,
-          id: userData.id.toString(),
-          providerId: userData.id.toString(),
-          email: userData.email,
-          name: userData.name,
-          username: userData.login,
-          avatar: userData.avatar_url
+          id: (userData.id as number).toString(),
+          providerId: (userData.id as number).toString(),
+          email: (userData.email as string | undefined),
+          name: (userData.name as string | undefined),
+          username: (userData.login as string | undefined),
+          avatar: (userData.avatar_url as string | undefined),
         }
 
       case 'discord':
         return {
           ...baseUser,
-          id: userData.id,
-          providerId: userData.id,
-          email: userData.email,
-          name: userData.global_name || userData.username,
-          username: userData.username,
-          avatar: userData.avatar ? 
-            `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png` : 
-            undefined
+          id: (userData.id as string),
+          providerId: (userData.id as string),
+          email: (userData.email as string | undefined),
+          name: (userData.global_name as string) || (userData.username as string),
+          username: (userData.username as string),
+          avatar: userData.avatar
+            ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+            : undefined,
         }
 
       case 'microsoft':
         return {
           ...baseUser,
-          id: userData.id,
-          providerId: userData.id,
-          email: userData.mail || userData.userPrincipalName,
-          name: userData.displayName,
-          username: userData.userPrincipalName
+          id: (userData.id as string),
+          providerId: (userData.id as string),
+          email: (userData.mail as string) || (userData.userPrincipalName as string),
+          name: (userData.displayName as string),
+          username: (userData.userPrincipalName as string),
         }
 
       case 'twitter':
         return {
           ...baseUser,
-          id: userData.id,
-          providerId: userData.id,
-          name: userData.name,
-          username: userData.username,
-          avatar: userData.profile_image_url
+          id: (userData.id as string),
+          providerId: (userData.id as string),
+          name: (userData.name as string),
+          username: (userData.username as string),
+          avatar: (userData.profile_image_url as string | undefined),
         }
 
       default:
         return {
           ...baseUser,
-          id: userData.id?.toString() || userData.sub,
-          providerId: userData.id?.toString() || userData.sub,
-          email: userData.email,
-          name: userData.name || userData.display_name,
-          username: userData.username || userData.login,
-          avatar: userData.avatar_url || userData.picture
+          id: (userData.id as any)?.toString() || (userData.sub as string),
+          providerId: (userData.id as any)?.toString() || (userData.sub as string),
+          email: (userData.email as string | undefined),
+          name: (userData.name as string | undefined) || (userData.display_name as string | undefined),
+          username: (userData.username as string | undefined) || (userData.login as string | undefined),
+          avatar: (userData.avatar_url as string | undefined) || (userData.picture as string | undefined),
         }
     }
   }
@@ -352,10 +361,14 @@ export class OAuthManager {
   /**
    * Refresh access token
    */
-  async refreshToken(provider: string, refreshToken: string): Promise<{
+  async refreshToken(
+    provider: string,
+    refreshToken: string
+  ): Promise<{
     accessToken: string
     refreshToken?: string
     expiresIn?: number
+    tokenType?: string
   }> {
     const providerConfig = this.config.providers[provider]
     if (!providerConfig) {
@@ -366,28 +379,29 @@ export class OAuthManager {
       client_id: providerConfig.clientId,
       client_secret: providerConfig.clientSecret,
       refresh_token: refreshToken,
-      grant_type: 'refresh_token'
+      grant_type: 'refresh_token',
     })
 
     const response = await fetch(providerConfig.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      body: params.toString()
+      body: params.toString(),
     })
 
     if (!response.ok) {
       throw new Error(`Token refresh failed: ${response.statusText}`)
     }
 
-    const tokenData = await response.json()
-    
+    const tokenData = await response.json() as any
+
     return {
       accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token || refreshToken,
-      expiresIn: tokenData.expires_in
+      refreshToken: tokenData.refresh_token,
+      expiresIn: tokenData.expires_in,
+      tokenType: tokenData.token_type || 'Bearer',
     }
   }
 }
@@ -409,7 +423,7 @@ export function createOAuthMiddleware(oauthManager: OAuthManager): MiddlewareHan
 export function createOAuthRoutes(
   oauthManager: OAuthManager,
   options: {
-    onSuccess?: (user: OAuthUser) => Promise<any>
+    onSuccess?: (user: OAuthUser) => Promise<unknown>
     onError?: (error: Error, provider: string) => Promise<void>
     successRedirect?: string
     errorRedirect?: string
@@ -420,7 +434,7 @@ export function createOAuthRoutes(
     authorize: async (c: Context) => {
       const provider = c.req.param('provider')
       const redirectUri = c.req.query('redirect_uri')
-      
+
       if (!provider) {
         throw new HTTPException(400, { message: 'Provider parameter required' })
       }
@@ -450,11 +464,11 @@ export function createOAuthRoutes(
         if (options.onError) {
           await options.onError(new Error(errorMsg), provider)
         }
-        
+
         if (options.errorRedirect) {
           return c.redirect(`${options.errorRedirect}?error=${encodeURIComponent(errorMsg)}`)
         }
-        
+
         throw new HTTPException(400, { message: `OAuth error: ${errorMsg}` })
       }
 
@@ -473,15 +487,13 @@ export function createOAuthRoutes(
 
         // Get user info
         const user = await oauthManager.getUserInfo(provider, tokenData.accessToken)
-        
+
         // Add token info to user
         user.refreshToken = tokenData.refreshToken
-        user.expiresAt = tokenData.expiresIn ? 
-          Date.now() + (tokenData.expiresIn * 1000) : 
-          undefined
+        user.expiresAt = tokenData.expiresIn ? Date.now() + tokenData.expiresIn * 1000 : undefined
 
         // Call success handler
-        let result = user
+        let result: unknown = user
         if (options.onSuccess) {
           result = await options.onSuccess(user)
         }
@@ -492,7 +504,7 @@ export function createOAuthRoutes(
             provider,
             user_id: user.id,
             email: user.email || '',
-            name: user.name || ''
+            name: user.name || '',
           })
           return c.redirect(`${options.successRedirect}?${params.toString()}`)
         }
@@ -500,27 +512,30 @@ export function createOAuthRoutes(
         return c.json({
           success: true,
           user: result,
-          provider
+          provider,
         })
-
       } catch (error) {
         if (options.onError) {
           await options.onError(error as Error, provider)
         }
 
         if (options.errorRedirect) {
-          return c.redirect(`${options.errorRedirect}?error=${encodeURIComponent((error as Error).message)}`)
+          return c.redirect(
+            `${options.errorRedirect}?error=${encodeURIComponent((error as Error).message)}`
+          )
         }
 
-        throw new HTTPException(500, { message: `OAuth callback failed: ${(error as Error).message}` })
+        throw new HTTPException(500, {
+          message: `OAuth callback failed: ${(error as Error).message}`,
+        })
       }
     },
 
     // Get available providers
     providers: async (c: Context) => {
-      const providers = Object.keys(oauthManager['config'].providers).map(key => ({
+      const providers = Object.keys(oauthManager.getProviders()).map(key => ({
         name: key,
-        displayName: OAUTH_PROVIDERS[key as keyof typeof OAUTH_PROVIDERS]?.name || key
+        displayName: OAUTH_PROVIDERS[key as keyof typeof OAUTH_PROVIDERS]?.name || key,
       }))
 
       return c.json({ providers })
@@ -529,7 +544,7 @@ export function createOAuthRoutes(
     // Refresh token endpoint
     refresh: async (c: Context) => {
       const { provider, refresh_token } = await c.req.json()
-      
+
       if (!provider || !refresh_token) {
         throw new HTTPException(400, { message: 'Provider and refresh token required' })
       }
@@ -540,12 +555,14 @@ export function createOAuthRoutes(
           success: true,
           access_token: tokenData.accessToken,
           refresh_token: tokenData.refreshToken,
-          expires_in: tokenData.expiresIn
+          expires_in: tokenData.expiresIn,
         })
       } catch (error) {
-        throw new HTTPException(400, { message: `Token refresh failed: ${(error as Error).message}` })
+        throw new HTTPException(400, {
+          message: `Token refresh failed: ${(error as Error).message}`,
+        })
       }
-    }
+    },
   }
 }
 
@@ -569,7 +586,7 @@ export function createOAuthProvider(
   return {
     ...baseConfig,
     ...config,
-    scope: config.scope || baseConfig.scope
+    scope: config.scope || baseConfig.scope,
   }
 }
 

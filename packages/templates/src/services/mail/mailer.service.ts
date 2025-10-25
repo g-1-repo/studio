@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import { createWorkerSafeCuid2 as createId } from '@g-1/core'
 import { Resend } from 'resend'
 import type { Mailer, SendProps } from './interfaces/mailer.interface'
 

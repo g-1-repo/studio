@@ -2,21 +2,21 @@
  * Comprehensive test utilities and helpers
  */
 
-import { randomBytes, randomUUID } from 'crypto'
+import { randomUUID as cryptoRandomUUID, randomBytes } from 'node:crypto'
 
 /**
  * Test data generators
  */
-export class TestDataGenerator {
-  static randomString(length: number = 10): string {
+export namespace TestDataGenerator {
+  export function randomString(length: number = 10): string {
     return randomBytes(length).toString('hex').slice(0, length)
   }
 
-  static randomEmail(): string {
-    return `test-${this.randomString(8)}@example.com`
+  export function randomEmail(): string {
+    return `test-${TestDataGenerator.randomString(8)}@example.com`
   }
 
-  static randomPassword(): string {
+  export function randomPassword(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
     let password = ''
     for (let i = 0; i < 12; i++) {
@@ -25,83 +25,83 @@ export class TestDataGenerator {
     return password
   }
 
-  static randomNumber(min: number = 0, max: number = 1000): number {
+  export function randomNumber(min: number = 0, max: number = 1000): number {
     return Math.floor(Math.random() * (max - min + 1)) + min
   }
 
-  static randomBoolean(): boolean {
+  export function randomBoolean(): boolean {
     return Math.random() < 0.5
   }
 
-  static randomDate(start?: Date, end?: Date): Date {
+  export function randomDate(start?: Date, end?: Date): Date {
     const startTime = start?.getTime() || new Date(2020, 0, 1).getTime()
-    const endTime = end?.getTime() || new Date().getTime()
+    const endTime = end?.getTime() || Date.now()
     return new Date(startTime + Math.random() * (endTime - startTime))
   }
 
-  static randomUUID(): string {
-    return randomUUID()
+  export function randomUUID(): string {
+    return cryptoRandomUUID()
   }
 
-  static randomPhoneNumber(): string {
-    const areaCode = this.randomNumber(200, 999)
-    const exchange = this.randomNumber(200, 999)
-    const number = this.randomNumber(1000, 9999)
+  export function randomPhoneNumber(): string {
+    const areaCode = TestDataGenerator.randomNumber(200, 999)
+    const exchange = TestDataGenerator.randomNumber(200, 999)
+    const number = TestDataGenerator.randomNumber(1000, 9999)
     return `+1${areaCode}${exchange}${number}`
   }
 
-  static randomAddress() {
+  export function randomAddress() {
     const streets = ['Main St', 'Oak Ave', 'Pine Rd', 'Elm Dr', 'Cedar Ln']
     const cities = ['Springfield', 'Franklin', 'Georgetown', 'Madison', 'Clinton']
     const states = ['CA', 'NY', 'TX', 'FL', 'IL']
-    
+
     return {
-      street: `${this.randomNumber(1, 9999)} ${streets[Math.floor(Math.random() * streets.length)]}`,
+      street: `${TestDataGenerator.randomNumber(1, 9999)} ${streets[Math.floor(Math.random() * streets.length)]}`,
       city: cities[Math.floor(Math.random() * cities.length)],
       state: states[Math.floor(Math.random() * states.length)],
-      zipCode: this.randomNumber(10000, 99999).toString()
+      zipCode: TestDataGenerator.randomNumber(10000, 99999).toString(),
     }
   }
 
-  static createUser(overrides: any = {}) {
+  export function createUser(overrides: Record<string, unknown> = {}) {
     return {
-      id: this.randomUUID(),
-      email: this.randomEmail(),
-      password: this.randomPassword(),
+      id: TestDataGenerator.randomUUID(),
+      email: TestDataGenerator.randomEmail(),
+      password: TestDataGenerator.randomPassword(),
       firstName: 'Test',
       lastName: 'User',
-      phone: this.randomPhoneNumber(),
+      phone: TestDataGenerator.randomPhoneNumber(),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-      ...overrides
+      ...overrides,
     }
   }
 
-  static createPost(overrides: any = {}) {
+  export function createPost(overrides: Record<string, unknown> = {}) {
     return {
-      id: this.randomUUID(),
-      title: `Test Post ${this.randomString(5)}`,
-      content: `This is test content for post ${this.randomString(10)}`,
-      authorId: this.randomUUID(),
-      published: this.randomBoolean(),
+      id: TestDataGenerator.randomUUID(),
+      title: `Test Post ${TestDataGenerator.randomString(5)}`,
+      content: `This is test content for post ${TestDataGenerator.randomString(10)}`,
+      authorId: TestDataGenerator.randomUUID(),
+      published: TestDataGenerator.randomBoolean(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      ...overrides
+      ...overrides,
     }
   }
 
-  static createApiKey(overrides: any = {}) {
+  export function createApiKey(overrides: Record<string, unknown> = {}) {
     return {
-      id: this.randomUUID(),
-      name: `Test API Key ${this.randomString(5)}`,
-      key: `ak_test_${this.randomString(32)}`,
-      userId: this.randomUUID(),
+      id: TestDataGenerator.randomUUID(),
+      name: `Test API Key ${TestDataGenerator.randomString(5)}`,
+      key: `ak_test_${TestDataGenerator.randomString(32)}`,
+      userId: TestDataGenerator.randomUUID(),
       scopes: ['read', 'write'],
       isActive: true,
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       createdAt: new Date(),
-      ...overrides
+      ...overrides,
     }
   }
 }
@@ -109,8 +109,8 @@ export class TestDataGenerator {
 /**
  * Mock factories
  */
-export class MockFactory {
-  static createMockRequest(overrides: any = {}) {
+export namespace MockFactory {
+  export function createMockRequest(overrides: Record<string, unknown> = {}) {
     return {
       method: 'GET',
       url: '/',
@@ -119,115 +119,115 @@ export class MockFactory {
       params: {},
       headers: {
         'content-type': 'application/json',
-        'user-agent': 'test-agent'
+        'user-agent': 'test-agent',
       },
       body: null,
       cookies: {},
       ip: '127.0.0.1',
-      ...overrides
+      ...overrides,
     }
   }
 
-  static createMockResponse() {
+  export function createMockResponse() {
     const response = {
       status: 200,
       headers: {} as Record<string, string>,
-      body: null as any,
-      cookies: {} as Record<string, any>,
-      
-      setStatus: function(status: number) {
+      body: null as unknown,
+      cookies: {} as Record<string, unknown>,
+
+      setStatus: function (status: number) {
         this.status = status
         return this
       },
-      
-      setHeader: function(name: string, value: string) {
+
+      setHeader: function (name: string, value: string) {
         this.headers[name] = value
         return this
       },
-      
-      setCookie: function(name: string, value: any, options: any = {}) {
+
+      setCookie: function (name: string, value: unknown, options: Record<string, unknown> = {}) {
         this.cookies[name] = { value, ...options }
         return this
       },
-      
-      json: function(data: any) {
+
+      json: function (data: unknown) {
         this.body = data
         this.headers['content-type'] = 'application/json'
         return this
       },
-      
-      text: function(data: string) {
+
+      text: function (data: string) {
         this.body = data
         this.headers['content-type'] = 'text/plain'
         return this
       },
-      
-      html: function(data: string) {
+
+      html: function (data: string) {
         this.body = data
         this.headers['content-type'] = 'text/html'
         return this
       },
-      
-      redirect: function(url: string, status: number = 302) {
+
+      redirect: function (url: string, status: number = 302) {
         this.status = status
-        this.headers['location'] = url
+        this.headers.location = url
         return this
-      }
+      },
     }
-    
+
     return response
   }
 
-  static createMockDatabase() {
+  export function createMockDatabase() {
     const data = new Map()
-    
+
     return {
       data,
-      
-      async find(table: string, query: any = {}) {
+
+      async find(table: string, query: Record<string, unknown> = {}) {
         const tableData = data.get(table) || []
         if (Object.keys(query).length === 0) {
           return tableData
         }
-        
-        return tableData.filter((item: any) => {
+
+        return tableData.filter((item: Record<string, unknown>) => {
           return Object.entries(query).every(([key, value]) => item[key] === value)
         })
       },
-      
-      async findOne(table: string, query: any) {
+
+      async findOne(table: string, query: Record<string, unknown>) {
         const results = await this.find(table, query)
         return results[0] || null
       },
-      
-      async create(table: string, item: any) {
+
+      async create(table: string, item: Record<string, unknown>) {
         const tableData = data.get(table) || []
         const newItem = { id: TestDataGenerator.randomUUID(), ...item }
         tableData.push(newItem)
         data.set(table, tableData)
         return newItem
       },
-      
-      async update(table: string, id: string, updates: any) {
+
+      async update(table: string, id: string, updates: Record<string, unknown>) {
         const tableData = data.get(table) || []
-        const index = tableData.findIndex((item: any) => item.id === id)
+        const index = tableData.findIndex((item: Record<string, unknown>) => item.id === id)
         if (index === -1) return null
-        
+
         tableData[index] = { ...tableData[index], ...updates }
         data.set(table, tableData)
         return tableData[index]
       },
-      
+
       async delete(table: string, id: string) {
         const tableData = data.get(table) || []
-        const index = tableData.findIndex((item: any) => item.id === id)
+        const index = tableData.findIndex((item: Record<string, unknown>) => item.id === id)
         if (index === -1) return false
-        
+
         tableData.splice(index, 1)
         data.set(table, tableData)
         return true
       },
-      
+
       async clear(table?: string) {
         if (table) {
           data.delete(table)
@@ -235,84 +235,82 @@ export class MockFactory {
           data.clear()
         }
       },
-      
-      async seed(table: string, items: any[]) {
+
+      async seed(table: string, items: Record<string, unknown>[]) {
         data.set(table, [...items])
-      }
+      },
     }
   }
 
-  static createMockLogger() {
-    const logs: any[] = []
-    
+  export function createMockLogger() {
+    const logs: Record<string, unknown>[] = []
+
     return {
       logs,
-      
-      debug: function(message: string, meta?: any) {
+
+      debug: (message: string, meta?: unknown) => {
         logs.push({ level: 'debug', message, meta, timestamp: new Date() })
       },
-      
-      info: function(message: string, meta?: any) {
+
+      info: (message: string, meta?: unknown) => {
         logs.push({ level: 'info', message, meta, timestamp: new Date() })
       },
-      
-      warn: function(message: string, meta?: any) {
+
+      warn: (message: string, meta?: unknown) => {
         logs.push({ level: 'warn', message, meta, timestamp: new Date() })
       },
-      
-      error: function(message: string, meta?: any) {
+
+      error: (message: string, meta?: unknown) => {
         logs.push({ level: 'error', message, meta, timestamp: new Date() })
       },
-      
-      clear: function() {
+
+      clear: () => {
         logs.length = 0
       },
-      
-      getLogs: function(level?: string) {
-        return level ? logs.filter(log => log.level === level) : logs
-      }
+
+      getLogs: (level?: string) => (level ? logs.filter(log => log.level === level) : logs),
     }
   }
 
-  static createMockCache() {
+  export function createMockCache() {
     const cache = new Map()
-    
+
     return {
       async get(key: string) {
         const item = cache.get(key)
         if (!item) return null
-        
+
         if (item.expiresAt && item.expiresAt < Date.now()) {
           cache.delete(key)
           return null
         }
-        
+
         return item.value
       },
-      
-      async set(key: string, value: any, ttl?: number) {
+
+      async set(key: string, value: unknown, ttl?: number) {
         const item = {
           value,
-          expiresAt: ttl ? Date.now() + ttl * 1000 : null
+          expiresAt: ttl ? Date.now() + ttl * 1000 : null,
         }
         cache.set(key, item)
       },
-      
+
       async delete(key: string) {
         return cache.delete(key)
       },
-      
+
       async clear() {
         cache.clear()
       },
-      
+
       async has(key: string) {
         return cache.has(key)
       },
-      
+
       async keys() {
         return Array.from(cache.keys())
-      }
+      },
     }
   }
 }
@@ -320,70 +318,80 @@ export class MockFactory {
 /**
  * Test assertions and matchers
  */
-export class TestAssertions {
-  static async expectToThrow(fn: () => any, expectedError?: string | RegExp) {
+export namespace TestAssertions {
+  export async function expectToThrow(fn: () => unknown, expectedError?: string | RegExp) {
     let error: Error | null = null
-    
+
     try {
       await fn()
     } catch (e) {
       error = e as Error
     }
-    
+
     if (!error) {
       throw new Error('Expected function to throw an error')
     }
-    
+
     if (expectedError) {
       if (typeof expectedError === 'string') {
         if (!error.message.includes(expectedError)) {
-          throw new Error(`Expected error message to contain "${expectedError}", got "${error.message}"`)
+          throw new Error(
+            `Expected error message to contain "${expectedError}", got "${error.message}"`
+          )
         }
       } else if (expectedError instanceof RegExp) {
         if (!expectedError.test(error.message)) {
-          throw new Error(`Expected error message to match ${expectedError}, got "${error.message}"`)
+          throw new Error(
+            `Expected error message to match ${expectedError}, got "${error.message}"`
+          )
         }
       }
     }
-    
+
     return error
   }
 
-  static expectToBeCloseTo(actual: number, expected: number, precision: number = 2) {
+  export function expectToBeCloseTo(actual: number, expected: number, precision: number = 2) {
     const diff = Math.abs(actual - expected)
-    const tolerance = Math.pow(10, -precision)
-    
+    const tolerance = 10 ** -precision
+
     if (diff > tolerance) {
       throw new Error(`Expected ${actual} to be close to ${expected} (precision: ${precision})`)
     }
   }
 
-  static expectArrayToContain(array: any[], item: any) {
+  export function expectArrayToContain(array: unknown[], item: unknown) {
     if (!array.includes(item)) {
       throw new Error(`Expected array to contain ${JSON.stringify(item)}`)
     }
   }
 
-  static expectObjectToHaveProperty(obj: any, property: string, value?: any) {
+  export function expectObjectToHaveProperty(
+    obj: Record<string, unknown>,
+    property: string,
+    value?: unknown
+  ) {
     if (!(property in obj)) {
       throw new Error(`Expected object to have property "${property}"`)
     }
-    
+
     if (value !== undefined && obj[property] !== value) {
-      throw new Error(`Expected property "${property}" to be ${JSON.stringify(value)}, got ${JSON.stringify(obj[property])}`)
+      throw new Error(
+        `Expected property "${property}" to be ${JSON.stringify(value)}, got ${JSON.stringify(obj[property])}`
+      )
     }
   }
 
-  static expectStringToMatch(str: string, pattern: RegExp) {
+  export function expectStringToMatch(str: string, pattern: RegExp) {
     if (!pattern.test(str)) {
       throw new Error(`Expected string "${str}" to match pattern ${pattern}`)
     }
   }
 
-  static expectDateToBeRecent(date: Date, maxAgeMs: number = 5000) {
+  export function expectDateToBeRecent(date: Date, maxAgeMs: number = 5000) {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    
+
     if (diff > maxAgeMs) {
       throw new Error(`Expected date to be recent (within ${maxAgeMs}ms), but it was ${diff}ms ago`)
     }
@@ -393,129 +401,128 @@ export class TestAssertions {
 /**
  * Test utilities
  */
-export class TestUtils {
-  static async sleep(ms: number): Promise<void> {
+export namespace TestUtils {
+  export async function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
-  static async waitFor(
+  export async function waitFor(
     condition: () => boolean | Promise<boolean>,
     timeout: number = 5000,
     interval: number = 100
   ): Promise<void> {
     const start = Date.now()
-    
+
     while (Date.now() - start < timeout) {
       if (await condition()) {
         return
       }
-      await this.sleep(interval)
+      await TestUtils.sleep(interval)
     }
-    
+
     throw new Error(`Condition not met within ${timeout}ms`)
   }
 
-  static async retry<T>(
+  export async function retry<T>(
     fn: () => T | Promise<T>,
     maxAttempts: number = 3,
     delay: number = 1000
   ): Promise<T> {
-    let lastError: Error
-    
+    let lastError: Error | undefined
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         return await fn()
       } catch (error) {
         lastError = error as Error
-        
+
         if (attempt === maxAttempts) {
           throw lastError
         }
-        
-        await this.sleep(delay)
+
+        await TestUtils.sleep(delay)
       }
     }
-    
-    throw lastError!
+
+    if (lastError) {
+      throw lastError
+    }
+
+    throw new Error('Retry function completed without success or error')
   }
 
-  static deepClone<T>(obj: T): T {
+  export function deepClone<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj))
   }
 
-  static createTempFile(content: string = '', extension: string = '.tmp'): string {
-    const fs = require('fs')
-    const path = require('path')
-    const os = require('os')
-    
+  export function createTempFile(content: string = '', extension: string = '.tmp'): string {
+    const fs = require('node:fs')
+    const path = require('node:path')
+    const os = require('node:os')
+
     const tempDir = os.tmpdir()
     const fileName = `test-${TestDataGenerator.randomString(8)}${extension}`
     const filePath = path.join(tempDir, fileName)
-    
+
     fs.writeFileSync(filePath, content)
     return filePath
   }
 
-  static cleanupTempFile(filePath: string): void {
-    const fs = require('fs')
-    
+  export function cleanupTempFile(filePath: string): void {
+    const fs = require('node:fs')
+
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath)
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
     }
   }
 
-  static measureExecutionTime<T>(fn: () => T | Promise<T>): Promise<{ result: T; duration: number }> {
-    return new Promise(async (resolve, reject) => {
-      const start = performance.now()
-      
-      try {
-        const result = await fn()
-        const end = performance.now()
-        resolve({ result, duration: end - start })
-      } catch (error) {
-        reject(error)
-      }
-    })
+  export async function measureExecutionTime<T>(
+    fn: () => T | Promise<T>
+  ): Promise<{ result: T; duration: number }> {
+    const start = performance.now()
+    const result = await fn()
+    const end = performance.now()
+    return { result, duration: end - start }
   }
 
-  static createTestEnvironment(overrides: Record<string, string> = {}) {
+  export function createTestEnvironment(overrides: Record<string, string> = {}) {
     const originalEnv = { ...process.env }
-    
+
     // Set test environment variables
     Object.assign(process.env, {
       NODE_ENV: 'test',
       LOG_LEVEL: 'error',
       DATABASE_URL: 'sqlite://memory',
       JWT_SECRET: 'test-secret',
-      ...overrides
+      ...overrides,
     })
-    
+
     // Return cleanup function
     return () => {
       process.env = originalEnv
     }
   }
 
-  static suppressConsole() {
+  export function suppressConsole() {
     const originalMethods = {
       log: console.log,
       warn: console.warn,
       error: console.error,
       info: console.info,
-      debug: console.debug
+      debug: console.debug,
     }
-    
+
     // Suppress console output
     console.log = () => {}
     console.warn = () => {}
     console.error = () => {}
     console.info = () => {}
     console.debug = () => {}
-    
+
     // Return restore function
     return () => {
       Object.assign(console, originalMethods)
@@ -526,8 +533,8 @@ export class TestUtils {
 /**
  * Database test helpers
  */
-export class DatabaseTestHelpers {
-  static async createTestDatabase(config: any = {}) {
+export namespace DatabaseTestHelpers {
+  export async function createTestDatabase(_config: Record<string, unknown> = {}) {
     // This would be implemented based on your database choice
     // Example for SQLite in-memory database
     return {
@@ -540,24 +547,27 @@ export class DatabaseTestHelpers {
       },
       cleanup: async () => {
         // Clean up database
-      }
+      },
     }
   }
 
-  static async seedTestData(db: any, data: Record<string, any[]>) {
+  export async function seedTestData(
+    db: Record<string, any>,
+    data: Record<string, Record<string, unknown>[]>
+  ) {
     for (const [table, records] of Object.entries(data)) {
       for (const record of records) {
-        await db.create(table, record)
+        await (db as any).create(table, record)
       }
     }
   }
 
-  static async clearTestData(db: any, tables: string[] = []) {
+  export async function clearTestData(db: Record<string, any>, tables: string[] = []) {
     if (tables.length === 0) {
-      await db.clear()
+      await (db as any).clear()
     } else {
       for (const table of tables) {
-        await db.clear(table)
+        await (db as any).clear(table)
       }
     }
   }
@@ -566,62 +576,62 @@ export class DatabaseTestHelpers {
 /**
  * HTTP test helpers
  */
-export class HTTPTestHelpers {
-  static createTestClient(baseURL: string) {
+export namespace HTTPTestHelpers {
+  export function createTestClient(baseURL: string) {
     return {
-      async get(path: string, options: any = {}) {
+      async get(path: string, options: Record<string, unknown> = {}) {
         return this.request('GET', path, options)
       },
-      
-      async post(path: string, data?: any, options: any = {}) {
+
+      async post(path: string, data?: unknown, options: Record<string, unknown> = {}) {
         return this.request('POST', path, { ...options, body: data })
       },
-      
-      async put(path: string, data?: any, options: any = {}) {
+
+      async put(path: string, data?: unknown, options: Record<string, unknown> = {}) {
         return this.request('PUT', path, { ...options, body: data })
       },
-      
-      async delete(path: string, options: any = {}) {
+
+      async delete(path: string, options: Record<string, unknown> = {}) {
         return this.request('DELETE', path, options)
       },
-      
-      async request(method: string, path: string, options: any = {}) {
+
+      async request(method: string, path: string, options: Record<string, unknown> = {}) {
         const url = `${baseURL}${path}`
         const config = {
           method,
           headers: {
             'Content-Type': 'application/json',
-            ...options.headers
+            ...(options.headers as Record<string, string> || {}),
           },
-          body: options.body ? JSON.stringify(options.body) : undefined
+          body: options.body ? JSON.stringify(options.body) : undefined,
         }
-        
+
         const response = await fetch(url, config)
-        
+
         return {
           status: response.status,
           headers: Object.fromEntries(response.headers.entries()),
           json: () => response.json(),
           text: () => response.text(),
-          ok: response.ok
+          ok: response.ok,
         }
-      }
+      },
     }
   }
 
-  static async startTestServer(app: any, port: number = 0) {
+  export async function startTestServer(app: Record<string, unknown>, port: number = 0) {
     return new Promise((resolve, reject) => {
-      const server = app.listen(port, (err: any) => {
+      const server = (app as any).listen(port, (err: unknown) => {
         if (err) {
           reject(err)
         } else {
-          const address = server.address()
+          const address = (server as any).address()
           const actualPort = typeof address === 'object' ? address?.port : port
           resolve({
             server,
             port: actualPort,
             url: `http://localhost:${actualPort}`,
-            close: () => new Promise(resolve => server.close(resolve))
+            close: () => new Promise(resolve => (server as any).close(resolve)),
           })
         }
       })
@@ -635,5 +645,5 @@ export default {
   TestAssertions,
   TestUtils,
   DatabaseTestHelpers,
-  HTTPTestHelpers
+  HTTPTestHelpers,
 }

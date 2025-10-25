@@ -1,4 +1,4 @@
-import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import { createWorkerSafeCuid2 as createId } from '@g-1/core'
 import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'

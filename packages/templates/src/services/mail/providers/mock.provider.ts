@@ -1,4 +1,4 @@
-import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import { createWorkerSafeCuid2 as createId } from '@g-1/core'
 import { recordEmail } from '../testing/test-mailbox'
 import type { EmailData, EmailProvider } from './email-provider.interface'
 

@@ -27,7 +27,7 @@ function getCacheStats() {
  * - Memory management utilities
  */
 export abstract class BaseRepository {
-  protected static dbCache: Map<string, any> = new Map()
+  protected static dbCache: Map<string, ReturnType<typeof createDb>> = new Map()
   private static healthCheckCache: Map<string, { status: boolean; timestamp: number }> = new Map()
   private static readonly HEALTH_CHECK_TTL = 30 * 1000 // 30 seconds
 
@@ -59,7 +59,7 @@ export abstract class BaseRepository {
    */
   protected async executeQuery<T>(
     env: Environment,
-    operation: (db: any) => Promise<T>,
+    operation: (db: ReturnType<typeof createDb>) => Promise<T>,
     operationName?: string
   ): Promise<T> {
     const startTime = Date.now()
@@ -103,7 +103,7 @@ export abstract class BaseRepository {
    */
   protected async executeBatch<T>(
     env: Environment,
-    operations: Array<(db: any) => Promise<T>>,
+    operations: Array<(db: ReturnType<typeof createDb>) => Promise<T>>,
     operationName?: string
   ): Promise<T[]> {
     const startTime = Date.now()
@@ -142,7 +142,7 @@ export abstract class BaseRepository {
    */
   protected async executeQueryWithRetry<T>(
     env: Environment,
-    operation: (db: any) => Promise<T>,
+    operation: (db: ReturnType<typeof createDb>) => Promise<T>,
     operationName?: string,
     maxRetries = 3
   ): Promise<T> {
@@ -222,7 +222,7 @@ export abstract class BaseRepository {
    */
   protected async executeQueryWithHealthCheck<T>(
     env: Environment,
-    operation: (db: any) => Promise<T>,
+    operation: (db: ReturnType<typeof createDb>) => Promise<T>,
     operationName?: string
   ): Promise<T> {
     // Check database health before executing query

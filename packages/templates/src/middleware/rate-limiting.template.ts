@@ -107,12 +107,12 @@ export class RedisRateLimitStore implements RateLimitStore {
   async increment(key: string, ttl: number): Promise<{ count: number; resetTime: number }> {
     const now = Date.now()
     const resetTime = now + ttl
-    
+
     const multi = this.redis.multi()
     multi.get(key)
     multi.incr(key)
     multi.expire(key, Math.ceil(ttl / 1000))
-    
+
     const results = await multi.exec()
     const existing = results[0][1] ? JSON.parse(results[0][1]) : null
     const count = results[1][1]
@@ -134,16 +134,19 @@ export class RedisRateLimitStore implements RateLimitStore {
 /**
  * Default rate limit configuration
  */
-export const DEFAULT_RATE_LIMIT_CONFIG: Required<Omit<RateLimitConfig, 'store' | 'onLimitReached'>> = {
+export const DEFAULT_RATE_LIMIT_CONFIG: Required<
+  Omit<RateLimitConfig, 'store' | 'onLimitReached'>
+> = {
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 requests per window
   message: 'Too many requests, please try again later.',
   statusCode: 429,
   headers: true,
-  keyGenerator: (c: Context) => c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown',
+  keyGenerator: (c: Context) =>
+    c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown',
   skip: () => false,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 }
 
 /**
@@ -161,7 +164,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig = {}) {
 
     // Generate key for this request
     const key = await options.keyGenerator(c)
-    
+
     // Get or increment counter
     const result = await store.increment(key, options.windowMs)
     const { count, resetTime } = result
@@ -171,7 +174,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig = {}) {
       limit: options.max,
       remaining: Math.max(0, options.max - count),
       reset: Math.ceil(resetTime / 1000),
-      resetTime: new Date(resetTime)
+      resetTime: new Date(resetTime),
     }
 
     // Add headers if enabled
@@ -197,15 +200,14 @@ export function createRateLimitMiddleware(config: RateLimitConfig = {}) {
       }
 
       // Get error message
-      const message = typeof options.message === 'function' 
-        ? await options.message(c)
-        : options.message
+      const message =
+        typeof options.message === 'function' ? await options.message(c) : options.message
 
-      c.status(options.statusCode)
-      return c.json({ 
+      c.status(options.statusCode as any)
+      return c.json({
         error: 'Rate limit exceeded',
         message,
-        retryAfter: Math.ceil((resetTime - Date.now()) / 1000)
+        retryAfter: Math.ceil((resetTime - Date.now()) / 1000),
       })
     }
 
@@ -227,7 +229,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // 5 requests per 15 minutes
     message: 'Too many requests to this sensitive endpoint. Please try again later.',
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -237,7 +239,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // 100 requests per 15 minutes
     message: 'Too many requests, please try again later.',
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -247,7 +249,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // 1000 requests per 15 minutes
     message: 'Rate limit exceeded. Please try again later.',
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -257,7 +259,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 60 * 1000, // 1 minute
     max,
     message: `Too many requests. Maximum ${max} requests per minute allowed.`,
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -267,7 +269,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 60 * 60 * 1000, // 1 hour
     max,
     message: `Too many requests. Maximum ${max} requests per hour allowed.`,
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -277,7 +279,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
     max,
     message: `Daily rate limit exceeded. Maximum ${max} requests per day allowed.`,
-    statusCode: 429
+    statusCode: 429,
   }),
 
   /**
@@ -288,13 +290,13 @@ export const RATE_LIMIT_CONFIGS = {
     max: 5, // 5 login attempts per 15 minutes
     message: 'Too many authentication attempts. Please try again later.',
     statusCode: 429,
-    keyGenerator: (c: Context) => {
+    keyGenerator: async (c: Context) => {
       // Use email/username if available, otherwise fall back to IP
-      const body = c.req.json?.() || {}
-      const identifier = body.email || body.username
+      const body = await c.req.json?.() || {}
+      const identifier = (body as any).email || (body as any).username
       const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'
       return identifier ? `auth:${identifier}` : `auth:ip:${ip}`
-    }
+    },
   }),
 
   /**
@@ -306,9 +308,10 @@ export const RATE_LIMIT_CONFIGS = {
     message: 'API rate limit exceeded for your key.',
     statusCode: 429,
     keyGenerator: (c: Context) => {
-      const apiKey = c.req.header('x-api-key') || c.req.header('authorization')?.replace('Bearer ', '')
+      const apiKey =
+        c.req.header('x-api-key') || c.req.header('authorization')?.replace('Bearer ', '')
       return apiKey ? `api:${apiKey}` : 'api:unknown'
-    }
+    },
   }),
 
   /**
@@ -322,8 +325,8 @@ export const RATE_LIMIT_CONFIGS = {
     keyGenerator: (c: Context) => {
       const user = c.get('user')
       return user?.id ? `user:${user.id}` : 'user:anonymous'
-    }
-  })
+    },
+  }),
 }
 
 /**
@@ -344,7 +347,7 @@ export function createTieredRateLimit(
         const user = c.get('user')
         return user?.id ? `tier:${userTier}:${user.id}` : `tier:${userTier}:anonymous`
       },
-      message: `Rate limit exceeded for ${userTier} plan. Upgrade for higher limits.`
+      message: `Rate limit exceeded for ${userTier} plan. Upgrade for higher limits.`,
     })
   }
 }
@@ -352,15 +355,21 @@ export function createTieredRateLimit(
 /**
  * Create sliding window rate limiter
  */
-export function createSlidingWindowRateLimit(config: RateLimitConfig & {
-  windowSize?: number // Number of sub-windows
-}) {
+export function createSlidingWindowRateLimit(
+  config: RateLimitConfig & {
+    windowSize?: number // Number of sub-windows
+  }
+) {
   const windowSize = config.windowSize || 10
   const subWindowMs = (config.windowMs || DEFAULT_RATE_LIMIT_CONFIG.windowMs) / windowSize
 
   return createRateLimitMiddleware({
     ...config,
-    store: new SlidingWindowStore(config.store || new MemoryRateLimitStore(), windowSize, subWindowMs)
+    store: new SlidingWindowStore(
+      config.store || new MemoryRateLimitStore(),
+      windowSize,
+      subWindowMs
+    ),
   })
 }
 
@@ -389,7 +398,7 @@ class SlidingWindowStore implements RateLimitStore {
 
     return {
       count: totalCount,
-      resetTime: (currentWindow + 1) * this.subWindowMs
+      resetTime: (currentWindow + 1) * this.subWindowMs,
     }
   }
 
@@ -404,7 +413,7 @@ class SlidingWindowStore implements RateLimitStore {
     const now = Date.now()
     const currentWindow = Math.floor(now / this.subWindowMs)
     const windowKey = `${key}:${currentWindow}`
-    
+
     await this.baseStore.increment(windowKey, ttl)
     return this.get(key) as Promise<{ count: number; resetTime: number }>
   }
@@ -412,7 +421,7 @@ class SlidingWindowStore implements RateLimitStore {
   async reset(key: string): Promise<void> {
     const now = Date.now()
     const currentWindow = Math.floor(now / this.subWindowMs)
-    
+
     for (let i = 0; i < this.windowSize; i++) {
       const windowKey = `${key}:${currentWindow - i}`
       await this.baseStore.reset(windowKey)
@@ -475,7 +484,7 @@ app.use('*', createRateLimitMiddleware({
   store,
   windowMs: 15 * 60 * 1000,
   max: 100
-}))`
+}))`,
 }
 
 export default {
@@ -485,5 +494,5 @@ export default {
   MemoryRateLimitStore,
   RedisRateLimitStore,
   RATE_LIMIT_CONFIGS,
-  DEFAULT_RATE_LIMIT_CONFIG
+  DEFAULT_RATE_LIMIT_CONFIG,
 }

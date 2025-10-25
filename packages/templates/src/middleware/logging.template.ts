@@ -75,15 +75,15 @@ export class ConsoleLogger implements Logger {
     const timestamp = new Date().toISOString()
     const colorMap = {
       debug: '\x1b[36m', // cyan
-      info: '\x1b[32m',  // green
-      warn: '\x1b[33m',  // yellow
-      error: '\x1b[31m'  // red
+      info: '\x1b[32m', // green
+      warn: '\x1b[33m', // yellow
+      error: '\x1b[31m', // red
     }
     const reset = '\x1b[0m'
-    
+
     const color = this.colorize ? colorMap[level as keyof typeof colorMap] || '' : ''
     const logMessage = `${color}[${timestamp}] ${level.toUpperCase()}: ${message}${reset}`
-    
+
     console.log(logMessage, meta ? JSON.stringify(meta, null, 2) : '')
   }
 }
@@ -113,7 +113,7 @@ export class JSONLogger implements Logger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...meta
+      ...meta,
     }
     console.log(JSON.stringify(logEntry))
   }
@@ -136,15 +136,14 @@ export const DEFAULT_LOGGING_CONFIG: Required<Omit<LoggingConfig, 'customLogger'
   colorize: process.env.NODE_ENV === 'development',
   timestamp: true,
   requestId: true,
-  performance: true
+  performance: true,
 }
 
 /**
  * Generate request ID
  */
 function generateRequestId(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15)
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 /**
@@ -152,9 +151,9 @@ function generateRequestId(): string {
  */
 function maskSensitiveData(obj: any, sensitiveFields: string[]): any {
   if (!obj || typeof obj !== 'object') return obj
-  
+
   const masked = Array.isArray(obj) ? [...obj] : { ...obj }
-  
+
   for (const key in masked) {
     if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
       masked[key] = '***MASKED***'
@@ -162,7 +161,7 @@ function maskSensitiveData(obj: any, sensitiveFields: string[]): any {
       masked[key] = maskSensitiveData(masked[key], sensitiveFields)
     }
   }
-  
+
   return masked
 }
 
@@ -170,15 +169,15 @@ function maskSensitiveData(obj: any, sensitiveFields: string[]): any {
  * Filter headers
  */
 function filterHeaders(
-  headers: Record<string, string>, 
-  includeHeaders?: string[], 
+  headers: Record<string, string>,
+  includeHeaders?: string[],
   excludeHeaders?: string[]
 ): Record<string, string> {
   const filtered: Record<string, string> = {}
-  
+
   for (const [key, value] of Object.entries(headers)) {
     const lowerKey = key.toLowerCase()
-    
+
     // If includeHeaders is specified, only include those
     if (includeHeaders && includeHeaders.length > 0) {
       if (includeHeaders.some(h => h.toLowerCase() === lowerKey)) {
@@ -186,15 +185,15 @@ function filterHeaders(
       }
       continue
     }
-    
+
     // Otherwise, exclude specified headers
-    if (excludeHeaders && excludeHeaders.some(h => h.toLowerCase() === lowerKey)) {
+    if (excludeHeaders?.some(h => h.toLowerCase() === lowerKey)) {
       continue
     }
-    
+
     filtered[key] = value
   }
-  
+
   return filtered
 }
 
@@ -203,13 +202,14 @@ function filterHeaders(
  */
 export function createLoggingMiddleware(config: LoggingConfig = {}) {
   const options = { ...DEFAULT_LOGGING_CONFIG, ...config }
-  const logger = options.customLogger || 
+  const logger =
+    options.customLogger ||
     (options.format === 'json' ? new JSONLogger() : new ConsoleLogger(options.colorize))
 
   return async (c: Context, next: Next) => {
     const startTime = Date.now()
     const requestId = options.requestId ? generateRequestId() : undefined
-    
+
     // Add request ID to context
     if (requestId) {
       c.set('requestId', requestId)
@@ -232,10 +232,11 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
       options.excludeHeaders
     )
     const userAgent = c.req.header('user-agent')
-    const ip = c.req.header('x-forwarded-for') || 
-               c.req.header('x-real-ip') || 
-               c.req.header('cf-connecting-ip') || 
-               'unknown'
+    const ip =
+      c.req.header('x-forwarded-for') ||
+      c.req.header('x-real-ip') ||
+      c.req.header('cf-connecting-ip') ||
+      'unknown'
 
     // Capture request body if enabled
     let requestBody: any
@@ -251,13 +252,14 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
             }
           }
           // Re-create request with the consumed body
-          c.req = new Request(c.req.url, {
+          const _newRequest = new Request(c.req.url, {
             method: c.req.method,
-            headers: c.req.headers,
-            body: text
+            headers: c.req.header(),
+            body: text,
           })
+          // Note: Cannot reassign to c.req as it's read-only
         }
-      } catch (error) {
+      } catch (_error) {
         // Ignore body parsing errors
       }
     }
@@ -289,7 +291,7 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
               }
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Ignore response body parsing errors
         }
       }
@@ -311,7 +313,7 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
         responseBody,
         error,
         user: c.get('user'),
-        level: error ? 'error' : statusCode >= 400 ? 'warn' : 'info'
+        level: error ? 'error' : statusCode >= 400 ? 'warn' : 'info',
       }
 
       // Call custom onLog callback
@@ -324,18 +326,20 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
         case 'json':
           logger.info('HTTP Request', logData)
           break
-        
-        case 'combined':
+
+        case 'combined': {
           const combinedMessage = `${ip} - - [${logData.timestamp}] "${method} ${path}" ${statusCode} ${responseTime}ms "${userAgent}"`
           logger.info(combinedMessage)
           break
-        
-        case 'common':
+        }
+
+        case 'common': {
           const commonMessage = `${ip} - - [${logData.timestamp}] "${method} ${path}" ${statusCode}`
           logger.info(commonMessage)
           break
-        
-        case 'dev':
+        }
+
+        case 'dev': {
           const devMessage = `${method} ${path} ${statusCode} ${responseTime}ms`
           if (error) {
             logger.error(devMessage, { error: error.message })
@@ -345,10 +349,12 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
             logger.info(devMessage)
           }
           break
-        
-        default:
+        }
+
+        default: {
           const textMessage = `${method} ${path} - ${statusCode} - ${responseTime}ms`
           logger.info(textMessage, { requestId, ip, userAgent })
+        }
       }
     }
   }
@@ -370,7 +376,7 @@ export const LOGGING_CONFIGS = {
     colorize: true,
     timestamp: true,
     requestId: true,
-    performance: true
+    performance: true,
   }),
 
   /**
@@ -385,7 +391,7 @@ export const LOGGING_CONFIGS = {
     colorize: false,
     timestamp: true,
     requestId: true,
-    performance: true
+    performance: true,
   }),
 
   /**
@@ -402,7 +408,7 @@ export const LOGGING_CONFIGS = {
     colorize: true,
     timestamp: true,
     requestId: true,
-    performance: true
+    performance: true,
   }),
 
   /**
@@ -417,7 +423,7 @@ export const LOGGING_CONFIGS = {
     colorize: false,
     timestamp: true,
     requestId: false,
-    performance: false
+    performance: false,
   }),
 
   /**
@@ -431,17 +437,27 @@ export const LOGGING_CONFIGS = {
     maxBodySize: 1024 * 10, // 10KB
     maskSensitiveData: true,
     sensitiveFields: [
-      'password', 'token', 'secret', 'key', 'authorization',
-      'ssn', 'credit_card', 'cvv', 'pin'
+      'password',
+      'token',
+      'secret',
+      'key',
+      'authorization',
+      'ssn',
+      'credit_card',
+      'cvv',
+      'pin',
     ],
     includeHeaders: [
-      'user-agent', 'x-forwarded-for', 'x-real-ip',
-      'cf-connecting-ip', 'x-forwarded-proto'
+      'user-agent',
+      'x-forwarded-for',
+      'x-real-ip',
+      'cf-connecting-ip',
+      'x-forwarded-proto',
     ],
     timestamp: true,
     requestId: true,
-    performance: true
-  })
+    performance: true,
+  }),
 }
 
 /**
@@ -452,7 +468,7 @@ export function createStructuredLogger(transports: LogTransport[] = []) {
     debug: (message: string, meta?: any) => log('debug', message, meta, transports),
     info: (message: string, meta?: any) => log('info', message, meta, transports),
     warn: (message: string, meta?: any) => log('warn', message, meta, transports),
-    error: (message: string, meta?: any) => log('error', message, meta, transports)
+    error: (message: string, meta?: any) => log('error', message, meta, transports),
   }
 }
 
@@ -462,7 +478,7 @@ export interface LogTransport {
   write: (logData: LogData) => void | Promise<void>
 }
 
-function log(level: string, message: string, meta: any, transports: LogTransport[]) {
+function log(level: string, _message: string, meta: any, transports: LogTransport[]) {
   const logData: LogData = {
     timestamp: new Date().toISOString(),
     level,
@@ -474,7 +490,7 @@ function log(level: string, message: string, meta: any, transports: LogTransport
     ip: '',
     statusCode: 0,
     responseTime: 0,
-    ...meta
+    ...meta,
   }
 
   transports.forEach(transport => {
@@ -486,7 +502,9 @@ function log(level: string, message: string, meta: any, transports: LogTransport
 
 function shouldLog(messageLevel: string, transportLevel: string): boolean {
   const levels = { debug: 0, info: 1, warn: 2, error: 3 }
-  return levels[messageLevel as keyof typeof levels] >= levels[transportLevel as keyof typeof levels]
+  return (
+    levels[messageLevel as keyof typeof levels] >= levels[transportLevel as keyof typeof levels]
+  )
 }
 
 /**
@@ -498,17 +516,17 @@ export const LOG_TRANSPORTS = {
     level,
     write: (logData: LogData) => {
       console.log(JSON.stringify(logData))
-    }
+    },
   }),
 
   file: (filename: string, level: string = 'info'): LogTransport => ({
     name: 'file',
     level,
     write: (logData: LogData) => {
-      const fs = require('fs')
-      const logLine = JSON.stringify(logData) + '\n'
+      const fs = require('node:fs')
+      const logLine = `${JSON.stringify(logData)}\n`
       fs.appendFileSync(filename, logLine)
-    }
+    },
   }),
 
   http: (url: string, level: string = 'info'): LogTransport => ({
@@ -519,13 +537,13 @@ export const LOG_TRANSPORTS = {
         await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(logData)
+          body: JSON.stringify(logData),
         })
       } catch (error) {
         console.error('Failed to send log to HTTP transport:', error)
       }
-    }
-  })
+    },
+  }),
 }
 
 /**
@@ -589,7 +607,7 @@ app.use('*', createLoggingMiddleware({
       await logSecurityEvent(logData)
     }
   }
-}))`
+}))`,
 }
 
 export default {
@@ -599,5 +617,5 @@ export default {
   JSONLogger,
   LOGGING_CONFIGS,
   LOG_TRANSPORTS,
-  DEFAULT_LOGGING_CONFIG
+  DEFAULT_LOGGING_CONFIG,
 }

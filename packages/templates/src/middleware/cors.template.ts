@@ -5,7 +5,11 @@ import type { Context, Next } from 'hono'
  */
 
 export interface CORSConfig {
-  origin?: string | string[] | boolean | ((origin: string, c: Context) => boolean | Promise<boolean>)
+  origin?:
+    | string
+    | string[]
+    | boolean
+    | ((origin: string, c: Context) => boolean | Promise<boolean>)
   allowMethods?: string[]
   allowHeaders?: string[]
   exposeHeaders?: string[]
@@ -26,7 +30,7 @@ export const DEFAULT_CORS_CONFIG: CORSConfig = {
   credentials: false,
   maxAge: 86400, // 24 hours
   optionsSuccessStatus: 204,
-  preflightContinue: false
+  preflightContinue: false,
 }
 
 /**
@@ -37,7 +41,7 @@ export function createCORSMiddleware(config: CORSConfig = {}) {
 
   return async (c: Context, next: Next) => {
     const origin = c.req.header('Origin')
-    const requestMethod = c.req.header('Access-Control-Request-Method')
+    const _requestMethod = c.req.header('Access-Control-Request-Method')
     const requestHeaders = c.req.header('Access-Control-Request-Headers')
 
     // Handle origin
@@ -78,7 +82,7 @@ export function createCORSMiddleware(config: CORSConfig = {}) {
 
       // Handle preflight response
       if (!options.preflightContinue) {
-        c.status(options.optionsSuccessStatus || 204)
+        c.status((options.optionsSuccessStatus || 204) as any)
         return c.body(null)
       }
     }
@@ -132,7 +136,7 @@ export const CORS_CONFIGS = {
     credentials: true,
     allowMethods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-    exposeHeaders: ['X-Total-Count', 'X-Page-Count']
+    exposeHeaders: ['X-Total-Count', 'X-Page-Count'],
   }),
 
   /**
@@ -143,7 +147,7 @@ export const CORS_CONFIGS = {
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 86400
+    maxAge: 86400,
   }),
 
   /**
@@ -154,7 +158,7 @@ export const CORS_CONFIGS = {
     credentials: false,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-    exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset']
+    exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
   }),
 
   /**
@@ -166,11 +170,11 @@ export const CORS_CONFIGS = {
       'http://localhost:3001',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173'
+      'http://127.0.0.1:5173',
     ],
     credentials: true,
     allowMethods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }),
 
   /**
@@ -180,7 +184,7 @@ export const CORS_CONFIGS = {
     origin: false, // Mobile apps don't send Origin header
     credentials: false,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowHeaders: ['Content-Type', 'Authorization', 'X-App-Version', 'X-Device-ID']
+    allowHeaders: ['Content-Type', 'Authorization', 'X-App-Version', 'X-Device-ID'],
   }),
 
   /**
@@ -190,8 +194,8 @@ export const CORS_CONFIGS = {
     origin: false,
     credentials: false,
     allowMethods: ['POST'],
-    allowHeaders: ['Content-Type', 'X-Webhook-Signature']
-  })
+    allowHeaders: ['Content-Type', 'X-Webhook-Signature'],
+  }),
 }
 
 /**
@@ -199,20 +203,20 @@ export const CORS_CONFIGS = {
  */
 export function createEnvironmentCORS(): CORSConfig {
   const env = process.env.NODE_ENV || 'development'
-  
+
   switch (env) {
-    case 'production':
+    case 'production': {
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
       return CORS_CONFIGS.strict(allowedOrigins)
-    
-    case 'staging':
+    }
+
+    case 'staging': {
       const stagingOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
         'https://staging.example.com',
-        'https://preview.example.com'
+        'https://preview.example.com',
       ]
       return CORS_CONFIGS.strict(stagingOrigins)
-    
-    case 'development':
+    }
     default:
       return CORS_CONFIGS.development()
   }
@@ -229,7 +233,7 @@ export function createDynamicCORS(
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 3600
+    maxAge: 3600,
   }
 }
 
@@ -238,7 +242,7 @@ export function createDynamicCORS(
  */
 export function createDatabaseCORS(getDomains: () => Promise<string[]>) {
   return createCORSMiddleware({
-    origin: async (origin: string, c: Context) => {
+    origin: async (origin: string, _c: Context) => {
       try {
         const allowedDomains = await getDomains()
         return allowedDomains.includes(origin)
@@ -249,7 +253,7 @@ export function createDatabaseCORS(getDomains: () => Promise<string[]>) {
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowHeaders: ['Content-Type', 'Authorization']
+    allowHeaders: ['Content-Type', 'Authorization'],
   })
 }
 
@@ -260,17 +264,17 @@ export function createSubdomainCORS(baseDomain: string): CORSConfig {
   return {
     origin: (origin: string) => {
       if (!origin) return false
-      
+
       try {
         const url = new URL(origin)
         const hostname = url.hostname
-        
+
         // Allow exact match
         if (hostname === baseDomain) return true
-        
+
         // Allow subdomains
         if (hostname.endsWith(`.${baseDomain}`)) return true
-        
+
         return false
       } catch {
         return false
@@ -278,7 +282,7 @@ export function createSubdomainCORS(baseDomain: string): CORSConfig {
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowHeaders: ['Content-Type', 'Authorization']
+    allowHeaders: ['Content-Type', 'Authorization'],
   }
 }
 
@@ -340,7 +344,7 @@ const app = new Hono()
 // Allow all subdomains of example.com
 app.use('*', createCORSMiddleware(
   createSubdomainCORS('example.com')
-))`
+))`,
 }
 
 export default {
@@ -350,5 +354,5 @@ export default {
   createDynamicCORS,
   createDatabaseCORS,
   createSubdomainCORS,
-  DEFAULT_CORS_CONFIG
+  DEFAULT_CORS_CONFIG,
 }

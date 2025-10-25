@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue } from '../types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext } from '../types.js'
 
 /**
  * Rate Limit Plugin
@@ -8,26 +8,26 @@ export const rateLimitPlugin: CliPlugin = {
   id: 'rate-limit',
   category: 'middleware',
   description: 'Configurable rate limiting with multiple strategies and storage options',
-  
+
   config: {
     strategy: {
       type: 'select',
       description: 'Rate limiting strategy',
       options: [
         { name: 'Simple (in-memory)', value: 'simple' },
-        { name: 'Optimized (sliding window)', value: 'optimized' }
+        { name: 'Optimized (sliding window)', value: 'optimized' },
       ],
-      default: 'optimized'
+      default: 'optimized',
     },
     windowMs: {
       type: 'number',
       description: 'Time window in milliseconds',
-      default: 900000 // 15 minutes
+      default: 900000, // 15 minutes
     },
     maxRequests: {
       type: 'number',
       description: 'Maximum requests per window',
-      default: 100
+      default: 100,
     },
     keyGenerator: {
       type: 'select',
@@ -36,53 +36,53 @@ export const rateLimitPlugin: CliPlugin = {
         { name: 'IP Address', value: 'ip' },
         { name: 'User ID (authenticated)', value: 'user' },
         { name: 'API Key', value: 'apikey' },
-        { name: 'Custom Header', value: 'header' }
+        { name: 'Custom Header', value: 'header' },
       ],
-      default: 'ip'
+      default: 'ip',
     },
     customHeader: {
       type: 'string',
       description: 'Custom header name (when keyGenerator is "header")',
-      default: 'x-client-id'
+      default: 'x-client-id',
     },
     skipSuccessfulRequests: {
       type: 'boolean',
       description: 'Only count failed requests (4xx/5xx)',
-      default: false
+      default: false,
     },
     skipFailedRequests: {
       type: 'boolean',
       description: 'Only count successful requests (2xx/3xx)',
-      default: false
+      default: false,
     },
     enableHeaders: {
       type: 'boolean',
       description: 'Include rate limit info in response headers',
-      default: true
+      default: true,
     },
     message: {
       type: 'string',
       description: 'Custom rate limit exceeded message',
-      default: 'Too many requests, please try again later.'
+      default: 'Too many requests, please try again later.',
     },
     statusCode: {
       type: 'number',
       description: 'HTTP status code for rate limit exceeded',
-      default: 429
+      default: 429,
     },
     whitelist: {
       type: 'string',
       description: 'Comma-separated list of IPs to whitelist',
-      default: ''
+      default: '',
     },
     enableLogging: {
       type: 'boolean',
       description: 'Log rate limit violations',
-      default: true
-    }
+      default: true,
+    },
   },
 
-  prepare(ctx: PluginContext, config: Record<string, PluginConfigValue>) {
+  prepare(_ctx: PluginContext, _config: Record<string, PluginConfigValue>) {
     // No additional dependencies needed - uses built-in functionality
   },
 
@@ -97,7 +97,11 @@ export const rateLimitPlugin: CliPlugin = {
     const enableHeaders = config.enableHeaders !== false
     const message = config.message || 'Too many requests, please try again later.'
     const statusCode = config.statusCode || 429
-    const whitelist = config.whitelist ? String(config.whitelist).split(',').map(ip => ip.trim()) : []
+    const whitelist = config.whitelist
+      ? String(config.whitelist)
+          .split(',')
+          .map(ip => ip.trim())
+      : []
     const enableLogging = config.enableLogging !== false
 
     // Generate rate limit middleware file
@@ -158,7 +162,9 @@ class MemoryStore implements RateLimitStore {
   }
 }
 
-${strategy === 'optimized' ? `
+${
+  strategy === 'optimized'
+    ? `
 class SlidingWindowStore implements RateLimitStore {
   private store = new Map<string, number[]>()
   private readonly windowMs = ${windowMs}
@@ -215,7 +221,9 @@ class SlidingWindowStore implements RateLimitStore {
     }
   }
 }
-` : ''}
+`
+    : ''
+}
 
 // Global store instance
 const store: RateLimitStore = ${strategy === 'optimized' ? 'new SlidingWindowStore()' : 'new MemoryStore()'}
@@ -231,21 +239,29 @@ setInterval(() => {
  * Generate rate limit key based on configuration
  */
 function generateKey(c: Context<AppBindings>): string {
-  ${keyGenerator === 'ip' ? `
+  ${
+    keyGenerator === 'ip'
+      ? `
   return c.req.header('cf-connecting-ip') || 
          c.req.header('x-forwarded-for') || 
          c.req.header('x-real-ip') || 
          'unknown'
-  ` : keyGenerator === 'user' ? `
+  `
+      : keyGenerator === 'user'
+        ? `
   const user = c.get('user')
   return user ? \`user:\${user.id}\` : 'anonymous'
-  ` : keyGenerator === 'apikey' ? `
+  `
+        : keyGenerator === 'apikey'
+          ? `
   const apiKey = c.req.header('x-api-key') || c.req.header('authorization')
   return apiKey ? \`apikey:\${apiKey}\` : 'no-key'
-  ` : `
+  `
+          : `
   const headerValue = c.req.header('${customHeader}')
   return headerValue ? \`header:\${headerValue}\` : 'no-header'
-  `}
+  `
+  }
 }
 
 /**
@@ -256,7 +272,9 @@ function isWhitelisted(ip: string): boolean {
   return whitelist.includes(ip) || whitelist.includes('*')
 }
 
-${strategy === 'simple' ? `
+${
+  strategy === 'simple'
+    ? `
 /**
  * Simple rate limiting middleware
  */
@@ -274,7 +292,9 @@ export function simpleRateLimit(): MiddlewareHandler<AppBindings> {
     const count = current || 0
 
     if (count >= ${maxRequests}) {
-      ${enableLogging ? `
+      ${
+        enableLogging
+          ? `
       console.warn(JSON.stringify({
         type: 'rate_limit_exceeded',
         key,
@@ -283,13 +303,19 @@ export function simpleRateLimit(): MiddlewareHandler<AppBindings> {
         window: ${windowMs},
         timestamp: new Date().toISOString()
       }))
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${enableHeaders ? `
+      ${
+        enableHeaders
+          ? `
       c.header('X-RateLimit-Limit', '${maxRequests}')
       c.header('X-RateLimit-Remaining', '0')
       c.header('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + Math.ceil(${windowMs} / 1000)))
-      ` : ''}
+      `
+          : ''
+      }
 
       throw new HTTPException(${statusCode}, { message: '${message}' })
     }
@@ -302,35 +328,48 @@ export function simpleRateLimit(): MiddlewareHandler<AppBindings> {
       await next()
       statusCode = c.res.status
       
-      ${skipSuccessfulRequests ? `
+      ${
+        skipSuccessfulRequests
+          ? `
       if (statusCode >= 200 && statusCode < 400) {
         shouldCount = false
       }
-      ` : ''}
+      `
+          : ''
+      }
     } catch (error) {
       statusCode = error instanceof HTTPException ? error.status : 500
       
-      ${skipFailedRequests ? `
+      ${
+        skipFailedRequests
+          ? `
       if (statusCode >= 400) {
         shouldCount = false
       }
-      ` : ''}
+      `
+          : ''
+      }
       
       throw error
     } finally {
       if (shouldCount) {
         const newCount = await store.increment(key, ${windowMs})
         
-        ${enableHeaders ? `
+        ${
+          enableHeaders
+            ? `
         c.header('X-RateLimit-Limit', '${maxRequests}')
         c.header('X-RateLimit-Remaining', String(Math.max(0, ${maxRequests} - newCount)))
         c.header('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + Math.ceil(${windowMs} / 1000)))
-        ` : ''}
+        `
+            : ''
+        }
       }
     }
   })
 }
-` : `
+`
+    : `
 /**
  * Optimized rate limiting with sliding window
  */
@@ -347,7 +386,9 @@ export function rateLimitOptimized(): MiddlewareHandler<AppBindings> {
     const current = await store.get(key) || 0
 
     if (current >= ${maxRequests}) {
-      ${enableLogging ? `
+      ${
+        enableLogging
+          ? `
       console.warn(JSON.stringify({
         type: 'rate_limit_exceeded',
         key,
@@ -356,13 +397,19 @@ export function rateLimitOptimized(): MiddlewareHandler<AppBindings> {
         window: ${windowMs},
         timestamp: new Date().toISOString()
       }))
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${enableHeaders ? `
+      ${
+        enableHeaders
+          ? `
       c.header('X-RateLimit-Limit', '${maxRequests}')
       c.header('X-RateLimit-Remaining', '0')
       c.header('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + Math.ceil(${windowMs} / 1000)))
-      ` : ''}
+      `
+          : ''
+      }
 
       throw new HTTPException(${statusCode}, { message: '${message}' })
     }
@@ -375,35 +422,48 @@ export function rateLimitOptimized(): MiddlewareHandler<AppBindings> {
       await next()
       statusCode = c.res.status
       
-      ${skipSuccessfulRequests ? `
+      ${
+        skipSuccessfulRequests
+          ? `
       if (statusCode >= 200 && statusCode < 400) {
         shouldCount = false
       }
-      ` : ''}
+      `
+          : ''
+      }
     } catch (error) {
       statusCode = error instanceof HTTPException ? error.status : 500
       
-      ${skipFailedRequests ? `
+      ${
+        skipFailedRequests
+          ? `
       if (statusCode >= 400) {
         shouldCount = false
       }
-      ` : ''}
+      `
+          : ''
+      }
       
       throw error
     } finally {
       if (shouldCount) {
         const newCount = await store.increment(key)
         
-        ${enableHeaders ? `
+        ${
+          enableHeaders
+            ? `
         c.header('X-RateLimit-Limit', '${maxRequests}')
         c.header('X-RateLimit-Remaining', String(Math.max(0, ${maxRequests} - newCount)))
         c.header('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + Math.ceil(${windowMs} / 1000)))
-        ` : ''}
+        `
+            : ''
+        }
       }
     }
   })
 }
-`}
+`
+}
 
 // Export the configured rate limit function
 export const rateLimit = ${strategy === 'simple' ? 'simpleRateLimit' : 'rateLimitOptimized'}
@@ -417,23 +477,23 @@ export const rateLimit = ${strategy === 'simple' ? 'simpleRateLimit' : 'rateLimi
         // Add import if not already present
         if (!content.includes('rate-limit.middleware')) {
           const importLine = `import { rateLimit } from './lib/rate-limit.middleware.js'`
-          
+
           // Find the last import statement
           const lines = content.split('\\n')
           let lastImportIndex = -1
-          
+
           for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim().startsWith('import ')) {
               lastImportIndex = i
             }
           }
-          
+
           if (lastImportIndex >= 0) {
             lines.splice(lastImportIndex + 1, 0, importLine)
           } else {
             lines.unshift(importLine)
           }
-          
+
           content = lines.join('\\n')
         }
 
@@ -443,16 +503,22 @@ export const rateLimit = ${strategy === 'simple' ? 'simpleRateLimit' : 'rateLimi
           if (content.includes('const app = ') || content.includes('export const app = ')) {
             const lines = content.split('\\n')
             let insertIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].includes('const app = ') || lines[i].includes('export const app = ')) {
                 insertIndex = i + 1
                 break
               }
             }
-            
+
             if (insertIndex >= 0) {
-              lines.splice(insertIndex, 0, '', '// Rate limiting middleware', 'app.use(\\'*\\', rateLimit())')
+              lines.splice(
+                insertIndex,
+                0,
+                '',
+                '// Rate limiting middleware',
+                "app.use('*', rateLimit())"
+              )
               content = lines.join('\\n')
             }
           }
@@ -461,5 +527,5 @@ export const rateLimit = ${strategy === 'simple' ? 'simpleRateLimit' : 'rateLimi
         return content
       })
     }
-  }
+  },
 }

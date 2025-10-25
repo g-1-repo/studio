@@ -4,15 +4,15 @@
 
 export type PluginConfigValue = string | number | boolean | string[]
 
-export type PluginCategory = 'feature' | 'service' | 'deployment'
+export type PluginCategory = 'feature' | 'service' | 'deployment' | 'middleware'
 
 export interface PluginConfigField {
   type: 'string' | 'boolean' | 'number' | 'select' | 'multiselect'
   description?: string
-  default?: any
-  options?: string[] | { name: string; value: any }[]
+  default?: PluginConfigValue
+  options?: string[] | { name: string; value: PluginConfigValue }[]
   required?: boolean
-  validate?: (value: any) => boolean | string
+  validate?: (value: PluginConfigValue) => boolean | string
 }
 
 export interface PluginConfigSchema {
@@ -48,7 +48,7 @@ export interface ProjectConfig {
   install: boolean
   eslint: boolean
   prettier: boolean
-  plugins?: Record<string, any>
+  plugins?: Record<string, Record<string, PluginConfigValue>>
 }
 
 export interface CliPlugin {
@@ -64,19 +64,19 @@ export interface CliPlugin {
   dependencies?: string[]
   /** Plugins that conflict with this one */
   conflicts?: string[]
-  
+
   /**
    * Prepare phase - called before applying plugins
    * Use this to add dependencies, validate configuration, etc.
    */
   prepare?(ctx: PluginContext, config: Record<string, PluginConfigValue>): void | Promise<void>
-  
+
   /**
    * Apply phase - called during project generation
    * Use this to generate files, modify existing files, etc.
    */
   apply(ctx: PluginContext, config: Record<string, PluginConfigValue>): void | Promise<void>
-  
+
   /**
    * Finalize phase - called after all plugins have applied
    * Use this for cleanup, final modifications, etc.

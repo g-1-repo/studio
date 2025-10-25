@@ -1,7 +1,7 @@
-import { Command } from 'commander'
-import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
+import { Command } from 'commander'
+import fs from 'fs-extra'
 import { formatFileSize, getDirectorySize, readJsonFile } from '../utils/file-system.js'
 import { getGitUserInfo, isGitRepository } from '../utils/git.js'
 import { Logger } from '../utils/logger.js'
@@ -202,8 +202,10 @@ async function gatherProjectInfo(verbose: boolean = false): Promise<ProjectInfo>
         const branch = execSync('git branch --show-current', { cwd, encoding: 'utf8' }).trim()
         const lastCommit = execSync('git log -1 --format="%h %s"', { cwd, encoding: 'utf8' }).trim()
 
-        info.environment.git!.branch = branch
-        info.environment.git!.lastCommit = lastCommit
+        if (info.environment.git) {
+          info.environment.git.branch = branch
+          info.environment.git.lastCommit = lastCommit
+        }
       } catch {
         // Ignore git command errors
       }
@@ -289,7 +291,7 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   if (info.project.dependencies && info.project.dependencies.length > 0) {
     logger.listItem(`Dependencies: ${info.project.dependencies.length}`)
     if (verbose) {
-      info.project.dependencies.forEach((dep) => {
+      info.project.dependencies.forEach(dep => {
         logger.listItem(`  - ${dep}`, 2)
       })
     }
@@ -298,7 +300,7 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   if (info.project.devDependencies && info.project.devDependencies.length > 0) {
     logger.listItem(`Dev Dependencies: ${info.project.devDependencies.length}`)
     if (verbose) {
-      info.project.devDependencies.forEach((dep) => {
+      info.project.devDependencies.forEach(dep => {
         logger.listItem(`  - ${dep}`, 2)
       })
     }
@@ -308,7 +310,7 @@ function displayProjectInfo(info: ProjectInfo, verbose: boolean = false): void {
   if (info.project.scripts && info.project.scripts.length > 0) {
     logger.listItem(`Scripts: ${info.project.scripts.length}`)
     if (verbose) {
-      info.project.scripts.forEach((script) => {
+      info.project.scripts.forEach(script => {
         logger.listItem(`  - ${script}`, 2)
       })
     }

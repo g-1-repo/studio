@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue } from '../types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext } from '../types.js'
 
 /**
  * CORS Plugin
@@ -8,7 +8,7 @@ export const corsPlugin: CliPlugin = {
   id: 'cors',
   category: 'middleware',
   description: 'Configurable Cross-Origin Resource Sharing (CORS) middleware',
-  
+
   config: {
     origin: {
       type: 'select',
@@ -16,67 +16,92 @@ export const corsPlugin: CliPlugin = {
       options: [
         { name: 'All origins (*)', value: '*' },
         { name: 'Same origin only', value: 'same-origin' },
-        { name: 'Custom origins', value: 'custom' }
+        { name: 'Custom origins', value: 'custom' },
       ],
-      default: 'same-origin'
+      default: 'same-origin',
     },
     customOrigins: {
       type: 'string',
       description: 'Comma-separated list of allowed origins (when origin is "custom")',
-      default: 'http://localhost:3000,http://localhost:5173'
+      default: 'http://localhost:3000,http://localhost:5173',
     },
     methods: {
       type: 'string',
       description: 'Allowed HTTP methods (comma-separated)',
-      default: 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
+      default: 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
     },
     allowedHeaders: {
       type: 'string',
       description: 'Allowed request headers (comma-separated)',
-      default: 'Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers'
+      default:
+        'Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers',
     },
     exposedHeaders: {
       type: 'string',
       description: 'Headers exposed to the client (comma-separated)',
-      default: 'X-Total-Count,X-Page-Count,X-Per-Page,X-Current-Page'
+      default: 'X-Total-Count,X-Page-Count,X-Per-Page,X-Current-Page',
     },
     credentials: {
       type: 'boolean',
       description: 'Allow credentials (cookies, authorization headers)',
-      default: true
+      default: true,
     },
     maxAge: {
       type: 'number',
       description: 'Preflight cache duration in seconds',
-      default: 86400
+      default: 86400,
     },
     preflightContinue: {
       type: 'boolean',
       description: 'Pass control to next handler after preflight',
-      default: false
+      default: false,
     },
     optionsSuccessStatus: {
       type: 'number',
       description: 'Status code for successful OPTIONS requests',
-      default: 204
+      default: 204,
     },
     enableLogging: {
       type: 'boolean',
       description: 'Log CORS requests and violations',
-      default: true
-    }
+      default: true,
+    },
   },
 
-  prepare(ctx: PluginContext, config: Record<string, PluginConfigValue>) {
+  prepare(_ctx: PluginContext, _config: Record<string, PluginConfigValue>) {
     // Add hono/cors dependency (built-in with Hono)
   },
 
   async apply(ctx: PluginContext, config: Record<string, PluginConfigValue>): Promise<void> {
     const origin = config.origin || 'same-origin'
-    const customOrigins = config.customOrigins ? String(config.customOrigins).split(',').map(o => o.trim()) : []
-    const methods = config.methods ? String(config.methods).split(',').map(m => m.trim()) : ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
-    const allowedHeaders = config.allowedHeaders ? String(config.allowedHeaders).split(',').map(h => h.trim()) : ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers']
-    const exposedHeaders = config.exposedHeaders ? String(config.exposedHeaders).split(',').map(h => h.trim()) : ['X-Total-Count', 'X-Page-Count', 'X-Per-Page', 'X-Current-Page']
+    const customOrigins = config.customOrigins
+      ? String(config.customOrigins)
+          .split(',')
+          .map(o => o.trim())
+      : []
+    const methods = config.methods
+      ? String(config.methods)
+          .split(',')
+          .map(m => m.trim())
+      : ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    const allowedHeaders = config.allowedHeaders
+      ? String(config.allowedHeaders)
+          .split(',')
+          .map(h => h.trim())
+      : [
+          'Content-Type',
+          'Authorization',
+          'X-Requested-With',
+          'Accept',
+          'Origin',
+          'Access-Control-Request-Method',
+          'Access-Control-Request-Headers',
+        ]
+    const exposedHeaders = config.exposedHeaders
+      ? String(config.exposedHeaders)
+          .split(',')
+          .map(h => h.trim())
+      : ['X-Total-Count', 'X-Page-Count', 'X-Per-Page', 'X-Current-Page']
     const credentials = config.credentials !== false
     const maxAge = config.maxAge || 86400
     const preflightContinue = config.preflightContinue || false
@@ -99,9 +124,13 @@ import type { AppBindings } from './types.js'
 export function corsMiddleware(): MiddlewareHandler<AppBindings> {
   // Configure origin function
   const originFunction = (origin: string, c: Context<AppBindings>) => {
-    ${origin === '*' ? `
+    ${
+      origin === '*'
+        ? `
     return '*'
-    ` : origin === 'same-origin' ? `
+    `
+        : origin === 'same-origin'
+          ? `
     const requestOrigin = c.req.header('origin')
     const host = c.req.header('host')
     
@@ -116,10 +145,12 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
     } catch {
       return false
     }
-    ` : `
+    `
+          : `
     const allowedOrigins = [${customOrigins.map(o => `'${o}'`).join(', ')}]
     return allowedOrigins.includes(origin) || allowedOrigins.includes('*')
-    `}
+    `
+    }
   }
 
   return createMiddleware(async (c, next) => {
@@ -128,7 +159,9 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
     const requestedMethod = c.req.header('access-control-request-method')
     const requestedHeaders = c.req.header('access-control-request-headers')
 
-    ${enableLogging ? `
+    ${
+      enableLogging
+        ? `
     // Log CORS requests
     if (requestOrigin) {
       console.log(JSON.stringify({
@@ -140,21 +173,27 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
         timestamp: new Date().toISOString()
       }))
     }
-    ` : ''}
+    `
+        : ''
+    }
 
     // Handle preflight requests
     if (method === 'OPTIONS') {
       const allowOrigin = originFunction(requestOrigin || '', c)
       
       if (!allowOrigin) {
-        ${enableLogging ? `
+        ${
+          enableLogging
+            ? `
         console.warn(JSON.stringify({
           type: 'cors_violation',
           reason: 'origin_not_allowed',
           origin: requestOrigin,
           timestamp: new Date().toISOString()
         }))
-        ` : ''}
+        `
+            : ''
+        }
         
         return c.text('CORS: Origin not allowed', 403)
       }
@@ -166,21 +205,31 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
         c.header('Access-Control-Allow-Origin', requestOrigin)
       }
 
-      ${credentials ? `
+      ${
+        credentials
+          ? `
       c.header('Access-Control-Allow-Credentials', 'true')
-      ` : ''}
+      `
+          : ''
+      }
 
       c.header('Access-Control-Allow-Methods', '${methods.join(', ')}')
       c.header('Access-Control-Allow-Headers', '${allowedHeaders.join(', ')}')
       c.header('Access-Control-Max-Age', '${maxAge}')
 
-      ${exposedHeaders.length > 0 ? `
+      ${
+        exposedHeaders.length > 0
+          ? `
       c.header('Access-Control-Expose-Headers', '${exposedHeaders.join(', ')}')
-      ` : ''}
+      `
+          : ''
+      }
 
       // Validate requested method
       if (requestedMethod && !${JSON.stringify(methods)}.includes(requestedMethod)) {
-        ${enableLogging ? `
+        ${
+          enableLogging
+            ? `
         console.warn(JSON.stringify({
           type: 'cors_violation',
           reason: 'method_not_allowed',
@@ -189,7 +238,9 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
           allowedMethods: ${JSON.stringify(methods)},
           timestamp: new Date().toISOString()
         }))
-        ` : ''}
+        `
+            : ''
+        }
         
         return c.text('CORS: Method not allowed', 405)
       }
@@ -202,7 +253,9 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
         const invalidHeaders = requestedHeadersList.filter(h => !allowedHeadersList.includes(h))
         
         if (invalidHeaders.length > 0) {
-          ${enableLogging ? `
+          ${
+            enableLogging
+              ? `
           console.warn(JSON.stringify({
             type: 'cors_violation',
             reason: 'headers_not_allowed',
@@ -211,23 +264,31 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
             allowedHeaders: ${JSON.stringify(allowedHeaders)},
             timestamp: new Date().toISOString()
           }))
-          ` : ''}
+          `
+              : ''
+          }
           
           return c.text('CORS: Headers not allowed', 400)
         }
       }
 
-      ${preflightContinue ? `
+      ${
+        preflightContinue
+          ? `
       await next()
-      ` : `
+      `
+          : `
       return c.text('', ${optionsSuccessStatus})
-      `}
+      `
+      }
     } else {
       // Handle actual requests
       const allowOrigin = originFunction(requestOrigin || '', c)
       
       if (requestOrigin && !allowOrigin) {
-        ${enableLogging ? `
+        ${
+          enableLogging
+            ? `
         console.warn(JSON.stringify({
           type: 'cors_violation',
           reason: 'origin_not_allowed',
@@ -235,7 +296,9 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
           method,
           timestamp: new Date().toISOString()
         }))
-        ` : ''}
+        `
+            : ''
+        }
         
         return c.text('CORS: Origin not allowed', 403)
       }
@@ -247,13 +310,21 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
         c.header('Access-Control-Allow-Origin', requestOrigin)
       }
 
-      ${credentials ? `
+      ${
+        credentials
+          ? `
       c.header('Access-Control-Allow-Credentials', 'true')
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${exposedHeaders.length > 0 ? `
+      ${
+        exposedHeaders.length > 0
+          ? `
       c.header('Access-Control-Expose-Headers', '${exposedHeaders.join(', ')}')
-      ` : ''}
+      `
+          : ''
+      }
 
       await next()
     }
@@ -265,7 +336,11 @@ export function corsMiddleware(): MiddlewareHandler<AppBindings> {
  */
 export function simpleCors(): MiddlewareHandler<AppBindings> {
   return cors({
-    origin: ${origin === '*' ? `'*'` : origin === 'same-origin' ? `(origin, c) => {
+    origin: ${
+      origin === '*'
+        ? `'*'`
+        : origin === 'same-origin'
+          ? `(origin, c) => {
       const host = c.req.header('host')
       if (!origin) return true
       
@@ -276,7 +351,9 @@ export function simpleCors(): MiddlewareHandler<AppBindings> {
       } catch {
         return false
       }
-    }` : `[${customOrigins.map(o => `'${o}'`).join(', ')}]`},
+    }`
+          : `[${customOrigins.map(o => `'${o}'`).join(', ')}]`
+    },
     allowMethods: [${methods.map(m => `'${m}'`).join(', ')}],
     allowHeaders: [${allowedHeaders.map(h => `'${h}'`).join(', ')}],
     exposeHeaders: [${exposedHeaders.map(h => `'${h}'`).join(', ')}],
@@ -297,23 +374,23 @@ export const corsHandler = corsMiddleware
         // Add import if not already present
         if (!content.includes('cors.middleware')) {
           const importLine = `import { corsHandler } from './lib/cors.middleware.js'`
-          
+
           // Find the last import statement
           const lines = content.split('\\n')
           let lastImportIndex = -1
-          
+
           for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim().startsWith('import ')) {
               lastImportIndex = i
             }
           }
-          
+
           if (lastImportIndex >= 0) {
             lines.splice(lastImportIndex + 1, 0, importLine)
           } else {
             lines.unshift(importLine)
           }
-          
+
           content = lines.join('\\n')
         }
 
@@ -323,20 +400,25 @@ export const corsHandler = corsMiddleware
           if (content.includes('const app = ') || content.includes('export const app = ')) {
             const lines = content.split('\\n')
             let insertIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].includes('const app = ') || lines[i].includes('export const app = ')) {
                 insertIndex = i + 1
                 // Look for existing middleware to insert after logger
-                while (insertIndex < lines.length && (lines[insertIndex].includes('pinoLogger') || lines[insertIndex].trim() === '' || lines[insertIndex].startsWith('//'))) {
+                while (
+                  insertIndex < lines.length &&
+                  (lines[insertIndex].includes('pinoLogger') ||
+                    lines[insertIndex].trim() === '' ||
+                    lines[insertIndex].startsWith('//'))
+                ) {
                   insertIndex++
                 }
                 break
               }
             }
-            
+
             if (insertIndex >= 0) {
-              lines.splice(insertIndex, 0, '', '// CORS middleware', 'app.use(\\'*\\', corsHandler())')
+              lines.splice(insertIndex, 0, '', '// CORS middleware', "app.use('*', corsHandler())")
               content = lines.join('\\n')
             }
           }
@@ -345,5 +427,5 @@ export const corsHandler = corsMiddleware
         return content
       })
     }
-  }
+  },
 }

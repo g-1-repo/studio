@@ -1,9 +1,25 @@
 # Changelog
 
-All notable changes to the G1 API Framework will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.1.0] - 2024-12-20
+
+### Added
+- **Comprehensive Monitoring Templates**: Complete observability solution for production APIs
+  - **Metrics Collection**: Prometheus and Datadog collectors with Hono middleware integration
+  - **Health Checks**: System health monitoring with dependency tracking and configurable thresholds
+  - **Error Tracking**: Sentry-compatible error tracking with breadcrumbs and context capture
+  - **Performance Monitoring**: Request timing, system metrics, and performance profiling
+- **Demo Projects**: Working examples and integration guides for all monitoring templates
+- **Production-Ready Configuration**: Configurable sampling rates, reporting intervals, and alert thresholds
+
+### Enhanced
+- Template system now includes monitoring category with 4 comprehensive templates
+- Added monitoring middleware for seamless Hono integration
+- Improved error handling and debugging capabilities
 
 ## [2.0.0] - 2024-12-19
 

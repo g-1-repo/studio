@@ -27,15 +27,18 @@ type Create = Pick<EarlyAccessRequest, 'email'>
  */
 export class EarlyAccessRequestsRepository extends BaseRepository {
   // Override getDb to use templates-specific createDb with schema
-  protected getDb(env: Environment): ReturnType<typeof createDb> {
+  protected getDb(env: Environment): any {
     // Create a cache key based on environment
     const cacheKey = `${env.CLOUDFLARE_ACCOUNT_ID || 'default'}-${env.CLOUDFLARE_DATABASE_ID || 'default'}`
 
     if (!BaseRepository.dbCache.has(cacheKey)) {
-      BaseRepository.dbCache.set(cacheKey, createDb(env))
+      if (!env.DB) {
+        throw new Error('Database binding (DB) is not available in environment')
+      }
+      BaseRepository.dbCache.set(cacheKey, createDb(env.DB) as any)
     }
 
-    const db = BaseRepository.dbCache.get(cacheKey) as unknown as ReturnType<typeof createDb>
+    const db = BaseRepository.dbCache.get(cacheKey) as any
     if (!db) {
       throw new Error('Failed to get database instance from cache')
     }
@@ -94,9 +97,7 @@ export class EarlyAccessRequestsRepository extends BaseRepository {
     return this.executeQuery(
       env,
       async db => {
-        await db
-          .delete(earlyAccessRequestsTable)
-          .where(eq(earlyAccessRequestsTable.id, id))
+        await db.delete(earlyAccessRequestsTable).where(eq(earlyAccessRequestsTable.id, id))
       },
       'remove'
     )

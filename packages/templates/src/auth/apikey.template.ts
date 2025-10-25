@@ -1,7 +1,7 @@
+import { createHash, randomBytes } from 'node:crypto'
 import type { Context, MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { randomBytes, createHash, timingSafeEqual } from 'node:crypto'
 
 export interface ApiKeyConfig {
   prefix?: string
@@ -95,7 +95,7 @@ export class MemoryApiKeyStore implements ApiKeyStore {
     if (existing) {
       const updated = { ...existing, ...updates }
       this.keys.set(id, updated)
-      
+
       // Update hash index if keyHash changed
       if (updates.keyHash && updates.keyHash !== existing.keyHash) {
         this.hashIndex.delete(existing.keyHash)
@@ -121,9 +121,9 @@ export class MemoryApiKeyStore implements ApiKeyStore {
 
   async getUsage(keyId: string, from?: number, to?: number): Promise<ApiKeyUsage[]> {
     const keyUsage = this.usage.get(keyId) || []
-    
+
     if (!from && !to) return keyUsage
-    
+
     return keyUsage.filter(usage => {
       if (from && usage.timestamp < from) return false
       if (to && usage.timestamp > to) return false
@@ -133,7 +133,7 @@ export class MemoryApiKeyStore implements ApiKeyStore {
 
   async cleanup(): Promise<void> {
     const now = Date.now()
-    
+
     // Remove expired keys
     for (const [id, key] of this.keys.entries()) {
       if (key.expiresAt && now > key.expiresAt) {
@@ -175,11 +175,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
 
   async getById(id: string): Promise<ApiKey | null> {
     try {
-      const result = await this.db
-        .select()
-        .from(this.keysTable)
-        .where('id', id)
-        .first()
+      const result = await this.db.select().from(this.keysTable).where('id', id).first()
 
       return result ? this.mapDbToApiKey(result) : null
     } catch (error) {
@@ -215,10 +211,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
   async update(id: string, updates: Partial<ApiKey>): Promise<void> {
     try {
       const dbUpdates = this.mapApiKeyToDb(updates as ApiKey, true)
-      await this.db
-        .update(dbUpdates)
-        .from(this.keysTable)
-        .where('id', id)
+      await this.db.update(dbUpdates).from(this.keysTable).where('id', id)
     } catch (error) {
       console.error('Database API key update error:', error)
       throw error
@@ -237,16 +230,18 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
 
   async recordUsage(usage: ApiKeyUsage): Promise<void> {
     try {
-      await this.db.insert({
-        key_id: usage.keyId,
-        timestamp: usage.timestamp,
-        endpoint: usage.endpoint,
-        method: usage.method,
-        ip: usage.ip,
-        user_agent: usage.userAgent,
-        success: usage.success,
-        error: usage.error
-      }).into(this.usageTable)
+      await this.db
+        .insert({
+          key_id: usage.keyId,
+          timestamp: usage.timestamp,
+          endpoint: usage.endpoint,
+          method: usage.method,
+          ip: usage.ip,
+          user_agent: usage.userAgent,
+          success: usage.success,
+          error: usage.error,
+        })
+        .into(this.usageTable)
     } catch (error) {
       console.error('Database API key usage record error:', error)
     }
@@ -254,16 +249,13 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
 
   async getUsage(keyId: string, from?: number, to?: number): Promise<ApiKeyUsage[]> {
     try {
-      let query = this.db
-        .select()
-        .from(this.usageTable)
-        .where('key_id', keyId)
+      let query = this.db.select().from(this.usageTable).where('key_id', keyId)
 
       if (from) query = query.where('timestamp', '>=', from)
       if (to) query = query.where('timestamp', '<=', to)
 
       const results = await query.orderBy('timestamp', 'desc')
-      
+
       return results.map((result: any) => ({
         keyId: result.key_id,
         timestamp: result.timestamp,
@@ -272,7 +264,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
         ip: result.ip,
         userAgent: result.user_agent,
         success: result.success,
-        error: result.error
+        error: result.error,
       }))
     } catch (error) {
       console.error('Database API key usage get error:', error)
@@ -283,10 +275,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
   async cleanup(): Promise<void> {
     try {
       const now = Date.now()
-      await this.db
-        .delete()
-        .from(this.keysTable)
-        .where('expires_at', '<', now)
+      await this.db.delete().from(this.keysTable).where('expires_at', '<', now)
     } catch (error) {
       console.error('Database API key cleanup error:', error)
     }
@@ -306,7 +295,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
       lastUsedAt: dbRow.last_used_at,
       expiresAt: dbRow.expires_at,
       isActive: dbRow.is_active,
-      usageCount: dbRow.usage_count || 0
+      usageCount: dbRow.usage_count || 0,
     }
   }
 
@@ -322,7 +311,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
       last_used_at: apiKey.lastUsedAt,
       expires_at: apiKey.expiresAt,
       is_active: apiKey.isActive,
-      usage_count: apiKey.usageCount
+      usage_count: apiKey.usageCount,
     }
 
     if (!isUpdate) {
@@ -337,7 +326,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
 export class ApiKeyManager {
   private config: Required<ApiKeyConfig>
   private store: ApiKeyStore
-  private rateLimitCache = new Map<string, { count: number, resetTime: number }>()
+  private rateLimitCache = new Map<string, { count: number; resetTime: number }>()
 
   constructor(config: ApiKeyConfig) {
     this.config = {
@@ -350,14 +339,14 @@ export class ApiKeyManager {
       rateLimiting: {
         enabled: false,
         windowMs: 60000, // 1 minute
-        maxRequests: 100
+        maxRequests: 100,
       },
       logging: {
         enabled: true,
         logSuccessful: false,
-        logFailed: true
+        logFailed: true,
       },
-      ...config
+      ...config,
     }
     this.store = this.config.store
 
@@ -368,11 +357,11 @@ export class ApiKeyManager {
   /**
    * Generate a new API key
    */
-  generateApiKey(): { key: string, hash: string } {
+  generateApiKey(): { key: string; hash: string } {
     const keyBytes = randomBytes(this.config.keyLength)
     const key = `${this.config.prefix}_${keyBytes.toString('base64url')}`
     const hash = createHash(this.config.hashAlgorithm).update(key).digest('hex')
-    
+
     return { key, hash }
   }
 
@@ -384,13 +373,13 @@ export class ApiKeyManager {
     userId?: string
     scopes?: string[]
     permissions?: string[]
-    rateLimit?: { requests: number, windowMs: number }
+    rateLimit?: { requests: number; windowMs: number }
     expiresAt?: number
     metadata?: Record<string, any>
-  }): Promise<{ apiKey: ApiKey, key: string }> {
+  }): Promise<{ apiKey: ApiKey; key: string }> {
     const { key, hash } = this.generateApiKey()
     const id = randomBytes(16).toString('hex')
-    
+
     const apiKey: ApiKey = {
       id,
       name: options.name,
@@ -403,11 +392,11 @@ export class ApiKeyManager {
       createdAt: Date.now(),
       expiresAt: options.expiresAt,
       isActive: true,
-      usageCount: 0
+      usageCount: 0,
     }
 
     await this.store.create(apiKey)
-    
+
     return { apiKey, key }
   }
 
@@ -421,7 +410,7 @@ export class ApiKeyManager {
 
     const hash = createHash(this.config.hashAlgorithm).update(key).digest('hex')
     const apiKey = await this.store.getByHash(hash)
-    
+
     if (!apiKey || !apiKey.isActive) {
       return null
     }
@@ -438,7 +427,7 @@ export class ApiKeyManager {
   /**
    * Check rate limit for API key
    */
-  checkRateLimit(apiKey: ApiKey): { allowed: boolean, resetTime?: number } {
+  checkRateLimit(apiKey: ApiKey): { allowed: boolean; resetTime?: number } {
     if (!this.config.rateLimiting.enabled && !apiKey.rateLimit) {
       return { allowed: true }
     }
@@ -447,22 +436,26 @@ export class ApiKeyManager {
     const now = Date.now()
     const windowStart = Math.floor(now / limit.windowMs) * limit.windowMs
     const resetTime = windowStart + limit.windowMs
-    
+
     const cacheKey = `${apiKey.id}:${windowStart}`
     const current = this.rateLimitCache.get(cacheKey) || { count: 0, resetTime }
-    
-    if (current.count >= limit.maxRequests) {
+
+    // Handle different property names for rate limit
+    const maxRequests = 'maxRequests' in limit ? limit.maxRequests : limit.requests
+    if (current.count >= maxRequests) {
       return { allowed: false, resetTime }
     }
 
     // Increment counter
     current.count++
     this.rateLimitCache.set(cacheKey, current)
-    
-    // Clean up old entries
-    this.cleanupRateLimitCache(now)
-    
-    return { allowed: true, resetTime }
+
+    // Cleanup old entries periodically
+    if (Math.random() < 0.01) {
+      this.cleanupRateLimitCache(now)
+    }
+
+    return { allowed: true }
   }
 
   /**
@@ -493,14 +486,14 @@ export class ApiKeyManager {
     // Update last used time and usage count
     await this.store.update(apiKey.id, {
       lastUsedAt: Date.now(),
-      usageCount: apiKey.usageCount + 1
+      usageCount: apiKey.usageCount + 1,
     })
 
     // Record detailed usage if logging enabled
     if (this.config.logging.enabled) {
-      const shouldLog = context.success ? 
-        this.config.logging.logSuccessful : 
-        this.config.logging.logFailed
+      const shouldLog = context.success
+        ? this.config.logging.logSuccessful
+        : this.config.logging.logFailed
 
       if (shouldLog) {
         await this.store.recordUsage({
@@ -511,7 +504,7 @@ export class ApiKeyManager {
           ip: context.ip,
           userAgent: context.userAgent,
           success: context.success,
-          error: context.error
+          error: context.error,
         })
       }
     }
@@ -552,6 +545,13 @@ export class ApiKeyManager {
   async getUsageStats(keyId: string, from?: number, to?: number): Promise<ApiKeyUsage[]> {
     return await this.store.getUsage(keyId, from, to)
   }
+
+  /**
+   * Get an API key by ID (public method for external access)
+   */
+  async getApiKeyById(id: string): Promise<ApiKey | null> {
+    return await this.store.getById(id)
+  }
 }
 
 /**
@@ -567,7 +567,7 @@ export function createApiKeyAuthMiddleware(
 ): MiddlewareHandler {
   return createMiddleware(async (c, next) => {
     const apiKey = apiKeyManager.getApiKeyFromRequest(c)
-    
+
     if (!apiKey) {
       if (options.required !== false) {
         throw new HTTPException(401, { message: 'API key required' })
@@ -577,7 +577,7 @@ export function createApiKeyAuthMiddleware(
 
     try {
       const validatedKey = await apiKeyManager.validateApiKey(apiKey)
-      
+
       if (!validatedKey) {
         throw new HTTPException(401, { message: 'Invalid API key' })
       }
@@ -592,7 +592,7 @@ export function createApiKeyAuthMiddleware(
 
       // Check permissions
       if (options.permissions && options.permissions.length > 0) {
-        const hasPermission = options.permissions.some(permission => 
+        const hasPermission = options.permissions.some(permission =>
           validatedKey.permissions.includes(permission)
         )
         if (!hasPermission) {
@@ -613,7 +613,7 @@ export function createApiKeyAuthMiddleware(
         id: validatedKey.userId,
         type: 'api_key',
         scopes: validatedKey.scopes,
-        permissions: validatedKey.permissions
+        permissions: validatedKey.permissions,
       })
 
       // Record usage after request
@@ -635,16 +635,17 @@ export function createApiKeyAuthMiddleware(
             ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown',
             userAgent: c.req.header('user-agent'),
             success,
-            error
+            error,
           })
         }
       }
 
       return await wrappedNext()
-
     } catch (error) {
       if (options.required !== false) {
-        throw new HTTPException(401, { message: `API key authentication failed: ${(error as Error).message}` })
+        throw new HTTPException(401, {
+          message: `API key authentication failed: ${(error as Error).message}`,
+        })
       }
     }
 
@@ -661,7 +662,7 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
     create: async (c: Context) => {
       const { name, scopes, permissions, rateLimit, expiresAt, metadata } = await c.req.json()
       const userId = c.get('user')?.id
-      
+
       if (!name) {
         throw new HTTPException(400, { message: 'API key name required' })
       }
@@ -673,16 +674,16 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
         permissions,
         rateLimit,
         expiresAt,
-        metadata
+        metadata,
       })
 
       return c.json({
         success: true,
         apiKey: {
           ...result.apiKey,
-          keyHash: undefined // Don't expose hash
+          keyHash: undefined, // Don't expose hash
         },
-        key: result.key // Only returned once
+        key: result.key, // Only returned once
       })
     },
 
@@ -694,13 +695,13 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
       }
 
       const apiKeys = await apiKeyManager.getUserApiKeys(userId)
-      
+
       return c.json({
         success: true,
         apiKeys: apiKeys.map(key => ({
           ...key,
-          keyHash: undefined // Don't expose hash
-        }))
+          keyHash: undefined, // Don't expose hash
+        })),
       })
     },
 
@@ -708,18 +709,18 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
     revoke: async (c: Context) => {
       const keyId = c.req.param('id')
       const userId = c.get('user')?.id
-      
+
       if (!keyId) {
         throw new HTTPException(400, { message: 'API key ID required' })
       }
 
-      const apiKey = await apiKeyManager.store.getById(keyId)
+      const apiKey = await apiKeyManager.getApiKeyById(keyId)
       if (!apiKey || apiKey.userId !== userId) {
         throw new HTTPException(404, { message: 'API key not found' })
       }
 
       await apiKeyManager.revokeApiKey(keyId)
-      
+
       return c.json({ success: true, message: 'API key revoked' })
     },
 
@@ -727,22 +728,22 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
     usage: async (c: Context) => {
       const keyId = c.req.param('id')
       const userId = c.get('user')?.id
-      const from = c.req.query('from') ? parseInt(c.req.query('from')!) : undefined
-      const to = c.req.query('to') ? parseInt(c.req.query('to')!) : undefined
-      
+      const from = c.req.query('from') ? parseInt(c.req.query('from')!, 10) : undefined
+      const to = c.req.query('to') ? parseInt(c.req.query('to')!, 10) : undefined
+
       if (!keyId) {
         throw new HTTPException(400, { message: 'API key ID required' })
       }
 
-      const apiKey = await apiKeyManager.store.getById(keyId)
+      const apiKey = await apiKeyManager.getApiKeyById(keyId)
       if (!apiKey || apiKey.userId !== userId) {
         throw new HTTPException(404, { message: 'API key not found' })
       }
 
       const usage = await apiKeyManager.getUsageStats(keyId, from, to)
-      
+
       return c.json({ success: true, usage })
-    }
+    },
   }
 }
 

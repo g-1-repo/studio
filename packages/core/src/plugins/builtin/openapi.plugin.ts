@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue } from '../types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext } from '../types.js'
 
 /**
  * OpenAPI Documentation Plugin
@@ -8,7 +8,7 @@ export const openApiPlugin: CliPlugin = {
   id: 'openapi',
   category: 'feature',
   description: 'Adds OpenAPI specification with Scalar documentation UI',
-  
+
   config: {
     theme: {
       type: 'select',
@@ -24,97 +24,97 @@ export const openApiPlugin: CliPlugin = {
         { name: 'Blue Planet', value: 'bluePlanet' },
         { name: 'Deep Space', value: 'deepSpace' },
         { name: 'Laserwave', value: 'laserwave' },
-        { name: 'None', value: 'none' }
+        { name: 'None', value: 'none' },
       ],
-      default: 'kepler'
+      default: 'kepler',
     },
     layout: {
       type: 'select',
       description: 'Layout style for the API reference',
       options: [
         { name: 'Modern', value: 'modern' },
-        { name: 'Classic', value: 'classic' }
+        { name: 'Classic', value: 'classic' },
       ],
-      default: 'modern'
+      default: 'modern',
     },
     title: {
       type: 'string',
       description: 'API documentation title',
-      default: '{{projectName}} API'
+      default: '{{projectName}} API',
     },
     description: {
       type: 'string',
       description: 'API description',
-      default: 'API documentation for {{projectName}}'
+      default: 'API documentation for {{projectName}}',
     },
     specEndpoint: {
       type: 'string',
       description: 'OpenAPI specification endpoint',
-      default: '/doc'
+      default: '/doc',
     },
     docsEndpoint: {
       type: 'string',
       description: 'Documentation UI endpoint',
-      default: '/reference'
+      default: '/reference',
     },
     version: {
       type: 'string',
       description: 'API version',
-      default: '1.0.0'
+      default: '1.0.0',
     },
     customCss: {
       type: 'string',
       description: 'Custom CSS to inject into the documentation',
-      default: ''
+      default: '',
     },
     withDefaultFonts: {
       type: 'boolean',
-      description: 'Whether to use Scalar\'s default fonts',
-      default: true
+      description: "Whether to use Scalar's default fonts",
+      default: true,
     },
     favicon: {
       type: 'string',
       description: 'Custom favicon URL for the documentation page',
-      default: ''
+      default: '',
     },
     pageTitle: {
       type: 'string',
       description: 'Custom page title for the documentation',
-      default: ''
+      default: '',
     },
     showSidebar: {
       type: 'boolean',
       description: 'Whether to show the sidebar',
-      default: true
+      default: true,
     },
     hideModels: {
       type: 'boolean',
       description: 'Whether to hide the models section',
-      default: false
+      default: false,
     },
     hideDownloadButton: {
       type: 'boolean',
       description: 'Whether to hide the download button',
-      default: false
+      default: false,
     },
     isEditable: {
       type: 'boolean',
       description: 'Whether the documentation is editable',
-      default: false
+      default: false,
     },
     darkMode: {
       type: 'boolean',
       description: 'Force dark mode on/off',
-      default: false
+      default: false,
     },
     proxy: {
       type: 'string',
       description: 'Proxy configuration for API calls',
-      default: ''
-    }
+      default: '',
+    },
   },
 
-  prepare(ctx: PluginContext, config: Record<string, PluginConfigValue>) {
+  prepare(ctx: PluginContext, _config: Record<string, PluginConfigValue>) {
     // Add required dependencies
     ctx.addDependency('@scalar/hono-api-reference')
   },
@@ -187,23 +187,23 @@ export default function configureOpenAPI(app: AppOpenAPI) {
         // Add import if not already present
         if (!content.includes('configureOpenAPI')) {
           const importLine = "import configureOpenAPI from './lib/configure-open-api.js'"
-          
+
           // Find the last import statement
           const lines = content.split('\\n')
           let lastImportIndex = -1
-          
+
           for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim().startsWith('import ')) {
               lastImportIndex = i
             }
           }
-          
+
           if (lastImportIndex >= 0) {
             lines.splice(lastImportIndex + 1, 0, importLine)
           } else {
             lines.unshift(importLine)
           }
-          
+
           content = lines.join('\\n')
         }
 
@@ -214,16 +214,22 @@ export default function configureOpenAPI(app: AppOpenAPI) {
           if (content.includes('const app = ') || content.includes('export const app = ')) {
             const lines = content.split('\\n')
             let insertIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].includes('const app = ') || lines[i].includes('export const app = ')) {
                 insertIndex = i + 1
                 break
               }
             }
-            
+
             if (insertIndex >= 0) {
-              lines.splice(insertIndex, 0, '', '// Configure OpenAPI documentation', 'configureOpenAPI(app)')
+              lines.splice(
+                insertIndex,
+                0,
+                '',
+                '// Configure OpenAPI documentation',
+                'configureOpenAPI(app)'
+              )
               content = lines.join('\\n')
             }
           }
@@ -244,16 +250,16 @@ export type AppOpenAPI = OpenAPIHono
       // Ensure AppOpenAPI type is available
       await ctx.modifyFile('src/lib/types.ts', (content: string) => {
         if (!content.includes('AppOpenAPI')) {
-          const typeDefinition = "\\nexport type AppOpenAPI = OpenAPIHono\\n"
-          
+          const typeDefinition = '\\nexport type AppOpenAPI = OpenAPIHono\\n'
+
           if (!content.includes("import type { OpenAPIHono } from '@hono/zod-openapi'")) {
-            content = "import type { OpenAPIHono } from '@hono/zod-openapi'\\n" + content
+            content = `import type { OpenAPIHono } from '@hono/zod-openapi'\\n${content}`
           }
-          
+
           content += typeDefinition
         }
         return content
       })
     }
-  }
+  },
 }

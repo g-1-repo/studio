@@ -337,24 +337,28 @@ class TestDashboardServer {
     }
 
     // Parse coverage data if present
-    const coverageTableMatch = output.match(/(-{30,}.*?\n.*?File.*?% Funcs.*?% Lines.*?\n-{30,}.*?\n)(.*?)(-{30,})/s)
+    const coverageTableMatch = output.match(
+      /(-{30,}.*?\n.*?File.*?% Funcs.*?% Lines.*?\n-{30,}.*?\n)(.*?)(-{30,})/s
+    )
     if (coverageTableMatch) {
       const coverageData = this.parseCoverageTable(coverageTableMatch[2])
       results.coverage = coverageData
-      
+
       // Update overall coverage percentage in stats
-      if (coverageData && coverageData.overall) {
+      if (coverageData?.overall) {
         results.stats.coverage = coverageData.overall.lines
       }
     } else {
       // Try alternative parsing for different output formats
-      const altCoverageMatch = output.match(/File\s+\|\s+% Funcs\s+\|\s+% Lines\s+\|\s+Uncovered Line #s\s*\n-+\|\s*-+\|\s*-+\|\s*-+\s*\n(.*?)(?:\n\s*\d+\s+pass|\n\s*$)/s)
+      const altCoverageMatch = output.match(
+        /File\s+\|\s+% Funcs\s+\|\s+% Lines\s+\|\s+Uncovered Line #s\s*\n-+\|\s*-+\|\s*-+\|\s*-+\s*\n(.*?)(?:\n\s*\d+\s+pass|\n\s*$)/s
+      )
       if (altCoverageMatch) {
         const coverageData = this.parseCoverageTable(altCoverageMatch[1])
         results.coverage = coverageData
-        
+
         // Update overall coverage percentage in stats
-        if (coverageData && coverageData.overall) {
+        if (coverageData?.overall) {
           results.stats.coverage = coverageData.overall.lines
         }
       }
@@ -378,7 +382,7 @@ class TestDashboardServer {
         const fileName = parts[0]
         const funcsCoverage = parseFloat(parts[1]) || 0
         const linesCoverage = parseFloat(parts[2]) || 0
-        
+
         if (fileName === 'All files') {
           overall = {
             functions: funcsCoverage,

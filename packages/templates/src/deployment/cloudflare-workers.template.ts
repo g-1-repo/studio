@@ -89,7 +89,7 @@ export const DEFAULT_CLOUDFLARE_CONFIG: CloudflareWorkersConfig = {
   main: 'src/index.ts',
   compatibility_date: '2024-01-01',
   compatibility_flags: [],
-  usage_model: 'bundled'
+  usage_model: 'bundled',
 }
 
 /**
@@ -97,18 +97,20 @@ export const DEFAULT_CLOUDFLARE_CONFIG: CloudflareWorkersConfig = {
  */
 export function generateWranglerConfig(config: CloudflareWorkersConfig): string {
   const lines: string[] = []
-  
+
   // Basic configuration
   if (config.name) lines.push(`name = "${config.name}"`)
   if (config.main) lines.push(`main = "${config.main}"`)
   if (config.compatibility_date) lines.push(`compatibility_date = "${config.compatibility_date}"`)
   if (config.usage_model) lines.push(`usage_model = "${config.usage_model}"`)
-  
+
   // Compatibility flags
   if (config.compatibility_flags && config.compatibility_flags.length > 0) {
-    lines.push(`compatibility_flags = [${config.compatibility_flags.map(f => `"${f}"`).join(', ')}]`)
+    lines.push(
+      `compatibility_flags = [${config.compatibility_flags.map(f => `"${f}"`).join(', ')}]`
+    )
   }
-  
+
   // Environment variables
   if (config.vars && Object.keys(config.vars).length > 0) {
     lines.push('\n[vars]')
@@ -116,7 +118,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       lines.push(`${key} = "${value}"`)
     })
   }
-  
+
   // KV namespaces
   if (config.kv_namespaces && config.kv_namespaces.length > 0) {
     config.kv_namespaces.forEach(kv => {
@@ -126,7 +128,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (kv.preview_id) lines.push(`preview_id = "${kv.preview_id}"`)
     })
   }
-  
+
   // Durable Objects
   if (config.durable_objects && config.durable_objects.length > 0) {
     config.durable_objects.forEach(obj => {
@@ -136,17 +138,18 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (obj.script_name) lines.push(`script_name = "${obj.script_name}"`)
     })
   }
-  
+
   // R2 buckets
   if (config.r2_buckets && config.r2_buckets.length > 0) {
     config.r2_buckets.forEach(bucket => {
       lines.push('\n[[r2_buckets]]')
       lines.push(`binding = "${bucket.binding}"`)
       lines.push(`bucket_name = "${bucket.bucket_name}"`)
-      if (bucket.preview_bucket_name) lines.push(`preview_bucket_name = "${bucket.preview_bucket_name}"`)
+      if (bucket.preview_bucket_name)
+        lines.push(`preview_bucket_name = "${bucket.preview_bucket_name}"`)
     })
   }
-  
+
   // D1 databases
   if (config.d1_databases && config.d1_databases.length > 0) {
     config.d1_databases.forEach(db => {
@@ -157,7 +160,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (db.preview_database_id) lines.push(`preview_database_id = "${db.preview_database_id}"`)
     })
   }
-  
+
   // Services
   if (config.services && config.services.length > 0) {
     config.services.forEach(service => {
@@ -167,7 +170,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (service.environment) lines.push(`environment = "${service.environment}"`)
     })
   }
-  
+
   // Analytics Engine
   if (config.analytics_engine_datasets && config.analytics_engine_datasets.length > 0) {
     config.analytics_engine_datasets.forEach(dataset => {
@@ -176,13 +179,13 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (dataset.dataset) lines.push(`dataset = "${dataset.dataset}"`)
     })
   }
-  
+
   // AI binding
   if (config.ai) {
     lines.push('\n[ai]')
     lines.push(`binding = "${config.ai.binding}"`)
   }
-  
+
   // Vectorize
   if (config.vectorize && config.vectorize.length > 0) {
     config.vectorize.forEach(vector => {
@@ -191,7 +194,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       lines.push(`index_name = "${vector.index_name}"`)
     })
   }
-  
+
   // Hyperdrive
   if (config.hyperdrive && config.hyperdrive.length > 0) {
     config.hyperdrive.forEach(hyper => {
@@ -200,7 +203,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       lines.push(`id = "${hyper.id}"`)
     })
   }
-  
+
   // Queues
   if (config.queues && config.queues.length > 0) {
     config.queues.forEach(queue => {
@@ -209,7 +212,7 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       lines.push(`queue = "${queue.queue}"`)
     })
   }
-  
+
   // Routes
   if (config.routes && config.routes.length > 0) {
     config.routes.forEach(route => {
@@ -220,25 +223,25 @@ export function generateWranglerConfig(config: CloudflareWorkersConfig): string 
       if (route.custom_domain) lines.push(`custom_domain = ${route.custom_domain}`)
     })
   }
-  
+
   // Triggers
   if (config.triggers?.crons && config.triggers.crons.length > 0) {
     lines.push('\n[triggers]')
     lines.push(`crons = [${config.triggers.crons.map(c => `"${c}"`).join(', ')}]`)
   }
-  
+
   // Limits
   if (config.limits?.cpu_ms) {
     lines.push('\n[limits]')
     lines.push(`cpu_ms = ${config.limits.cpu_ms}`)
   }
-  
+
   // Placement
   if (config.placement?.mode) {
     lines.push('\n[placement]')
     lines.push(`mode = "${config.placement.mode}"`)
   }
-  
+
   return lines.join('\n')
 }
 
@@ -320,20 +323,20 @@ export default app`
  * Package.json scripts for Cloudflare Workers
  */
 export const CLOUDFLARE_SCRIPTS = {
-  "dev": "wrangler dev",
-  "deploy": "wrangler deploy",
-  "deploy:staging": "wrangler deploy --env staging",
-  "deploy:production": "wrangler deploy --env production",
-  "tail": "wrangler tail",
-  "kv:list": "wrangler kv:namespace list",
-  "kv:create": "wrangler kv:namespace create",
-  "d1:create": "wrangler d1 create",
-  "d1:migrations:list": "wrangler d1 migrations list",
-  "d1:migrations:apply": "wrangler d1 migrations apply",
-  "r2:create": "wrangler r2 bucket create",
-  "r2:list": "wrangler r2 bucket list",
-  "publish": "wrangler deploy --minify",
-  "preview": "wrangler dev --remote"
+  dev: 'wrangler dev',
+  deploy: 'wrangler deploy',
+  'deploy:staging': 'wrangler deploy --env staging',
+  'deploy:production': 'wrangler deploy --env production',
+  tail: 'wrangler tail',
+  'kv:list': 'wrangler kv:namespace list',
+  'kv:create': 'wrangler kv:namespace create',
+  'd1:create': 'wrangler d1 create',
+  'd1:migrations:list': 'wrangler d1 migrations list',
+  'd1:migrations:apply': 'wrangler d1 migrations apply',
+  'r2:create': 'wrangler r2 bucket create',
+  'r2:list': 'wrangler r2 bucket list',
+  publish: 'wrangler deploy --minify',
+  preview: 'wrangler dev --remote',
 }
 
 /**
@@ -341,39 +344,39 @@ export const CLOUDFLARE_SCRIPTS = {
  */
 export const CLOUDFLARE_DEPENDENCIES = {
   dependencies: {
-    "hono": "^4.0.0"
+    hono: '^4.0.0',
   },
   devDependencies: {
-    "@cloudflare/workers-types": "^4.20240117.0",
-    "wrangler": "^3.0.0",
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
-  }
+    '@cloudflare/workers-types': '^4.20240117.0',
+    wrangler: '^3.0.0',
+    typescript: '^5.0.0',
+    '@types/node': '^20.0.0',
+  },
 }
 
 /**
  * TypeScript configuration for Cloudflare Workers
  */
 export const CLOUDFLARE_TSCONFIG = {
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": false,
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "types": ["@cloudflare/workers-types"]
+  compilerOptions: {
+    target: 'ES2022',
+    lib: ['ES2022'],
+    module: 'ESNext',
+    moduleResolution: 'bundler',
+    allowSyntheticDefaultImports: true,
+    esModuleInterop: true,
+    allowJs: true,
+    checkJs: false,
+    strict: true,
+    skipLibCheck: true,
+    forceConsistentCasingInFileNames: true,
+    resolveJsonModule: true,
+    isolatedModules: true,
+    noEmit: true,
+    types: ['@cloudflare/workers-types'],
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  include: ['src/**/*'],
+  exclude: ['node_modules', 'dist'],
 }
 
 /**
@@ -389,8 +392,8 @@ export const CLOUDFLARE_CONFIGS = {
     compatibility_date: '2024-01-01',
     usage_model: 'bundled',
     vars: {
-      NODE_ENV: 'production'
-    }
+      NODE_ENV: 'production',
+    },
   }),
 
   /**
@@ -401,19 +404,23 @@ export const CLOUDFLARE_CONFIGS = {
     main: 'src/index.ts',
     compatibility_date: '2024-01-01',
     usage_model: 'bundled',
-    d1_databases: [{
-      binding: 'DB',
-      database_name: `${name}-db`,
-      database_id: dbId
-    }],
-    kv_namespaces: [{
-      binding: 'CACHE',
-      id: 'your-kv-namespace-id'
-    }],
+    d1_databases: [
+      {
+        binding: 'DB',
+        database_name: `${name}-db`,
+        database_id: dbId,
+      },
+    ],
+    kv_namespaces: [
+      {
+        binding: 'CACHE',
+        id: 'your-kv-namespace-id',
+      },
+    ],
     vars: {
       NODE_ENV: 'production',
-      JWT_SECRET: 'your-jwt-secret'
-    }
+      JWT_SECRET: 'your-jwt-secret',
+    },
   }),
 
   /**
@@ -425,15 +432,17 @@ export const CLOUDFLARE_CONFIGS = {
     compatibility_date: '2024-01-01',
     usage_model: 'unbound',
     ai: {
-      binding: 'AI'
+      binding: 'AI',
     },
-    vectorize: [{
-      binding: 'VECTORIZE',
-      index_name: `${name}-vectors`
-    }],
+    vectorize: [
+      {
+        binding: 'VECTORIZE',
+        index_name: `${name}-vectors`,
+      },
+    ],
     vars: {
-      NODE_ENV: 'production'
-    }
+      NODE_ENV: 'production',
+    },
   }),
 
   /**
@@ -444,14 +453,16 @@ export const CLOUDFLARE_CONFIGS = {
     main: 'src/index.ts',
     compatibility_date: '2024-01-01',
     usage_model: 'bundled',
-    r2_buckets: [{
-      binding: 'STORAGE',
-      bucket_name: bucketName
-    }],
+    r2_buckets: [
+      {
+        binding: 'STORAGE',
+        bucket_name: bucketName,
+      },
+    ],
     vars: {
       NODE_ENV: 'production',
-      MAX_FILE_SIZE: '10485760' // 10MB
-    }
+      MAX_FILE_SIZE: '10485760', // 10MB
+    },
   }),
 
   /**
@@ -463,11 +474,11 @@ export const CLOUDFLARE_CONFIGS = {
     compatibility_date: '2024-01-01',
     usage_model: 'bundled',
     triggers: {
-      crons
+      crons,
     },
     vars: {
-      NODE_ENV: 'production'
-    }
+      NODE_ENV: 'production',
+    },
   }),
 
   /**
@@ -479,9 +490,9 @@ export const CLOUDFLARE_CONFIGS = {
     compatibility_date: '2024-01-01',
     usage_model: 'bundled',
     vars: {
-      NODE_ENV: 'production'
-    }
-  })
+      NODE_ENV: 'production',
+    },
+  }),
 }
 
 /**
@@ -492,43 +503,43 @@ export function generateEnvironmentConfig(
   environment: 'development' | 'staging' | 'production'
 ): string {
   const envConfig = { ...baseConfig }
-  
+
   // Update name for environment
   if (envConfig.name) {
     envConfig.name = `${envConfig.name}-${environment}`
   }
-  
+
   // Environment-specific variables
   envConfig.vars = {
     ...envConfig.vars,
     NODE_ENV: environment,
-    ENVIRONMENT: environment
+    ENVIRONMENT: environment,
   }
-  
+
   // Use preview resources for non-production
   if (environment !== 'production') {
     if (envConfig.kv_namespaces) {
       envConfig.kv_namespaces = envConfig.kv_namespaces.map(kv => ({
         ...kv,
-        preview_id: kv.preview_id || `${kv.id}-preview`
+        preview_id: kv.preview_id || `${kv.id}-preview`,
       }))
     }
-    
+
     if (envConfig.d1_databases) {
       envConfig.d1_databases = envConfig.d1_databases.map(db => ({
         ...db,
-        preview_database_id: db.preview_database_id || `${db.database_id}-preview`
+        preview_database_id: db.preview_database_id || `${db.database_id}-preview`,
       }))
     }
-    
+
     if (envConfig.r2_buckets) {
       envConfig.r2_buckets = envConfig.r2_buckets.map(bucket => ({
         ...bucket,
-        preview_bucket_name: bucket.preview_bucket_name || `${bucket.bucket_name}-preview`
+        preview_bucket_name: bucket.preview_bucket_name || `${bucket.bucket_name}-preview`,
       }))
     }
   }
-  
+
   return generateWranglerConfig(envConfig)
 }
 
@@ -539,7 +550,7 @@ export const CLOUDFLARE_HELPERS = {
   /**
    * Generate GitHub Actions workflow
    */
-  githubActions: (name: string) => `name: Deploy to Cloudflare Workers
+  githubActions: (_name: string) => `name: Deploy to Cloudflare Workers
 
 on:
   push:
@@ -617,7 +628,7 @@ echo "Secrets setup complete!"`,
 - \`npm run tail\` - View live logs
 
 ## Environment Variables
-Copy \`.env.example\` to \`.env.local\` and fill in your values.`
+Copy \`.env.example\` to \`.env.local\` and fill in your values.`,
 }
 
 /**
@@ -647,7 +658,7 @@ const stagingWrangler = generateEnvironmentConfig(prodConfig, 'staging')`,
 import { CLOUDFLARE_CONFIGS } from './cloudflare-workers.template'
 
 const aiConfig = CLOUDFLARE_CONFIGS.aiApp('ai-assistant')
-const wranglerToml = generateWranglerConfig(aiConfig)`
+const wranglerToml = generateWranglerConfig(aiConfig)`,
 }
 
 export default {
@@ -659,5 +670,5 @@ export default {
   CLOUDFLARE_SCRIPTS,
   CLOUDFLARE_DEPENDENCIES,
   CLOUDFLARE_TSCONFIG,
-  DEFAULT_CLOUDFLARE_CONFIG
+  DEFAULT_CLOUDFLARE_CONFIG,
 }

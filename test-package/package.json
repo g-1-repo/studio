@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@g-1/core": "workspace:*"
+    "@g-1/core": "workspace:*",
+    "hono": "^4.10.1"
   }
 }

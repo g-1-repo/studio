@@ -59,9 +59,11 @@ vi.doMock('commander', () => ({
     // Set _actionHandler to point to the stored handler
     Object.defineProperty(instance, '_actionHandler', {
       get: () => _mockActionHandler,
-      set: (value) => { _mockActionHandler = value },
+      set: value => {
+        _mockActionHandler = value
+      },
       enumerable: true,
-      configurable: true
+      configurable: true,
     })
 
     return instance

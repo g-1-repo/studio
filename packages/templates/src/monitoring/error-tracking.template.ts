@@ -70,7 +70,11 @@ export interface Breadcrumb {
 
 export interface ErrorTracker {
   captureException(error: Error, context?: Partial<ErrorEvent>): string
-  captureMessage(message: string, level?: ErrorEvent['level'], context?: Partial<ErrorEvent>): string
+  captureMessage(
+    message: string,
+    level?: ErrorEvent['level'],
+    context?: Partial<ErrorEvent>
+  ): string
   addBreadcrumb(breadcrumb: Breadcrumb): void
   setUser(user: ErrorEvent['user']): void
   setTag(key: string, value: string): void
@@ -105,7 +109,7 @@ export class SentryErrorTracker implements ErrorTracker {
 
   captureException(error: Error, context?: Partial<ErrorEvent>): string {
     const eventId = this.generateEventId()
-    
+
     const errorEvent: ErrorEvent = {
       id: eventId,
       timestamp: Date.now(),
@@ -129,9 +133,13 @@ export class SentryErrorTracker implements ErrorTracker {
     return eventId
   }
 
-  captureMessage(message: string, level: ErrorEvent['level'] = 'info', context?: Partial<ErrorEvent>): string {
+  captureMessage(
+    message: string,
+    level: ErrorEvent['level'] = 'info',
+    context?: Partial<ErrorEvent>
+  ): string {
     const eventId = this.generateEventId()
-    
+
     const errorEvent: ErrorEvent = {
       id: eventId,
       timestamp: Date.now(),
@@ -158,7 +166,7 @@ export class SentryErrorTracker implements ErrorTracker {
     }
 
     this.breadcrumbs.push(breadcrumb)
-    
+
     if (this.breadcrumbs.length > (this.config.maxBreadcrumbs || 100)) {
       this.breadcrumbs.shift()
     }
@@ -182,34 +190,36 @@ export class SentryErrorTracker implements ErrorTracker {
 
   async flush(timeout = 5000): Promise<boolean> {
     // In a real implementation, this would flush pending events
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(() => resolve(true), Math.min(timeout, 100))
     })
   }
 
   private generateEventId(): string {
-    return crypto.randomUUID ? crypto.randomUUID() : 
-           Math.random().toString(36).substring(2) + Date.now().toString(36)
+    return crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2) + Date.now().toString(36)
   }
 
   private parseStackTrace(stack?: string): StackFrame[] {
     if (!stack) return []
-    
-    return stack.split('\n')
+
+    return stack
+      .split('\n')
       .slice(1) // Remove the error message line
       .map(line => {
-        const match = line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/) ||
-                     line.match(/at\s+(.+?):(\d+):(\d+)/)
-        
+        const match =
+          line.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/) || line.match(/at\s+(.+?):(\d+):(\d+)/)
+
         if (match) {
           return {
             function: match[1] || 'anonymous',
             filename: match[2] || match[1] || 'unknown',
-            lineno: parseInt(match[3] || match[2] || '0'),
-            colno: parseInt(match[4] || match[3] || '0'),
+            lineno: parseInt(match[3] || match[2] || '0', 10),
+            colno: parseInt(match[4] || match[3] || '0', 10),
           }
         }
-        
+
         return {
           function: 'unknown',
           filename: 'unknown',
@@ -269,7 +279,7 @@ export class CustomErrorTracker implements ErrorTracker {
 
   captureException(error: Error, context?: Partial<ErrorEvent>): string {
     const eventId = this.generateEventId()
-    
+
     const errorEvent: ErrorEvent = {
       id: eventId,
       timestamp: Date.now(),
@@ -291,9 +301,13 @@ export class CustomErrorTracker implements ErrorTracker {
     return eventId
   }
 
-  captureMessage(message: string, level: ErrorEvent['level'] = 'info', context?: Partial<ErrorEvent>): string {
+  captureMessage(
+    message: string,
+    level: ErrorEvent['level'] = 'info',
+    context?: Partial<ErrorEvent>
+  ): string {
     const eventId = this.generateEventId()
-    
+
     const errorEvent: ErrorEvent = {
       id: eventId,
       timestamp: Date.now(),
@@ -313,7 +327,7 @@ export class CustomErrorTracker implements ErrorTracker {
 
   addBreadcrumb(breadcrumb: Breadcrumb): void {
     this.breadcrumbs.push(breadcrumb)
-    
+
     if (this.breadcrumbs.length > (this.config.maxBreadcrumbs || 100)) {
       this.breadcrumbs.shift()
     }
@@ -331,17 +345,18 @@ export class CustomErrorTracker implements ErrorTracker {
     this.extra[key] = value
   }
 
-  setContext(name: string, context: Record<string, any>): void {
+  setContext(_name: string, _context: Record<string, any>): void {
     // Custom implementation can store contexts as needed
   }
 
-  async flush(timeout = 5000): Promise<boolean> {
+  async flush(_timeout = 5000): Promise<boolean> {
     return true
   }
 
   private generateEventId(): string {
-    return crypto.randomUUID ? crypto.randomUUID() : 
-           Math.random().toString(36).substring(2) + Date.now().toString(36)
+    return crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2) + Date.now().toString(36)
   }
 
   private logEvent(event: ErrorEvent): void {
@@ -368,9 +383,11 @@ export function createErrorTracker(config: ErrorTrackingConfig): ErrorTracker {
   }
 }
 
-export function createErrorTrackingMiddleware(config: ErrorTrackingConfig = DEFAULT_ERROR_TRACKING_CONFIG) {
+export function createErrorTrackingMiddleware(
+  config: ErrorTrackingConfig = DEFAULT_ERROR_TRACKING_CONFIG
+) {
   if (!config.enabled) {
-    return (c: any, next: any) => next()
+    return (_c: any, next: any) => next()
   }
 
   const errorTracker = createErrorTracker(config)
@@ -399,7 +416,7 @@ export function createErrorTrackingMiddleware(config: ErrorTrackingConfig = DEFA
 
     try {
       await next()
-      
+
       // Add response breadcrumb for errors
       if (c.res.status >= 400) {
         errorTracker.addBreadcrumb({
@@ -414,24 +431,26 @@ export function createErrorTrackingMiddleware(config: ErrorTrackingConfig = DEFA
           },
         })
       }
-      
     } catch (error) {
       // Capture the error
-      const eventId = errorTracker.captureException(error instanceof Error ? error : new Error(String(error)), {
-        request: {
-          method: c.req.method,
-          url: c.req.path,
-          headers: Object.fromEntries(c.req.headers.entries()),
-        },
-        tags: {
-          endpoint: c.req.path,
-          method: c.req.method,
-        },
-      })
+      const eventId = errorTracker.captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          request: {
+            method: c.req.method,
+            url: c.req.path,
+            headers: Object.fromEntries(c.req.headers.entries()),
+          },
+          tags: {
+            endpoint: c.req.path,
+            method: c.req.method,
+          },
+        }
+      )
 
       // Add error ID to response headers for debugging
       c.header('X-Error-ID', eventId)
-      
+
       throw error
     }
   }
@@ -445,7 +464,7 @@ export const ERROR_TRACKING_CONFIGS = {
     sampleRate: 1.0,
     enablePerformanceMonitoring: false,
   } as ErrorTrackingConfig,
-  
+
   production: {
     ...DEFAULT_ERROR_TRACKING_CONFIG,
     provider: 'sentry' as const,
@@ -453,14 +472,14 @@ export const ERROR_TRACKING_CONFIGS = {
     enablePerformanceMonitoring: true,
     sendDefaultPii: false,
   } as ErrorTrackingConfig,
-  
+
   staging: {
     ...DEFAULT_ERROR_TRACKING_CONFIG,
     provider: 'sentry' as const,
     sampleRate: 0.5,
     enablePerformanceMonitoring: true,
   } as ErrorTrackingConfig,
-  
+
   minimal: {
     ...DEFAULT_ERROR_TRACKING_CONFIG,
     provider: 'custom' as const,
@@ -495,7 +514,7 @@ export const ERROR_TRACKING_HELPERS = {
   ): T => {
     return ((...args: Parameters<T>) => {
       const start = Date.now()
-      
+
       tracker.addBreadcrumb({
         timestamp: start,
         type: 'debug',
@@ -505,7 +524,7 @@ export const ERROR_TRACKING_HELPERS = {
 
       try {
         const result = fn(...args)
-        
+
         if (result instanceof Promise) {
           return result.finally(() => {
             const duration = Date.now() - start

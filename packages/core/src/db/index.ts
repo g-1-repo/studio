@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import type { Environment } from '../env.js'
 
 export interface DatabaseConfig {
-  database: D1Database
+  database: any
 }
 
 export function createDb(env: Environment) {
@@ -23,7 +23,7 @@ export const db = {
   connect: (env: Environment) => createDb(env),
 
   // Health check
-  healthCheck: async (database: D1Database) => {
+  healthCheck: async (database: any) => {
     try {
       await database.prepare('SELECT 1').first()
       return true

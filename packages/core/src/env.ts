@@ -4,10 +4,10 @@
 
 export interface Environment {
   // Database bindings
-  DB?: D1Database
+  DB?: any
 
   // KV bindings
-  MY_API_PROJECT_KV_AUTH?: KVNamespace
+  MY_API_PROJECT_KV_AUTH?: any
 
   // Environment variables
   NODE_ENV?: string

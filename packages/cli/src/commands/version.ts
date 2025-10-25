@@ -124,9 +124,9 @@ async function gatherVersionInfo(includeAll: boolean = false): Promise<VersionIn
       try {
         const { execSync } = await import('node:child_process')
         const version = execSync(`${pm} --version`, { encoding: 'utf8', stdio: 'pipe' }).trim()
-        ;(info as any)[pm] = version
+        info[pm] = version
       } catch {
-        ;(info as any)[pm] = 'Not available'
+        info[pm] = 'Not available'
       }
     }
 

@@ -1,11 +1,11 @@
-import { Command } from 'commander'
-import inquirer from 'inquirer'
 import path from 'node:path'
+import type { CliPlugin, PluginConfigField } from '@g-1/core'
+import { builtinPlugins } from '@g-1/core'
+import { Command } from 'commander'
 import fs from 'fs-extra'
-import { logger } from '../utils/logger.js'
+import inquirer from 'inquirer'
 import { CliPluginManager } from '../plugins/manager.js'
-import { builtinPlugins } from '@g-1/core/plugins/builtin'
-import type { CliPlugin } from '@g-1/core/plugins/types'
+import { logger } from '../utils/logger.js'
 
 /**
  * Plugin management command with subcommands
@@ -42,7 +42,7 @@ function createAddCommand(): Command {
         const manager = new CliPluginManager(projectRoot)
 
         // Check if we're in a G1 project
-        if (!await isG1Project(projectRoot)) {
+        if (!(await isG1Project(projectRoot))) {
           logger.error('❌ Not in a G1 project directory')
           logger.info('💡 Run this command from the root of a G1 project')
           process.exit(1)
@@ -53,7 +53,7 @@ function createAddCommand(): Command {
         if (!pluginName) {
           // Show available plugins
           const availablePlugins = await getAvailablePlugins(manager)
-          
+
           if (availablePlugins.length === 0) {
             logger.info('ℹ️  No additional plugins available')
             return
@@ -66,9 +66,9 @@ function createAddCommand(): Command {
               message: 'Select a plugin to add:',
               choices: availablePlugins.map(p => ({
                 name: `${p.id} - ${p.description}`,
-                value: p.id
-              }))
-            }
+                value: p.id,
+              })),
+            },
           ])
 
           selectedPlugin = plugin
@@ -96,14 +96,14 @@ function createAddCommand(): Command {
           logger.subheader(`📦 Plugin: ${plugin.id}`)
           logger.listItem(`Description: ${plugin.description}`)
           logger.listItem(`Category: ${plugin.category}`)
-          
+
           const { confirm } = await inquirer.prompt([
             {
               type: 'confirm',
               name: 'confirm',
               message: 'Install this plugin?',
-              default: true
-            }
+              default: true,
+            },
           ])
 
           if (!confirm) {
@@ -122,7 +122,6 @@ function createAddCommand(): Command {
         if (options.configure) {
           await configurePlugin(plugin, manager)
         }
-
       } catch (error) {
         logger.error(`❌ Failed to add plugin: ${(error as Error).message}`)
         process.exit(1)
@@ -144,13 +143,13 @@ function createRemoveCommand(): Command {
         const projectRoot = process.cwd()
         const manager = new CliPluginManager(projectRoot)
 
-        if (!await isG1Project(projectRoot)) {
+        if (!(await isG1Project(projectRoot))) {
           logger.error('❌ Not in a G1 project directory')
           process.exit(1)
         }
 
         const installedPlugins = await manager.getInstalledPlugins()
-        
+
         if (installedPlugins.length === 0) {
           logger.info('ℹ️  No plugins installed')
           return
@@ -166,9 +165,9 @@ function createRemoveCommand(): Command {
               message: 'Select a plugin to remove:',
               choices: installedPlugins.map(p => ({
                 name: `${p.id} - ${p.description}`,
-                value: p.id
-              }))
-            }
+                value: p.id,
+              })),
+            },
           ])
 
           selectedPlugin = plugin
@@ -187,14 +186,14 @@ function createRemoveCommand(): Command {
         if (!options.yes) {
           logger.subheader(`🗑️  Plugin: ${plugin.id}`)
           logger.listItem(`Description: ${plugin.description}`)
-          
+
           const { confirm } = await inquirer.prompt([
             {
               type: 'confirm',
               name: 'confirm',
               message: 'Remove this plugin?',
-              default: false
-            }
+              default: false,
+            },
           ])
 
           if (!confirm) {
@@ -208,7 +207,6 @@ function createRemoveCommand(): Command {
         await manager.uninstallPlugin(plugin.id)
 
         logger.success(`✅ Plugin '${plugin.id}' removed successfully`)
-
       } catch (error) {
         logger.error(`❌ Failed to remove plugin: ${(error as Error).message}`)
         process.exit(1)
@@ -226,13 +224,16 @@ function createListCommand(): Command {
     .option('-i, --installed', 'Show only installed plugins')
     .option('--json', 'Output as JSON')
     .alias('ls')
-    .action(async (options) => {
+    .action(async options => {
       try {
         const projectRoot = process.cwd()
         const manager = new CliPluginManager(projectRoot)
 
         if (options.json) {
-          const result: any = {}
+          const result: {
+            installed?: CliPlugin[]
+            available?: CliPlugin[]
+          } = {}
 
           if (!options.available) {
             result.installed = await manager.getInstalledPlugins()
@@ -249,9 +250,9 @@ function createListCommand(): Command {
         // Show installed plugins
         if (!options.available) {
           const installedPlugins = await manager.getInstalledPlugins()
-          
+
           logger.header('📦 Installed Plugins')
-          
+
           if (installedPlugins.length === 0) {
             logger.info('ℹ️  No plugins installed')
           } else {
@@ -267,9 +268,9 @@ function createListCommand(): Command {
         // Show available plugins
         if (!options.installed) {
           const availablePlugins = await getAvailablePlugins(manager)
-          
+
           logger.header('🌟 Available Plugins')
-          
+
           if (availablePlugins.length === 0) {
             logger.info('ℹ️  No additional plugins available')
           } else {
@@ -281,7 +282,6 @@ function createListCommand(): Command {
             }
           }
         }
-
       } catch (error) {
         logger.error(`❌ Failed to list plugins: ${(error as Error).message}`)
         process.exit(1)
@@ -302,13 +302,13 @@ function createUpdateCommand(): Command {
         const projectRoot = process.cwd()
         const manager = new CliPluginManager(projectRoot)
 
-        if (!await isG1Project(projectRoot)) {
+        if (!(await isG1Project(projectRoot))) {
           logger.error('❌ Not in a G1 project directory')
           process.exit(1)
         }
 
         const installedPlugins = await manager.getInstalledPlugins()
-        
+
         if (installedPlugins.length === 0) {
           logger.info('ℹ️  No plugins installed')
           return
@@ -333,14 +333,14 @@ function createUpdateCommand(): Command {
           for (const plugin of pluginsToUpdate) {
             logger.listItem(`${plugin.id} - ${plugin.description}`)
           }
-          
+
           const { confirm } = await inquirer.prompt([
             {
               type: 'confirm',
               name: 'confirm',
               message: 'Update these plugins?',
-              default: true
-            }
+              default: true,
+            },
           ])
 
           if (!confirm) {
@@ -356,7 +356,6 @@ function createUpdateCommand(): Command {
         }
 
         logger.success(`✅ Updated ${pluginsToUpdate.length} plugin(s)`)
-
       } catch (error) {
         logger.error(`❌ Failed to update plugins: ${(error as Error).message}`)
         process.exit(1)
@@ -377,13 +376,13 @@ function createConfigureCommand(): Command {
         const projectRoot = process.cwd()
         const manager = new CliPluginManager(projectRoot)
 
-        if (!await isG1Project(projectRoot)) {
+        if (!(await isG1Project(projectRoot))) {
           logger.error('❌ Not in a G1 project directory')
           process.exit(1)
         }
 
         const installedPlugins = await manager.getInstalledPlugins()
-        
+
         if (installedPlugins.length === 0) {
           logger.info('ℹ️  No plugins installed')
           return
@@ -399,12 +398,17 @@ function createConfigureCommand(): Command {
               message: 'Select a plugin to configure:',
               choices: installedPlugins.map(p => ({
                 name: `${p.id} - ${p.description}`,
-                value: p.id
-              }))
-            }
+                value: p.id,
+              })),
+            },
           ])
 
-          selectedPlugin = installedPlugins.find(p => p.id === plugin)!
+          const foundPlugin = installedPlugins.find(p => p.id === plugin)
+          if (!foundPlugin) {
+            logger.error(`❌ Plugin '${plugin}' is not installed`)
+            return
+          }
+          selectedPlugin = foundPlugin
         } else {
           const plugin = installedPlugins.find(p => p.id === pluginName)
           if (!plugin) {
@@ -415,7 +419,6 @@ function createConfigureCommand(): Command {
         }
 
         await configurePlugin(selectedPlugin, manager)
-
       } catch (error) {
         logger.error(`❌ Failed to configure plugin: ${(error as Error).message}`)
         process.exit(1)
@@ -456,10 +459,10 @@ function createInfoCommand(): Command {
         if (plugin.config && Object.keys(plugin.config).length > 0) {
           logger.subheader('Configuration Options:')
           for (const [key, config] of Object.entries(plugin.config)) {
-            logger.listItem(`${key}: ${config.description} (default: ${config.default})`)
+            const typedConfig = config as PluginConfigField
+            logger.listItem(`${key}: ${typedConfig.description} (default: ${typedConfig.default})`)
           }
         }
-
       } catch (error) {
         logger.error(`❌ Failed to get plugin info: ${(error as Error).message}`)
         process.exit(1)
@@ -474,7 +477,7 @@ function createInfoCommand(): Command {
 async function isG1Project(projectRoot: string): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectRoot, 'package.json')
-    if (!await fs.pathExists(packageJsonPath)) {
+    if (!(await fs.pathExists(packageJsonPath))) {
       return false
     }
 
@@ -488,19 +491,22 @@ async function isG1Project(projectRoot: string): Promise<boolean> {
 async function getAvailablePlugins(manager: CliPluginManager): Promise<CliPlugin[]> {
   const installedPlugins = await manager.getInstalledPlugins()
   const installedIds = new Set(installedPlugins.map(p => p.id))
-  
+
   // Return builtin plugins that aren't installed
-  return builtinPlugins.filter(plugin => !installedIds.has(plugin.id))
+  return builtinPlugins.filter((plugin: CliPlugin) => !installedIds.has(plugin.id))
 }
 
-async function findPlugin(pluginName: string, manager: CliPluginManager): Promise<CliPlugin | null> {
+async function findPlugin(
+  pluginName: string,
+  manager: CliPluginManager
+): Promise<CliPlugin | null> {
   // Check installed plugins first
   const installedPlugins = await manager.getInstalledPlugins()
   const installed = installedPlugins.find(p => p.id === pluginName)
   if (installed) return installed
 
   // Check builtin plugins
-  const builtin = builtinPlugins.find(p => p.id === pluginName)
+  const builtin = builtinPlugins.find((p: CliPlugin) => p.id === pluginName)
   if (builtin) return builtin
 
   return null
@@ -516,43 +522,44 @@ async function configurePlugin(plugin: CliPlugin, manager: CliPluginManager): Pr
 
   const prompts = []
   for (const [key, config] of Object.entries(plugin.config)) {
-    if (config.type === 'boolean') {
+    const typedConfig = config as PluginConfigField
+    if (typedConfig.type === 'boolean') {
       prompts.push({
         type: 'confirm',
         name: key,
-        message: config.description,
-        default: config.default
+        message: typedConfig.description,
+        default: typedConfig.default,
       })
-    } else if (config.type === 'select' && config.options) {
+    } else if (typedConfig.type === 'select' && typedConfig.options) {
       prompts.push({
         type: 'list',
         name: key,
-        message: config.description,
-        choices: config.options,
-        default: config.default
+        message: typedConfig.description,
+        choices: typedConfig.options,
+        default: typedConfig.default,
       })
-    } else if (config.type === 'number') {
+    } else if (typedConfig.type === 'number') {
       prompts.push({
         type: 'number',
         name: key,
-        message: config.description,
-        default: config.default
+        message: typedConfig.description,
+        default: typedConfig.default,
       })
     } else {
       prompts.push({
         type: 'input',
         name: key,
-        message: config.description,
-        default: config.default
+        message: typedConfig.description,
+        default: typedConfig.default,
       })
     }
   }
 
   const answers = await inquirer.prompt(prompts)
-  
+
   // Apply configuration
   await manager.configurePlugin(plugin.id, answers)
-  
+
   logger.success(`✅ Plugin '${plugin.id}' configured successfully`)
 }
 

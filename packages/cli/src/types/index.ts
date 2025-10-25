@@ -1,3 +1,5 @@
+import type { PluginConfigValue } from '@g-1/core'
+
 /**
  * Project template configuration
  */
@@ -36,7 +38,7 @@ export interface CreateProjectOptions {
   prettier?: boolean
   // Plugin system options
   plugins?: string[]
-  pluginConfigs?: Record<string, Record<string, any>>
+  pluginConfigs?: Record<string, Record<string, PluginConfigValue>>
   interactive?: boolean
 }
 

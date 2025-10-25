@@ -1,13 +1,21 @@
-import { sign, verify } from 'hono/jwt'
-import type { JWTPayload } from 'hono/jwt'
 import type { Context, MiddlewareHandler } from 'hono'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
+import { sign, verify } from 'hono/jwt'
 
 export interface JWTConfig {
   secret: string
-  algorithm?: 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512' | 'ES256' | 'ES384' | 'ES512'
+  algorithm?:
+    | 'HS256'
+    | 'HS384'
+    | 'HS512'
+    | 'RS256'
+    | 'RS384'
+    | 'RS512'
+    | 'ES256'
+    | 'ES384'
+    | 'ES512'
   expiresIn?: string | number // e.g., '1h', '7d', 3600
   refreshExpiresIn?: string | number
   issuer?: string
@@ -29,7 +37,16 @@ export interface JWTUser {
   username?: string
   roles?: string[]
   permissions?: string[]
-  [key: string]: any
+  [key: string]: unknown
+}
+
+export interface JWTPayload {
+  iat?: number
+  exp?: number
+  iss?: string
+  aud?: string
+  sub?: string
+  [key: string]: unknown
 }
 
 export interface JWTTokenPayload extends JWTPayload {
@@ -43,6 +60,7 @@ export interface JWTTokenPayload extends JWTPayload {
   exp: number
   iss?: string
   aud?: string
+  [key: string]: unknown
 }
 
 export class JWTAuthService {
@@ -53,16 +71,25 @@ export class JWTAuthService {
       algorithm: 'HS256',
       expiresIn: '1h',
       refreshExpiresIn: '7d',
+      issuer: 'jwt-auth-service',
+      audience: 'jwt-auth-service',
       cookieName: 'auth_token',
       refreshCookieName: 'refresh_token',
       cookieOptions: {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',
-        path: '/'
+        path: '/',
       },
-      ...config
+      ...config,
     }
+  }
+
+  /**
+   * Get configuration
+   */
+  getConfig(): Required<JWTConfig> {
+    return this.config
   }
 
   /**
@@ -82,7 +109,7 @@ export class JWTAuthService {
       iat: now,
       exp,
       ...(this.config.issuer && { iss: this.config.issuer }),
-      ...(this.config.audience && { aud: this.config.audience })
+      ...(this.config.audience && { aud: this.config.audience }),
     }
 
     return await sign(payload, this.config.secret, this.config.algorithm)
@@ -102,7 +129,7 @@ export class JWTAuthService {
       iat: now,
       exp,
       ...(this.config.issuer && { iss: this.config.issuer }),
-      ...(this.config.audience && { aud: this.config.audience })
+      ...(this.config.audience && { aud: this.config.audience }),
     }
 
     return await sign(payload, this.config.secret, this.config.algorithm)
@@ -114,7 +141,7 @@ export class JWTAuthService {
   async generateTokens(user: JWTUser): Promise<{ accessToken: string; refreshToken: string }> {
     const [accessToken, refreshToken] = await Promise.all([
       this.generateAccessToken(user),
-      this.generateRefreshToken(user)
+      this.generateRefreshToken(user),
     ])
 
     return { accessToken, refreshToken }
@@ -125,8 +152,12 @@ export class JWTAuthService {
    */
   async verifyToken(token: string): Promise<JWTTokenPayload> {
     try {
-      const payload = await verify(token, this.config.secret, this.config.algorithm) as JWTTokenPayload
-      
+      const payload = (await verify(
+        token,
+        this.config.secret,
+        this.config.algorithm
+      ) as unknown) as JWTTokenPayload
+
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000)
       if (payload.exp && payload.exp < now) {
@@ -151,9 +182,12 @@ export class JWTAuthService {
   /**
    * Refresh access token using refresh token
    */
-  async refreshAccessToken(refreshToken: string, getUserById: (id: string) => Promise<JWTUser | null>): Promise<string> {
+  async refreshAccessToken(
+    refreshToken: string,
+    getUserById: (id: string) => Promise<JWTUser | null>
+  ): Promise<string> {
     const payload = await this.verifyToken(refreshToken)
-    
+
     if (payload.type !== 'refresh') {
       throw new Error('Invalid refresh token')
     }
@@ -177,13 +211,14 @@ export class JWTAuthService {
     setCookie(c, this.config.cookieName, accessToken, {
       ...this.config.cookieOptions,
       maxAge: typeof this.config.expiresIn === 'number' ? this.config.expiresIn : undefined,
-      expires: new Date(accessExp * 1000)
+      expires: new Date(accessExp * 1000),
     })
 
     setCookie(c, this.config.refreshCookieName, refreshToken, {
       ...this.config.cookieOptions,
-      maxAge: typeof this.config.refreshExpiresIn === 'number' ? this.config.refreshExpiresIn : undefined,
-      expires: new Date(refreshExp * 1000)
+      maxAge:
+        typeof this.config.refreshExpiresIn === 'number' ? this.config.refreshExpiresIn : undefined,
+      expires: new Date(refreshExp * 1000),
     })
   }
 
@@ -193,11 +228,11 @@ export class JWTAuthService {
   clearAuthCookies(c: Context): void {
     deleteCookie(c, this.config.cookieName, {
       path: this.config.cookieOptions.path,
-      domain: this.config.cookieOptions.domain
+      domain: this.config.cookieOptions.domain,
     })
     deleteCookie(c, this.config.refreshCookieName, {
       path: this.config.cookieOptions.path,
-      domain: this.config.cookieOptions.domain
+      domain: this.config.cookieOptions.domain,
     })
   }
 
@@ -227,7 +262,7 @@ export class JWTAuthService {
    */
   private calculateExpiration(expiresIn: string | number, baseTime?: number): number {
     const base = baseTime || Math.floor(Date.now() / 1000)
-    
+
     if (typeof expiresIn === 'number') {
       return base + expiresIn
     }
@@ -240,8 +275,8 @@ export class JWTAuthService {
 
     const [, amount, unit] = match
     const multipliers = { s: 1, m: 60, h: 3600, d: 86400 }
-    
-    return base + (parseInt(amount) * multipliers[unit as keyof typeof multipliers])
+
+    return base + parseInt(amount, 10) * multipliers[unit as keyof typeof multipliers]
   }
 }
 
@@ -259,7 +294,7 @@ export function createJWTAuthMiddleware(
 ): MiddlewareHandler {
   return createMiddleware(async (c, next) => {
     const token = authService.getTokenFromRequest(c)
-    
+
     if (!token) {
       if (options.required !== false) {
         throw new HTTPException(401, { message: 'Authentication required' })
@@ -269,7 +304,7 @@ export function createJWTAuthMiddleware(
 
     try {
       const payload = await authService.verifyToken(token)
-      
+
       if (payload.type !== 'access') {
         throw new Error('Invalid token type')
       }
@@ -286,7 +321,9 @@ export function createJWTAuthMiddleware(
       // Check permissions if specified
       if (options.permissions && options.permissions.length > 0) {
         const userPermissions = payload.permissions || []
-        const hasPermission = options.permissions.some(permission => userPermissions.includes(permission))
+        const hasPermission = options.permissions.some(permission =>
+          userPermissions.includes(permission)
+        )
         if (!hasPermission) {
           throw new HTTPException(403, { message: 'Insufficient permissions' })
         }
@@ -298,14 +335,15 @@ export function createJWTAuthMiddleware(
         email: payload.email,
         username: payload.username,
         roles: payload.roles,
-        permissions: payload.permissions
+        permissions: payload.permissions,
       })
 
       c.set('jwtPayload', payload)
-
     } catch (error) {
       if (options.required !== false) {
-        throw new HTTPException(401, { message: `Authentication failed: ${(error as Error).message}` })
+        throw new HTTPException(401, {
+          message: `Authentication failed: ${(error as Error).message}`,
+        })
       }
     }
 
@@ -322,26 +360,25 @@ export function createJWTRefreshMiddleware(
 ): MiddlewareHandler {
   return createMiddleware(async (c, next) => {
     const refreshToken = authService.getRefreshTokenFromRequest(c)
-    
+
     if (!refreshToken) {
       throw new HTTPException(401, { message: 'Refresh token required' })
     }
 
     try {
       const newAccessToken = await authService.refreshAccessToken(refreshToken, getUserById)
-      
+
       // Set new token in response
-      const accessExp = Math.floor(Date.now() / 1000) + (typeof authService['config'].expiresIn === 'number' 
-        ? authService['config'].expiresIn 
-        : 3600)
-      
-      setCookie(c, authService['config'].cookieName, newAccessToken, {
-        ...authService['config'].cookieOptions,
-        expires: new Date(accessExp * 1000)
+      const expiresInValue = authService.getConfig().expiresIn
+      const expiresInSeconds = typeof expiresInValue === 'number' ? expiresInValue : 3600
+      const accessExp = Math.floor(Date.now() / 1000) + expiresInSeconds
+
+      setCookie(c, authService.getConfig().cookieName, newAccessToken, {
+        ...authService.getConfig().cookieOptions,
+        expires: new Date(accessExp * 1000),
       })
 
       c.set('newAccessToken', newAccessToken)
-
     } catch (error) {
       throw new HTTPException(401, { message: `Token refresh failed: ${(error as Error).message}` })
     }
@@ -358,14 +395,14 @@ export function createJWTAuthRoutes(
   options: {
     loginHandler: (email: string, password: string) => Promise<JWTUser | null>
     getUserById: (id: string) => Promise<JWTUser | null>
-    registerHandler?: (userData: any) => Promise<JWTUser>
+    registerHandler?: (userData: Record<string, unknown>) => Promise<JWTUser>
   }
 ) {
   return {
     // Login endpoint
     login: async (c: Context) => {
       const { email, password } = await c.req.json()
-      
+
       if (!email || !password) {
         throw new HTTPException(400, { message: 'Email and password required' })
       }
@@ -384,12 +421,12 @@ export function createJWTAuthRoutes(
           id: user.id,
           email: user.email,
           username: user.username,
-          roles: user.roles
+          roles: user.roles,
         },
         tokens: {
           accessToken,
-          refreshToken
-        }
+          refreshToken,
+        },
       })
     },
 
@@ -401,7 +438,7 @@ export function createJWTAuthRoutes(
 
       const userData = await c.req.json()
       const user = await options.registerHandler(userData)
-      
+
       const { accessToken, refreshToken } = await authService.generateTokens(user)
       authService.setAuthCookies(c, accessToken, refreshToken)
 
@@ -411,12 +448,12 @@ export function createJWTAuthRoutes(
           id: user.id,
           email: user.email,
           username: user.username,
-          roles: user.roles
+          roles: user.roles,
         },
         tokens: {
           accessToken,
-          refreshToken
-        }
+          refreshToken,
+        },
       })
     },
 
@@ -437,7 +474,7 @@ export function createJWTAuthRoutes(
       }
 
       return c.json({ user })
-    }
+    },
   }
 }
 

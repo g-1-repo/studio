@@ -1,11 +1,9 @@
-import { PluginRegistry, PluginExecutor, PluginContext } from '@g-1/core'
-import { PluginConfigValue, PluginConfigField } from '@g-1/core'
-import inquirer from 'inquirer'
-import type { CliPlugin, ProjectConfig } from '@g-1/core'
-import { PluginContextImpl, builtinPlugins } from '@g-1/core'
-import { logger } from '../utils/logger.js'
 import path from 'node:path'
+import type { CliPlugin, PluginConfigField, PluginConfigValue, ProjectConfig } from '@g-1/core'
+import { builtinPlugins, PluginContextImpl, PluginExecutor, PluginRegistry } from '@g-1/core'
 import fs from 'fs-extra'
+import inquirer from 'inquirer'
+import { logger } from '../utils/logger.js'
 
 export interface PluginSelectionResult {
   selectedPlugins: string[]
@@ -30,7 +28,7 @@ export class CliPluginManager {
     this.projectRoot = projectRoot || process.cwd()
     this.configPath = path.join(this.projectRoot, 'g1.config.json')
     this.packageJsonPath = path.join(this.projectRoot, 'package.json')
-    
+
     // Register built-in plugins
     builtinPlugins.forEach(plugin => {
       this.registry.register(plugin)
@@ -56,13 +54,13 @@ export class CliPluginManager {
    */
   async selectAndConfigurePlugins(projectConfig: ProjectConfig): Promise<PluginSelectionResult> {
     const availablePlugins = this.getAvailablePlugins()
-    
+
     if (availablePlugins.length === 0) {
       return { selectedPlugins: [], pluginConfigs: {} }
     }
 
     logger.subheader('🔌 Available Plugins')
-    
+
     // Show plugin selection
     const { selectedPluginIds } = await inquirer.prompt([
       {
@@ -72,10 +70,10 @@ export class CliPluginManager {
         choices: availablePlugins.map(plugin => ({
           name: `${plugin.id} - ${plugin.description}`,
           value: plugin.id,
-          checked: false
+          checked: false,
         })),
-        pageSize: 10
-      }
+        pageSize: 10,
+      },
     ])
 
     if (selectedPluginIds.length === 0) {
@@ -84,14 +82,14 @@ export class CliPluginManager {
 
     // Configure each selected plugin
     const pluginConfigs: Record<string, Record<string, PluginConfigValue>> = {}
-    
+
     for (const pluginId of selectedPluginIds) {
       const plugin = this.registry.get(pluginId)
       if (!plugin) continue
 
       logger.subheader(`⚙️  Configuring ${plugin.id}`)
-      
-      const config = await this.configurePlugin(plugin, projectConfig)
+
+      const config = await this.configurePluginInteractively(plugin, projectConfig)
       if (Object.keys(config).length > 0) {
         pluginConfigs[pluginId] = config
       }
@@ -99,26 +97,26 @@ export class CliPluginManager {
 
     return {
       selectedPlugins: selectedPluginIds,
-      pluginConfigs
+      pluginConfigs,
     }
   }
 
   /**
    * Configure a single plugin interactively
    */
-  private async configurePlugin(
-    plugin: CliPlugin, 
+  private async configurePluginInteractively(
+    plugin: CliPlugin,
     projectConfig: ProjectConfig
   ): Promise<Record<string, PluginConfigValue>> {
     const config: Record<string, PluginConfigValue> = {}
     const configSchema = plugin.config || {}
-    
+
     const prompts = []
-    
+
     for (const [key, field] of Object.entries(configSchema)) {
       const typedField = field as PluginConfigField
       let defaultValue = typedField.default
-      
+
       // Replace template variables in default values
       if (typeof defaultValue === 'string') {
         defaultValue = defaultValue.replace(/{{projectName}}/g, projectConfig.projectName)
@@ -136,7 +134,7 @@ export class CliPluginManager {
                 return 'This field is required'
               }
               return true
-            }
+            },
           })
           break
 
@@ -145,7 +143,7 @@ export class CliPluginManager {
             type: 'confirm',
             name: key,
             message: typedField.description,
-            default: defaultValue
+            default: defaultValue,
           })
           break
 
@@ -155,11 +153,18 @@ export class CliPluginManager {
               type: 'list',
               name: key,
               message: typedField.description,
-              choices: typedField.options.map((option: any) => ({
-                name: option.name,
-                value: option.value
-              })),
-              default: defaultValue
+              choices: typedField.options.map(
+                (option: string | { name: string; value: PluginConfigValue }) => {
+                  if (typeof option === 'string') {
+                    return { name: option, value: option }
+                  }
+                  return {
+                    name: option.name,
+                    value: option.value,
+                  }
+                }
+              ),
+              default: defaultValue,
             })
           }
           break
@@ -170,11 +175,22 @@ export class CliPluginManager {
               type: 'checkbox',
               name: key,
               message: typedField.description,
-              choices: typedField.options.map((option: any) => ({
-                name: option.name,
-                value: option.value,
-                checked: Array.isArray(defaultValue) && defaultValue.includes(option.value)
-              }))
+              choices: typedField.options.map(
+                (option: string | { name: string; value: PluginConfigValue }) => {
+                  if (typeof option === 'string') {
+                    return {
+                      name: option,
+                      value: option,
+                      checked: Array.isArray(defaultValue) && defaultValue.includes(option),
+                    }
+                  }
+                  return {
+                    name: option.name,
+                    value: option.value,
+                    checked: Array.isArray(defaultValue) && defaultValue.includes(option.value as string),
+                  }
+                }
+              ),
             })
           }
           break
@@ -217,10 +233,10 @@ export class CliPluginManager {
 
     try {
       const result = await this.executor.execute(plugins, context, pluginConfigs)
-      
+
       if (result.success) {
         logger.success(`✅ Successfully applied ${plugins.length} plugin(s)`)
-        
+
         // Log any collected dependencies
         const deps = context.getDependencies()
         if (deps.production.length > 0) {
@@ -231,19 +247,54 @@ export class CliPluginManager {
         }
       } else {
         logger.error('❌ Plugin execution failed:')
-        result.errors.forEach((error: any) => {
+        result.errors.forEach((error: { plugin: string; phase: string; message: string }) => {
           logger.error(`  - ${error.plugin}: ${error.message}`)
         })
       }
-    } catch (error: any) {
-      logger.error(`Failed to execute plugins: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } catch (error: unknown) {
+      logger.error(
+        `Failed to execute plugins: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
       throw error
     }
   }
 
   /**
    * Parse CLI plugin options
-   */}
+   */
+  parseCliOptions(options: Record<string, unknown>): PluginSelectionResult {
+    const selectedPlugins: string[] = []
+    const pluginConfigs: Record<string, Record<string, PluginConfigValue>> = {}
+
+    // Check for plugin flags
+    const availablePlugins = this.getAvailablePlugins()
+
+    for (const plugin of availablePlugins) {
+      const pluginFlag = options[plugin.id]
+
+      if (pluginFlag === true) {
+        selectedPlugins.push(plugin.id)
+
+        // Look for plugin-specific configuration options
+        const config: Record<string, PluginConfigValue> = {}
+        const configSchema = plugin.config || {}
+
+        for (const [key, field] of Object.entries(configSchema)) {
+          const _typedField = field as PluginConfigField
+          const optionKey = `${plugin.id}${key.charAt(0).toUpperCase()}${key.slice(1)}`
+          if (options[optionKey] !== undefined) {
+            config[key] = options[optionKey] as PluginConfigValue
+          }
+        }
+
+        if (Object.keys(config).length > 0) {
+          pluginConfigs[plugin.id] = config
+        }
+      }
+    }
+
+    return { selectedPlugins, pluginConfigs }
+  }
 
   /**
    * Get installed plugins from project config
@@ -252,10 +303,8 @@ export class CliPluginManager {
     try {
       const config = await this.getProjectConfig()
       const installedPluginIds = Object.keys(config.plugins || {})
-      
-      return this.registry.list().filter(plugin => 
-        installedPluginIds.includes(plugin.id)
-      )
+
+      return this.registry.list().filter(plugin => installedPluginIds.includes(plugin.id))
     } catch (error) {
       logger.debug(`Failed to get installed plugins: ${(error as Error).message}`)
       return []
@@ -281,21 +330,27 @@ export class CliPluginManager {
     // Install dependencies if needed
     if (plugin.prepare) {
       logger.info(`📦 Installing dependencies for ${pluginId}...`)
-      await plugin.prepare({
-        projectRoot: this.projectRoot,
-        addDependency: this.addDependency.bind(this),
-        addDevDependency: this.addDevDependency.bind(this),
-        writeFile: this.writeFile.bind(this),
-        readFile: this.readFile.bind(this),
-        fileExists: this.fileExists.bind(this)
-      })
+      const context = new PluginContextImpl(
+        {
+          projectName: 'temp',
+          basepath: this.projectRoot,
+          packageManager: 'bun',
+          typescript: true,
+          git: false,
+          install: false,
+          eslint: false,
+          prettier: false,
+        },
+        this.projectRoot
+      )
+      await plugin.prepare(context, {})
     }
 
     // Add to project config with default configuration
     const defaultConfig: Record<string, PluginConfigValue> = {}
     if (plugin.config) {
       for (const [key, configDef] of Object.entries(plugin.config)) {
-        defaultConfig[key] = configDef.default
+        defaultConfig[key] = configDef.default ?? ''
       }
     }
 
@@ -313,7 +368,7 @@ export class CliPluginManager {
    */
   async uninstallPlugin(pluginId: string): Promise<void> {
     const config = await this.getProjectConfig()
-    
+
     if (!config.plugins?.[pluginId]) {
       throw new Error(`Plugin '${pluginId}' is not installed`)
     }
@@ -325,7 +380,7 @@ export class CliPluginManager {
     // Clean up generated files (basic cleanup)
     const generatedFiles = [
       path.join(this.projectRoot, 'src', `${pluginId}.middleware.ts`),
-      path.join(this.projectRoot, 'src', `${pluginId}.plugin.ts`)
+      path.join(this.projectRoot, 'src', `${pluginId}.plugin.ts`),
     ]
 
     for (const file of generatedFiles) {
@@ -341,7 +396,7 @@ export class CliPluginManager {
    */
   async updatePlugin(pluginId: string): Promise<void> {
     const config = await this.getProjectConfig()
-    
+
     if (!config.plugins?.[pluginId]) {
       throw new Error(`Plugin '${pluginId}' is not installed`)
     }
@@ -358,9 +413,12 @@ export class CliPluginManager {
   /**
    * Configure a plugin
    */
-  async configurePlugin(pluginId: string, newConfig: Record<string, PluginConfigValue>): Promise<void> {
+  async configurePlugin(
+    pluginId: string,
+    newConfig: Record<string, PluginConfigValue>
+  ): Promise<void> {
     const config = await this.getProjectConfig()
-    
+
     if (!config.plugins?.[pluginId]) {
       throw new Error(`Plugin '${pluginId}' is not installed`)
     }
@@ -381,21 +439,31 @@ export class CliPluginManager {
   /**
    * Apply a plugin with given configuration
    */
-  private async applyPlugin(plugin: CliPlugin, config: Record<string, PluginConfigValue>): Promise<void> {
+  private async applyPlugin(
+    plugin: CliPlugin,
+    config: Record<string, PluginConfigValue>
+  ): Promise<void> {
     if (!plugin.apply) {
       return
     }
 
     logger.info(`🔧 Applying plugin: ${plugin.id}`)
 
-    await plugin.apply({
-      projectRoot: this.projectRoot,
-      config,
-      writeFile: this.writeFile.bind(this),
-      readFile: this.readFile.bind(this),
-      fileExists: this.fileExists.bind(this),
-      updateFile: this.updateFile.bind(this)
-    })
+    const context = new PluginContextImpl(
+      {
+        projectName: 'temp',
+        basepath: this.projectRoot,
+        packageManager: 'bun',
+        typescript: true,
+        git: false,
+        install: false,
+        eslint: false,
+        prettier: false,
+      },
+      this.projectRoot
+    )
+
+    await plugin.apply(context, config)
   }
 
   /**
@@ -410,7 +478,17 @@ export class CliPluginManager {
       logger.debug(`Failed to read project config: ${(error as Error).message}`)
     }
 
-    return { plugins: {} }
+    return {
+      projectName: 'default',
+      basepath: this.projectRoot,
+      packageManager: 'bun',
+      typescript: true,
+      git: false,
+      install: false,
+      eslint: false,
+      prettier: false,
+      plugins: {},
+    }
   }
 
   /**
@@ -418,28 +496,6 @@ export class CliPluginManager {
    */
   private async saveProjectConfig(config: ProjectConfig): Promise<void> {
     await fs.writeJson(this.configPath, config, { spaces: 2 })
-  }
-
-  /**
-   * Add a dependency to package.json
-   */
-  private async addDependency(name: string, version?: string): Promise<void> {
-    const packageJson = await fs.readJson(this.packageJsonPath)
-    packageJson.dependencies = packageJson.dependencies || {}
-    packageJson.dependencies[name] = version || 'latest'
-    await fs.writeJson(this.packageJsonPath, packageJson, { spaces: 2 })
-    logger.debug(`Added dependency: ${name}@${version || 'latest'}`)
-  }
-
-  /**
-   * Add a dev dependency to package.json
-   */
-  private async addDevDependency(name: string, version?: string): Promise<void> {
-    const packageJson = await fs.readJson(this.packageJsonPath)
-    packageJson.devDependencies = packageJson.devDependencies || {}
-    packageJson.devDependencies[name] = version || 'latest'
-    await fs.writeJson(this.packageJsonPath, packageJson, { spaces: 2 })
-    logger.debug(`Added dev dependency: ${name}@${version || 'latest'}`)
   }
 
   /**
@@ -458,75 +514,5 @@ export class CliPluginManager {
   private async readFile(filePath: string): Promise<string> {
     const fullPath = path.resolve(this.projectRoot, filePath)
     return await fs.readFile(fullPath, 'utf-8')
-  }
-
-  /**
-   * Check if file exists
-   */
-  private async fileExists(filePath: string): Promise<boolean> {
-    const fullPath = path.resolve(this.projectRoot, filePath)
-    return await fs.pathExists(fullPath)
-  }
-
-  /**
-   * Update a file by replacing content
-   */
-  private async updateFile(filePath: string, searchValue: string | RegExp, replaceValue: string): Promise<void> {
-    const fullPath = path.resolve(this.projectRoot, filePath)
-    
-    if (!await fs.pathExists(fullPath)) {
-      throw new Error(`File not found: ${filePath}`)
-    }
-
-    let content = await fs.readFile(fullPath, 'utf-8')
-    
-    if (typeof searchValue === 'string') {
-      if (!content.includes(searchValue)) {
-        throw new Error(`Search string not found in ${filePath}: ${searchValue}`)
-      }
-      content = content.replace(searchValue, replaceValue)
-    } else {
-      if (!searchValue.test(content)) {
-        throw new Error(`Search pattern not found in ${filePath}: ${searchValue}`)
-      }
-      content = content.replace(searchValue, replaceValue)
-    }
-
-    await fs.writeFile(fullPath, content, 'utf-8')
-    logger.debug(`Updated file: ${filePath}`)
-  }
-
-  parseCliOptions(options: Record<string, any>): PluginSelectionResult {
-    const selectedPlugins: string[] = []
-    const pluginConfigs: Record<string, Record<string, PluginConfigValue>> = {}
-
-    // Check for plugin flags
-    const availablePlugins = this.getAvailablePlugins()
-    
-    for (const plugin of availablePlugins) {
-      const pluginFlag = options[plugin.id]
-      
-      if (pluginFlag === true) {
-        selectedPlugins.push(plugin.id)
-        
-        // Look for plugin-specific configuration options
-        const config: Record<string, PluginConfigValue> = {}
-        const configSchema = plugin.config || {}
-        
-        for (const [key, field] of Object.entries(configSchema)) {
-          const typedField = field as PluginConfigField
-          const optionKey = `${plugin.id}${key.charAt(0).toUpperCase()}${key.slice(1)}`
-          if (options[optionKey] !== undefined) {
-            config[key] = options[optionKey]
-          }
-        }
-        
-        if (Object.keys(config).length > 0) {
-          pluginConfigs[plugin.id] = config
-        }
-      }
-    }
-
-    return { selectedPlugins, pluginConfigs }
   }
 }

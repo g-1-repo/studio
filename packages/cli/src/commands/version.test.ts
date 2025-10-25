@@ -6,7 +6,7 @@ describe('version Command', () => {
   let createVersionCommand: any
   let gatherVersionInfo: any
   let displayVersionInfo: any
-  let consoleSpy: any
+  let _consoleSpy: any
 
   beforeEach(async () => {
     vi.resetAllMocks()
@@ -24,7 +24,7 @@ describe('version Command', () => {
     }
 
     // Mock console.log
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Mock modules using vi.doMock
     vi.doMock('../utils/file-system.js', () => ({
@@ -64,7 +64,7 @@ describe('version Command', () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project')
 
     // Mock console.log for JSON output
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     // Mock import.meta.url
     Object.defineProperty(import.meta, 'url', {

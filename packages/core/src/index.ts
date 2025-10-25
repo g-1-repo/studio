@@ -37,13 +37,12 @@ export {
   Unauthorized,
 } from './lib/utils/exceptions.js'
 export * from './lib/utils/http-status.js'
-
-export * from './lib/utils/openapi/index.js'
 export {
   jsonContent,
   jsonContentOneOf,
   jsonContentRequired,
 } from './lib/utils/openapi/helpers/index.js'
+export * from './lib/utils/openapi/index.js'
 
 // OpenAPI schema and helper exports
 export {
@@ -53,17 +52,8 @@ export {
 } from './lib/utils/openapi/schemas/index.js'
 
 export * from './lib/utils/types.js'
-// Middleware exports
-export {
-  enhancedSecurityHeaders,
-  inputSanitization,
-  notFound,
-  onError,
-  rateLimitOptimized,
-  requestValidation,
-  securityAuditLog,
-  simpleRateLimit,
-} from './middleware/index.js'
+// Core middleware exports (only essential ones)
+export { notFound, onError } from './middleware/index.js'
 
 // Plugin system exports
 export * from './plugins/index.js'

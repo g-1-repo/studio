@@ -1,11 +1,4 @@
-import {
-  createRouter,
-  enhancedSecurityHeaders,
-  notFound,
-  onError,
-  requestValidation,
-  simpleRateLimit,
-} from '@g-1/core'
+import { createRouter, notFound, onError } from '@g-1/core'
 import { generateUUID } from '@g-1/util'
 import type { Context, Next } from 'hono'
 import { contextStorage } from 'hono/context-storage'
@@ -23,16 +16,6 @@ const CORS_OPTS = {
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-}
-
-// Request validation configuration
-const REQUEST_VALIDATION_OPTS = {
-  maxSize: 10 * 1024 * 1024, // 10MB
-  allowedContentTypes: [
-    'application/json',
-    'application/x-www-form-urlencoded',
-    'multipart/form-data',
-  ],
 }
 
 // Environment parsing middleware
@@ -54,35 +37,13 @@ app.use((c: Context, next: Next) => {
 // Middleware setup (ordered by performance impact)
 app.use(contextStorage())
 app.use(requestId({ generator: () => generateUUID() }))
-app.use(enhancedSecurityHeaders())
-app.use(requestValidation(REQUEST_VALIDATION_OPTS))
 app.use('*', cors(CORS_OPTS))
 
-// Rate limiting (skip in test environment)
-const isTest = process.env.NODE_ENV === 'test'
-const isDevelopment = process.env.NODE_ENV === 'development'
-
-if (!isTest) {
-  app.use(
-    '/api/*',
-    simpleRateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      limit: isDevelopment ? 1000 : 100,
-      message: 'Too many API requests from this IP, please try again later.',
-    })
-  )
-
-  app.use(
-    '/api/auth/*',
-    simpleRateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      limit: isDevelopment ? 200 : 20,
-      message: 'Too many authentication requests from this IP, please try again later.',
-    })
-  )
-}
+// Note: Security headers, request validation, and rate limiting
+// are now handled by the plugin system during project generation
 
 // Logging (disabled in test for performance)
+const isTest = process.env.NODE_ENV === 'test'
 if (!isTest) {
   app.use(logger())
 }

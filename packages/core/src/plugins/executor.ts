@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue, PluginExecutionResult } from './types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext, PluginExecutionResult } from './types.js'
 
 export class PluginExecutor {
   /**
@@ -11,7 +11,7 @@ export class PluginExecutor {
   ): Promise<PluginExecutionResult> {
     const result: PluginExecutionResult = {
       success: true,
-      errors: []
+      errors: [],
     }
 
     try {
@@ -25,12 +25,12 @@ export class PluginExecutor {
           if (plugin.prepare) {
             await plugin.prepare(context, config)
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           result.success = false
           result.errors.push({
             plugin: plugin.id,
             phase: 'prepare',
-            message: error instanceof Error ? error.message : 'Unknown error'
+            message: error instanceof Error ? error.message : 'Unknown error',
           })
         }
       }
@@ -40,12 +40,12 @@ export class PluginExecutor {
         try {
           const config = configs[plugin.id] || {}
           await plugin.apply(context, config)
-        } catch (error: any) {
+        } catch (error: unknown) {
           result.success = false
           result.errors.push({
             plugin: plugin.id,
             phase: 'apply',
-            message: error instanceof Error ? error.message : 'Unknown error'
+            message: error instanceof Error ? error.message : 'Unknown error',
           })
         }
       }
@@ -57,22 +57,21 @@ export class PluginExecutor {
           if (plugin.finalize) {
             await plugin.finalize(context, config)
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           result.success = false
           result.errors.push({
             plugin: plugin.id,
             phase: 'finalize',
-            message: error instanceof Error ? error.message : 'Unknown error'
+            message: error instanceof Error ? error.message : 'Unknown error',
           })
         }
       }
-
-    } catch (error: any) {
+    } catch (error: unknown) {
       result.success = false
       result.errors.push({
         plugin: 'executor',
         phase: 'execution',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       })
     }
 

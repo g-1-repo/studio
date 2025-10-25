@@ -59,10 +59,14 @@ export const DEFAULT_SWAGGER_CONFIG: SwaggerUIConfig = {
 }
 
 export function generateSwaggerHTML(config: SwaggerUIConfig = DEFAULT_SWAGGER_CONFIG): string {
-  const configJson = JSON.stringify({
-    ...config,
-    dom_id: undefined, // Remove dom_id from config object
-  }, null, 2)
+  const configJson = JSON.stringify(
+    {
+      ...config,
+      dom_id: undefined, // Remove dom_id from config object
+    },
+    null,
+    2
+  )
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -88,7 +92,9 @@ export function generateSwaggerHTML(config: SwaggerUIConfig = DEFAULT_SWAGGER_CO
       background: #fafafa;
     }
 
-    ${config.theme === 'dark' ? `
+    ${
+      config.theme === 'dark'
+        ? `
     body {
       background: #1a1a1a;
       color: #ffffff;
@@ -101,7 +107,9 @@ export function generateSwaggerHTML(config: SwaggerUIConfig = DEFAULT_SWAGGER_CO
     .swagger-ui .info {
       background: #2d2d2d;
     }
-    ` : ''}
+    `
+        : ''
+    }
 
     ${config.customCss || ''}
   </style>
@@ -156,10 +164,7 @@ export function createSwaggerUIMiddleware(config: SwaggerUIConfig = DEFAULT_SWAG
   }
 }
 
-export function createSwaggerUIRoute(
-  specUrl: string, 
-  config: Partial<SwaggerUIConfig> = {}
-) {
+export function createSwaggerUIRoute(specUrl: string, config: Partial<SwaggerUIConfig> = {}) {
   const fullConfig = {
     ...DEFAULT_SWAGGER_CONFIG,
     ...config,
@@ -169,10 +174,7 @@ export function createSwaggerUIRoute(
   return createSwaggerUIMiddleware(fullConfig)
 }
 
-export function createSwaggerUIWithSpec(
-  spec: object,
-  config: Partial<SwaggerUIConfig> = {}
-) {
+export function createSwaggerUIWithSpec(spec: object, config: Partial<SwaggerUIConfig> = {}) {
   const fullConfig = {
     ...DEFAULT_SWAGGER_CONFIG,
     ...config,

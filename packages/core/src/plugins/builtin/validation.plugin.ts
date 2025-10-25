@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue } from '../types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext } from '../types.js'
 
 /**
  * Validation Plugin
@@ -8,69 +8,69 @@ export const validationPlugin: CliPlugin = {
   id: 'validation',
   category: 'middleware',
   description: 'Configurable request and response validation middleware with Zod',
-  
+
   config: {
     enableRequestValidation: {
       type: 'boolean',
       description: 'Enable request body validation',
-      default: true
+      default: true,
     },
     enableResponseValidation: {
       type: 'boolean',
       description: 'Enable response validation (development only)',
-      default: false
+      default: false,
     },
     enableQueryValidation: {
       type: 'boolean',
       description: 'Enable query parameter validation',
-      default: true
+      default: true,
     },
     enableParamValidation: {
       type: 'boolean',
       description: 'Enable path parameter validation',
-      default: true
+      default: true,
     },
     strictMode: {
       type: 'boolean',
       description: 'Strict validation mode (reject unknown fields)',
-      default: true
+      default: true,
     },
     coerceTypes: {
       type: 'boolean',
       description: 'Automatically coerce types (string to number, etc.)',
-      default: true
+      default: true,
     },
     maxBodySize: {
       type: 'string',
       description: 'Maximum request body size (e.g., 1MB, 10KB)',
-      default: '1MB'
+      default: '1MB',
     },
     enableSanitization: {
       type: 'boolean',
       description: 'Enable input sanitization',
-      default: true
+      default: true,
     },
     customErrorMessages: {
       type: 'boolean',
       description: 'Use custom error messages for validation failures',
-      default: true
+      default: true,
     },
     logValidationErrors: {
       type: 'boolean',
       description: 'Log validation errors for monitoring',
-      default: true
+      default: true,
     },
     returnDetailedErrors: {
       type: 'boolean',
       description: 'Return detailed validation errors (disable in production)',
-      default: true
-    }
+      default: true,
+    },
   },
 
-  prepare(ctx: PluginContext, config: Record<string, PluginConfigValue>) {
+  prepare(ctx: PluginContext, _config: Record<string, PluginConfigValue>) {
     // Add Zod for validation
     ctx.addDependency('zod', '^3.22.4')
-    
+
     // Add validator for additional validation utilities
     ctx.addDependency('@hono/zod-validator', '^0.2.1')
   },
@@ -78,10 +78,10 @@ export const validationPlugin: CliPlugin = {
   async apply(ctx: PluginContext, config: Record<string, PluginConfigValue>): Promise<void> {
     const enableRequestValidation = config.enableRequestValidation !== false
     const enableResponseValidation = config.enableResponseValidation || false
-    const enableQueryValidation = config.enableQueryValidation !== false
-    const enableParamValidation = config.enableParamValidation !== false
-    const strictMode = config.strictMode !== false
-    const coerceTypes = config.coerceTypes !== false
+    const _enableQueryValidation = config.enableQueryValidation !== false
+    const _enableParamValidation = config.enableParamValidation !== false
+    const _strictMode = config.strictMode !== false
+    const _coerceTypes = config.coerceTypes !== false
     const maxBodySize = config.maxBodySize || '1MB'
     const enableSanitization = config.enableSanitization !== false
     const customErrorMessages = config.customErrorMessages !== false
@@ -139,7 +139,9 @@ export const commonSchemas = {
   })
 }
 
-${enableSanitization ? `
+${
+  enableSanitization
+    ? `
 /**
  * Input sanitization utilities
  */
@@ -189,13 +191,17 @@ export const sanitizers = {
     return obj
   }
 }
-` : ''}
+`
+    : ''
+}
 
 /**
  * Custom error formatter for validation errors
  */
 function formatValidationError(error: z.ZodError): any {
-  ${customErrorMessages ? `
+  ${
+    customErrorMessages
+      ? `
   const formattedErrors = error.errors.map(err => ({
     field: err.path.join('.'),
     message: err.message,
@@ -208,13 +214,15 @@ function formatValidationError(error: z.ZodError): any {
     details: formattedErrors,
     timestamp: new Date().toISOString()
   }
-  ` : `
+  `
+      : `
   return {
     error: 'Validation failed',
     message: error.message,
     timestamp: new Date().toISOString()
   }
-  `}
+  `
+  }
 }
 
 /**
@@ -227,7 +235,9 @@ export function bodySizeValidator(): MiddlewareHandler<AppBindings> {
     const contentLength = c.req.header('content-length')
     
     if (contentLength && parseInt(contentLength) > maxBytes) {
-      ${logValidationErrors ? `
+      ${
+        logValidationErrors
+          ? `
       console.warn(JSON.stringify({
         type: 'validation_error',
         reason: 'body_too_large',
@@ -235,7 +245,9 @@ export function bodySizeValidator(): MiddlewareHandler<AppBindings> {
         maxSize: maxBytes,
         timestamp: new Date().toISOString()
       }))
-      ` : ''}
+      `
+          : ''
+      }
       
       throw new HTTPException(413, { message: 'Request body too large' })
     }
@@ -264,7 +276,9 @@ function parseSize(size: string): number {
   return Math.floor(value * (units[unit] || 1))
 }
 
-${enableRequestValidation ? `
+${
+  enableRequestValidation
+    ? `
 /**
  * Request validation middleware
  */
@@ -282,13 +296,17 @@ export function requestValidation(): MiddlewareHandler<AppBindings> {
       const body = await c.req.json().catch(() => null)
       
       if (body && typeof body === 'object') {
-        ${enableSanitization ? `
+        ${
+          enableSanitization
+            ? `
         // Sanitize input
         const sanitizedBody = sanitizers.sanitizeObject(body)
         
         // Store sanitized body for route handlers
         c.set('sanitizedBody', sanitizedBody)
-        ` : ''}
+        `
+            : ''
+        }
         
         // Basic validation - ensure it's valid JSON object
         if (Array.isArray(body)) {
@@ -300,14 +318,18 @@ export function requestValidation(): MiddlewareHandler<AppBindings> {
         throw error
       }
       
-      ${logValidationErrors ? `
+      ${
+        logValidationErrors
+          ? `
       console.warn(JSON.stringify({
         type: 'validation_error',
         reason: 'invalid_json',
         error: (error as Error).message,
         timestamp: new Date().toISOString()
       }))
-      ` : ''}
+      `
+          : ''
+      }
       
       throw new HTTPException(400, { message: 'Invalid JSON in request body' })
     }
@@ -315,9 +337,13 @@ export function requestValidation(): MiddlewareHandler<AppBindings> {
     await next()
   })
 }
-` : ''}
+`
+    : ''
+}
 
-${enableResponseValidation ? `
+${
+  enableResponseValidation
+    ? `
 /**
  * Response validation middleware (development only)
  */
@@ -366,7 +392,9 @@ export function responseValidation(): MiddlewareHandler<AppBindings> {
     }
   })
 }
-` : ''}
+`
+    : ''
+}
 
 /**
  * Create a validator middleware for specific schema
@@ -377,14 +405,18 @@ export function createValidator<T>(
 ): MiddlewareHandler<AppBindings> {
   return zValidator(target, schema, (result, c) => {
     if (!result.success) {
-      ${logValidationErrors ? `
+      ${
+        logValidationErrors
+          ? `
       console.warn(JSON.stringify({
         type: 'validation_error',
         target,
         errors: result.error.errors,
         timestamp: new Date().toISOString()
       }))
-      ` : ''}
+      `
+          : ''
+      }
       
       const errorResponse = ${returnDetailedErrors ? 'formatValidationError(result.error)' : '{ error: "Validation failed" }'}
       
@@ -422,26 +454,26 @@ export { z, commonSchemas }
           const imports = []
           if (enableRequestValidation) imports.push('requestValidation', 'bodySizeValidator')
           if (enableResponseValidation) imports.push('responseValidation')
-          
+
           if (imports.length > 0) {
             const importLine = `import { ${imports.join(', ')} } from './lib/validation.middleware.js'`
-            
+
             // Find the last import statement
             const lines = content.split('\\n')
             let lastImportIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].trim().startsWith('import ')) {
                 lastImportIndex = i
               }
             }
-            
+
             if (lastImportIndex >= 0) {
               lines.splice(lastImportIndex + 1, 0, importLine)
             } else {
               lines.unshift(importLine)
             }
-            
+
             content = lines.join('\\n')
           }
         }
@@ -449,13 +481,13 @@ export { z, commonSchemas }
         // Add middleware usage if not already present
         const middlewareToAdd = []
         if (enableRequestValidation && !content.includes('bodySizeValidator()')) {
-          middlewareToAdd.push('app.use(\\'*\\', bodySizeValidator())')
+          middlewareToAdd.push("app.use('*', bodySizeValidator())")
         }
         if (enableRequestValidation && !content.includes('requestValidation()')) {
-          middlewareToAdd.push('app.use(\\'*\\', requestValidation())')
+          middlewareToAdd.push("app.use('*', requestValidation())")
         }
         if (enableResponseValidation && !content.includes('responseValidation()')) {
-          middlewareToAdd.push('app.use(\\'*\\', responseValidation())')
+          middlewareToAdd.push("app.use('*', responseValidation())")
         }
 
         if (middlewareToAdd.length > 0) {
@@ -463,23 +495,24 @@ export { z, commonSchemas }
           if (content.includes('const app = ') || content.includes('export const app = ')) {
             const lines = content.split('\\n')
             let insertIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].includes('const app = ') || lines[i].includes('export const app = ')) {
                 insertIndex = i + 1
                 // Look for existing middleware to insert after CORS
-                while (insertIndex < lines.length && (
-                  lines[insertIndex].includes('pinoLogger') || 
-                  lines[insertIndex].includes('corsHandler') ||
-                  lines[insertIndex].trim() === '' || 
-                  lines[insertIndex].startsWith('//')
-                )) {
+                while (
+                  insertIndex < lines.length &&
+                  (lines[insertIndex].includes('pinoLogger') ||
+                    lines[insertIndex].includes('corsHandler') ||
+                    lines[insertIndex].trim() === '' ||
+                    lines[insertIndex].startsWith('//'))
+                ) {
                   insertIndex++
                 }
                 break
               }
             }
-            
+
             if (insertIndex >= 0) {
               lines.splice(insertIndex, 0, '', '// Validation middleware', ...middlewareToAdd)
               content = lines.join('\\n')
@@ -490,5 +523,5 @@ export { z, commonSchemas }
         return content
       })
     }
-  }
+  },
 }

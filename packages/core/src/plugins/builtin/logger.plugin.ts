@@ -1,4 +1,4 @@
-import type { CliPlugin, PluginContext, PluginConfigValue } from '../types.js'
+import type { CliPlugin, PluginConfigValue, PluginContext } from '../types.js'
 
 /**
  * Logger Plugin
@@ -8,7 +8,7 @@ export const loggerPlugin: CliPlugin = {
   id: 'logger',
   category: 'middleware',
   description: 'Structured logging with Pino and configurable output formats',
-  
+
   config: {
     level: {
       type: 'select',
@@ -19,44 +19,44 @@ export const loggerPlugin: CliPlugin = {
         { name: 'Warn', value: 'warn' },
         { name: 'Info', value: 'info' },
         { name: 'Debug', value: 'debug' },
-        { name: 'Trace', value: 'trace' }
+        { name: 'Trace', value: 'trace' },
       ],
-      default: 'info'
+      default: 'info',
     },
     prettyPrint: {
       type: 'boolean',
       description: 'Enable pretty printing for development',
-      default: true
+      default: true,
     },
     logRequests: {
       type: 'boolean',
       description: 'Log HTTP requests',
-      default: true
+      default: true,
     },
     logResponses: {
       type: 'boolean',
       description: 'Log HTTP responses',
-      default: true
+      default: true,
     },
     logErrors: {
       type: 'boolean',
       description: 'Log errors with stack traces',
-      default: true
+      default: true,
     },
     includeHeaders: {
       type: 'boolean',
       description: 'Include request/response headers in logs',
-      default: false
+      default: false,
     },
     includeBody: {
       type: 'boolean',
       description: 'Include request/response body in logs (development only)',
-      default: false
+      default: false,
     },
     redactFields: {
       type: 'string',
       description: 'Comma-separated list of fields to redact (e.g., password,token)',
-      default: 'password,token,authorization,cookie'
+      default: 'password,token,authorization,cookie',
     },
     timestampFormat: {
       type: 'select',
@@ -64,9 +64,9 @@ export const loggerPlugin: CliPlugin = {
       options: [
         { name: 'ISO 8601', value: 'iso' },
         { name: 'Unix timestamp', value: 'unix' },
-        { name: 'Epoch milliseconds', value: 'epoch' }
+        { name: 'Epoch milliseconds', value: 'epoch' },
       ],
-      default: 'iso'
+      default: 'iso',
     },
     destination: {
       type: 'select',
@@ -74,33 +74,33 @@ export const loggerPlugin: CliPlugin = {
       options: [
         { name: 'Console (stdout)', value: 'console' },
         { name: 'File', value: 'file' },
-        { name: 'Both', value: 'both' }
+        { name: 'Both', value: 'both' },
       ],
-      default: 'console'
+      default: 'console',
     },
     logFile: {
       type: 'string',
       description: 'Log file path (when destination includes file)',
-      default: 'logs/app.log'
+      default: 'logs/app.log',
     },
     maxFileSize: {
       type: 'string',
       description: 'Maximum log file size before rotation (e.g., 10MB)',
-      default: '10MB'
+      default: '10MB',
     },
     maxFiles: {
       type: 'number',
       description: 'Maximum number of rotated log files to keep',
-      default: 5
-    }
+      default: 5,
+    },
   },
 
   prepare(ctx: PluginContext, config: Record<string, PluginConfigValue>) {
     const destination = config.destination || 'console'
-    
+
     // Add pino dependency
     ctx.addDependency('pino', '^8.17.2')
-    
+
     // Add file rotation dependencies if needed
     if (destination === 'file' || destination === 'both') {
       ctx.addDependency('pino-rotating-file-stream', '^0.0.4')
@@ -115,7 +115,11 @@ export const loggerPlugin: CliPlugin = {
     const logErrors = config.logErrors !== false
     const includeHeaders = config.includeHeaders || false
     const includeBody = config.includeBody || false
-    const redactFields = config.redactFields ? String(config.redactFields).split(',').map(f => f.trim()) : ['password', 'token', 'authorization', 'cookie']
+    const redactFields = config.redactFields
+      ? String(config.redactFields)
+          .split(',')
+          .map(f => f.trim())
+      : ['password', 'token', 'authorization', 'cookie']
     const timestampFormat = config.timestampFormat || 'iso'
     const destination = config.destination || 'console'
     const logFile = config.logFile || 'logs/app.log'
@@ -136,13 +140,19 @@ import type { AppBindings } from './types.js'
 // Configure Pino logger
 const loggerConfig: any = {
   level: '${level}',
-  ${timestampFormat === 'iso' ? `
+  ${
+    timestampFormat === 'iso'
+      ? `
   timestamp: pino.stdTimeFunctions.isoTime,
-  ` : timestampFormat === 'unix' ? `
+  `
+      : timestampFormat === 'unix'
+        ? `
   timestamp: pino.stdTimeFunctions.unixTime,
-  ` : `
+  `
+        : `
   timestamp: pino.stdTimeFunctions.epochTime,
-  `}
+  `
+  }
   redact: {
     paths: [${redactFields.map(field => `'${field}'`).join(', ')}],
     censor: '[REDACTED]'
@@ -165,7 +175,9 @@ const loggerConfig: any = {
   }
 }
 
-${prettyPrint ? `
+${
+  prettyPrint
+    ? `
 // Pretty print for development
 if (process.env.NODE_ENV !== 'production') {
   loggerConfig.transport = {
@@ -177,9 +189,13 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 }
-` : ''}
+`
+    : ''
+}
 
-${destination === 'file' ? `
+${
+  destination === 'file'
+    ? `
 // File destination
 const streams = [
   createWriteStream({
@@ -190,7 +206,9 @@ const streams = [
 ]
 
 export const logger = pino(loggerConfig, pino.multistream(streams))
-` : destination === 'both' ? `
+`
+    : destination === 'both'
+      ? `
 // Both console and file destinations
 const streams = [
   { stream: process.stdout },
@@ -202,10 +220,12 @@ const streams = [
 ]
 
 export const logger = pino(loggerConfig, pino.multistream(streams))
-` : `
+`
+      : `
 // Console destination
 export const logger = pino(loggerConfig)
-`}
+`
+}
 
 /**
  * Pino logger middleware
@@ -222,7 +242,9 @@ export function pinoLogger(): MiddlewareHandler<AppBindings> {
     // Set request ID for other middleware
     c.set('requestId', requestId)
 
-    ${logRequests ? `
+    ${
+      logRequests
+        ? `
     // Log incoming request
     logger.info({
       type: 'request',
@@ -234,7 +256,9 @@ export function pinoLogger(): MiddlewareHandler<AppBindings> {
       ${includeHeaders ? 'headers: Object.fromEntries(c.req.raw.headers.entries()),' : ''}
       timestamp: new Date().toISOString()
     }, \`\${method} \${url}\`)
-    ` : ''}
+    `
+        : ''
+    }
 
     let statusCode: number | undefined
     let error: unknown = null
@@ -246,7 +270,9 @@ export function pinoLogger(): MiddlewareHandler<AppBindings> {
       error = err
       statusCode = err instanceof Error && 'status' in err ? (err as any).status : 500
       
-      ${logErrors ? `
+      ${
+        logErrors
+          ? `
       // Log error
       logger.error({
         type: 'error',
@@ -263,13 +289,17 @@ export function pinoLogger(): MiddlewareHandler<AppBindings> {
         duration: Date.now() - startTime,
         timestamp: new Date().toISOString()
       }, \`Error in \${method} \${url}: \${(err as Error).message}\`)
-      ` : ''}
+      `
+          : ''
+      }
       
       throw err
     } finally {
       const duration = Date.now() - startTime
 
-      ${logResponses ? `
+      ${
+        logResponses
+          ? `
       // Log response (only if statusCode is available)
       if (statusCode !== undefined) {
         const logLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info'
@@ -286,7 +316,9 @@ export function pinoLogger(): MiddlewareHandler<AppBindings> {
           timestamp: new Date().toISOString()
         }, \`\${method} \${url} - \${statusCode} (\${duration}ms)\`)
       }
-      ` : ''}
+      `
+          : ''
+      }
     }
   })
 }
@@ -303,23 +335,23 @@ export { logger }
         // Add import if not already present
         if (!content.includes('logger.middleware')) {
           const importLine = `import { pinoLogger } from './lib/logger.middleware.js'`
-          
+
           // Find the last import statement
           const lines = content.split('\\n')
           let lastImportIndex = -1
-          
+
           for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim().startsWith('import ')) {
               lastImportIndex = i
             }
           }
-          
+
           if (lastImportIndex >= 0) {
             lines.splice(lastImportIndex + 1, 0, importLine)
           } else {
             lines.unshift(importLine)
           }
-          
+
           content = lines.join('\\n')
         }
 
@@ -329,16 +361,22 @@ export { logger }
           if (content.includes('const app = ') || content.includes('export const app = ')) {
             const lines = content.split('\\n')
             let insertIndex = -1
-            
+
             for (let i = 0; i < lines.length; i++) {
               if (lines[i].includes('const app = ') || lines[i].includes('export const app = ')) {
                 insertIndex = i + 1
                 break
               }
             }
-            
+
             if (insertIndex >= 0) {
-              lines.splice(insertIndex, 0, '', '// Logger middleware (should be first)', 'app.use(\\'*\\', pinoLogger())')
+              lines.splice(
+                insertIndex,
+                0,
+                '',
+                '// Logger middleware (should be first)',
+                "app.use('*', pinoLogger())"
+              )
               content = lines.join('\\n')
             }
           }
@@ -347,5 +385,5 @@ export { logger }
         return content
       })
     }
-  }
+  },
 }

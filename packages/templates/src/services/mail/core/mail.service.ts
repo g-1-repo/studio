@@ -1,5 +1,5 @@
 import process from 'node:process'
-import { createWorkerSafeCuid2 as createId } from '@g-1/util'
+import { createWorkerSafeCuid2 as createId } from '@g-1/core'
 import type { EmailTemplate } from '../interfaces/email-template.interface'
 import type { EmailProvider, EmailProviderConfig } from '../providers/email-provider.interface'
 import { MockProvider } from '../providers/mock.provider'

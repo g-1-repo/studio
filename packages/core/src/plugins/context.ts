@@ -1,12 +1,12 @@
 import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
-import type { PluginContext, ProjectConfig, PluginConfigValue } from './types.js'
+import type { PluginConfigValue, PluginContext, ProjectConfig } from './types.js'
 
 export class PluginContextImpl implements PluginContext {
   private files: Map<string, string> = new Map()
   private dependencies: { production: string[]; development: string[] } = {
     production: [],
-    development: []
+    development: [],
   }
 
   constructor(
@@ -19,13 +19,13 @@ export class PluginContextImpl implements PluginContext {
    */
   async addFile(relativePath: string, content: string): Promise<void> {
     const fullPath = path.join(this.projectPath, relativePath)
-    
+
     // Ensure directory exists
     await fs.mkdir(path.dirname(fullPath), { recursive: true })
-    
+
     // Store in memory for potential template processing
     this.files.set(relativePath, content)
-    
+
     // Write to disk
     await fs.writeFile(fullPath, content, 'utf-8')
   }
@@ -35,12 +35,12 @@ export class PluginContextImpl implements PluginContext {
    */
   async modifyFile(relativePath: string, modifier: (content: string) => string): Promise<void> {
     const fullPath = path.join(this.projectPath, relativePath)
-    
+
     let content: string
-    
+
     // Check if file exists in memory first
     if (this.files.has(relativePath)) {
-      content = this.files.get(relativePath)!
+      content = this.files.get(relativePath) as string
     } else {
       try {
         content = await fs.readFile(fullPath, 'utf-8')
@@ -51,10 +51,10 @@ export class PluginContextImpl implements PluginContext {
         throw error
       }
     }
-    
+
     // Apply modification
     const modifiedContent = modifier(content)
-    
+
     // Update memory and disk
     this.files.set(relativePath, modifiedContent)
     await fs.writeFile(fullPath, modifiedContent, 'utf-8')
@@ -66,9 +66,9 @@ export class PluginContextImpl implements PluginContext {
   async readFile(relativePath: string): Promise<string> {
     // Check memory first
     if (this.files.has(relativePath)) {
-      return this.files.get(relativePath)!
+      return this.files.get(relativePath) as string
     }
-    
+
     // Read from disk
     const fullPath = path.join(this.projectPath, relativePath)
     try {
@@ -91,7 +91,7 @@ export class PluginContextImpl implements PluginContext {
     if (this.files.has(relativePath)) {
       return true
     }
-    
+
     // Check disk
     const fullPath = path.join(this.projectPath, relativePath)
     try {
@@ -128,7 +128,7 @@ export class PluginContextImpl implements PluginContext {
   getDependencies(): { production: string[]; development: string[] } {
     return {
       production: [...this.dependencies.production],
-      development: [...this.dependencies.development]
+      development: [...this.dependencies.development],
     }
   }
 
@@ -137,11 +137,11 @@ export class PluginContextImpl implements PluginContext {
    */
   replaceTemplateVariables(content: string, variables?: Record<string, PluginConfigValue>): string {
     let result = content
-    
+
     // Replace built-in variables
     result = result.replace(/{{projectName}}/g, this.config.projectName)
     result = result.replace(/{{packageManager}}/g, this.config.packageManager || 'npm')
-    
+
     // Replace custom variables
     if (variables) {
       for (const [key, value] of Object.entries(variables)) {
@@ -149,7 +149,7 @@ export class PluginContextImpl implements PluginContext {
         result = result.replace(regex, String(value))
       }
     }
-    
+
     return result
   }
 }

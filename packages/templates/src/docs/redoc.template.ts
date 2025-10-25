@@ -237,10 +237,7 @@ export function createRedocMiddleware(config: RedocConfig = DEFAULT_REDOC_CONFIG
   }
 }
 
-export function createRedocRoute(
-  specUrl: string,
-  config: Partial<RedocConfig> = {}
-) {
+export function createRedocRoute(specUrl: string, config: Partial<RedocConfig> = {}) {
   const fullConfig = {
     ...DEFAULT_REDOC_CONFIG,
     ...config,
@@ -250,10 +247,7 @@ export function createRedocRoute(
   return createRedocMiddleware(fullConfig)
 }
 
-export function createRedocWithSpec(
-  spec: object,
-  config: Partial<RedocConfig> = {}
-) {
+export function createRedocWithSpec(spec: object, config: Partial<RedocConfig> = {}) {
   const fullConfig = {
     ...DEFAULT_REDOC_CONFIG,
     ...config,
@@ -465,7 +459,8 @@ export const REDOC_HELPERS = {
         main: brandColor,
       },
     },
-    customCss: logoUrl ? `
+    customCss: logoUrl
+      ? `
       .redoc-wrap > div:first-child::before {
         content: '';
         background-image: url('${logoUrl}');
@@ -476,7 +471,8 @@ export const REDOC_HELPERS = {
         display: block;
         margin: 20px;
       }
-    ` : '',
+    `
+      : '',
   }),
 
   // Add code samples for multiple languages

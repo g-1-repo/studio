@@ -47,7 +47,7 @@ export interface PostmanConfig {
 
 export interface PostmanItem {
   name: string
-  request: {
+  request?: {
     method: string
     header: Array<{
       key: string
@@ -92,6 +92,8 @@ export interface PostmanItem {
     }
     description?: string
   }
+  item?: PostmanItem[]
+  description?: string
   response?: Array<{
     name: string
     originalRequest: any
@@ -202,9 +204,9 @@ export class PostmanGenerator {
   }
 
   private generateId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0
-      const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
   }
@@ -238,8 +240,8 @@ export class PostmanGenerator {
         method: method.toUpperCase(),
         header: headers,
         url,
-        description: options.description,
         ...(body && { body }),
+        ...(options.description && { description: options.description }),
       },
     }
 
@@ -269,7 +271,8 @@ export class PostmanGenerator {
           value,
         })),
         cookie: [],
-        body: typeof example.body === 'string' ? example.body : JSON.stringify(example.body, null, 2),
+        body:
+          typeof example.body === 'string' ? example.body : JSON.stringify(example.body, null, 2),
       }))
     }
 
@@ -286,10 +289,12 @@ export class PostmanGenerator {
   private buildUrl(path: string, queryParams?: Record<string, string>) {
     const baseUrl = this.config.baseUrl || '{{baseUrl}}'
     const fullPath = path.startsWith('/') ? path : `/${path}`
-    
+
     return {
       raw: `${baseUrl}${fullPath}${queryParams ? this.buildQueryString(queryParams) : ''}`,
-      host: baseUrl.includes('{{') ? ['{{baseUrl}}'] : baseUrl.replace(/https?:\/\//, '').split('.'),
+      host: baseUrl.includes('{{')
+        ? ['{{baseUrl}}']
+        : baseUrl.replace(/https?:\/\//, '').split('.'),
       path: fullPath.split('/').filter(Boolean),
       ...(queryParams && {
         query: Object.entries(queryParams).map(([key, value]) => ({
@@ -309,9 +314,7 @@ export class PostmanGenerator {
   }
 
   private buildHeaders(headers?: Record<string, string>) {
-    const defaultHeaders = [
-      { key: 'Content-Type', value: 'application/json', type: 'text' },
-    ]
+    const defaultHeaders = [{ key: 'Content-Type', value: 'application/json', type: 'text' }]
 
     if (!headers) return defaultHeaders
 
@@ -354,9 +357,7 @@ export class PostmanGenerator {
   }
 
   private addToFolder(folderName: string, item: PostmanItem) {
-    let folder = this.collection.item.find(
-      (i): i is any => 'item' in i && i.name === folderName
-    )
+    let folder = this.collection.item.find((i): i is any => 'item' in i && i.name === folderName)
 
     if (!folder) {
       folder = {
@@ -460,7 +461,13 @@ export class PostmanGenerator {
   }
 
   generateEnvironment(): PostmanEnvironment {
-    const envValues = [
+    const envValues: Array<{
+      key: string
+      value: string
+      type: 'default' | 'secret'
+      enabled: boolean
+      description?: string
+    }> = [
       ...(this.config.variables || []).map(v => ({
         key: v.key,
         value: v.value,
@@ -579,28 +586,32 @@ export function createPostmanFromOpenAPI(
           const folder = operation.tags?.[0] || 'Default'
           folders.add(folder)
 
-          const tests = fullConfig.includeTests ? [
-            'pm.test("Status code is successful", function () {',
-            '    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);',
-            '});',
-            '',
-            'pm.test("Response time is less than 2000ms", function () {',
-            '    pm.expect(pm.response.responseTime).to.be.below(2000);',
-            '});',
-            '',
-            'pm.test("Response has valid JSON", function () {',
-            '    pm.response.to.have.jsonBody();',
-            '});',
-          ] : undefined
+          const tests = fullConfig.includeTests
+            ? [
+                'pm.test("Status code is successful", function () {',
+                '    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);',
+                '});',
+                '',
+                'pm.test("Response time is less than 2000ms", function () {',
+                '    pm.expect(pm.response.responseTime).to.be.below(2000);',
+                '});',
+                '',
+                'pm.test("Response has valid JSON", function () {',
+                '    pm.response.to.have.jsonBody();',
+                '});',
+              ]
+            : undefined
 
-          const examples = operation.responses ? Object.entries(operation.responses)
-            .filter(([status]) => status.startsWith('2'))
-            .map(([status, response]: [string, any]) => ({
-              name: `${status} Response`,
-              status: parseInt(status),
-              body: response.content?.['application/json']?.example || {},
-              headers: { 'Content-Type': 'application/json' },
-            })) : undefined
+          const examples = operation.responses
+            ? Object.entries(operation.responses)
+                .filter(([status]) => status.startsWith('2'))
+                .map(([status, response]: [string, any]) => ({
+                  name: `${status} Response`,
+                  status: parseInt(status, 10),
+                  body: response.content?.['application/json']?.example || {},
+                  headers: { 'Content-Type': 'application/json' },
+                }))
+            : undefined
 
           generator.addRequest(
             operation.summary || `${method.toUpperCase()} ${path}`,
@@ -652,7 +663,7 @@ export const POSTMAN_CONFIGS = {
             'pm.globals.set("timestamp", new Date().toISOString());',
             '',
             '// Log request details',
-            'console.log(`Making ${pm.request.method} request to ${pm.request.url}`);',
+            'console.log("Making " + pm.request.method + " request to " + pm.request.url);',
           ],
         },
       },
@@ -667,7 +678,7 @@ export const POSTMAN_CONFIGS = {
             '});',
             '',
             '// Log response details',
-            'console.log(`Response: ${pm.response.status} ${pm.response.code}`);',
+            'console.log("Response: " + pm.response.status + " " + pm.response.code);',
           ],
         },
       },

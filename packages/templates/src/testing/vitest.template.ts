@@ -1,5 +1,4 @@
 import { defineConfig, type UserConfig } from 'vitest/config'
-import type { InlineConfig } from 'vitest'
 
 /**
  * Vitest configuration templates for different testing scenarios
@@ -52,67 +51,69 @@ export function createBaseVitestConfig(options: VitestTemplateConfig = {}): User
       silent: options.silent || false,
       maxConcurrency: options.maxConcurrency || 5,
       pool: options.pool || 'threads',
-      poolOptions: options.poolOptions || {
+      poolOptions: {
         threads: {
-          singleThread: false,
+          singleThread: options.poolOptions?.threads?.singleThread ?? false,
           isolate: true,
-          useAtomics: true
-        }
+          useAtomics: true,
+        },
       },
-      minThreads: options.minThreads || 1,
-      maxThreads: options.maxThreads || undefined,
-      include: [
-        `${options.testDir || 'src'}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}`
-      ],
+      include: [`${options.testDir || 'src'}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}`],
       exclude: [
         '**/node_modules/**',
         '**/dist/**',
         '**/cypress/**',
         '**/.{idea,git,cache,output,temp}/**',
-        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*'
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       ],
       reporters: options.reporters || ['default'],
       outputFile: options.outputFile,
-      coverage: options.coverage ? {
-        provider: 'v8',
-        reporter: ['text', 'json', 'html', 'lcov'],
-        reportsDirectory: './coverage',
-        exclude: [
-          'coverage/**',
-          'dist/**',
-          '**/[.]**',
-          'packages/*/test{,s}/**',
-          '**/*.d.ts',
-          '**/virtual:*',
-          '**/__x00__*',
-          '**/\x00*',
-          'cypress/**',
-          'test{,s}/**',
-          'test{,-*}.{js,cjs,mjs,ts,tsx,jsx}',
-          '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}',
-          '**/*{.,-}spec.{js,cjs,mjs,ts,tsx,jsx}',
-          '**/__tests__/**',
-          '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-          '**/vitest.{workspace,projects}.[jt]s{,on}',
-          '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}'
-        ],
-        all: true,
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80
-      } : undefined,
+      coverage: options.coverage
+        ? {
+            provider: 'v8',
+            reporter: ['text', 'json', 'html', 'lcov'],
+            reportsDirectory: './coverage',
+            exclude: [
+              'coverage/**',
+              'dist/**',
+              '**/[.]**',
+              'packages/*/test{,s}/**',
+              '**/*.d.ts',
+              '**/virtual:*',
+              '**/__x00__*',
+              '**/\x00*',
+              'cypress/**',
+              'test{,s}/**',
+              'test{,-*}.{js,cjs,mjs,ts,tsx,jsx}',
+              '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}',
+              '**/*{.,-}spec.{js,cjs,mjs,ts,tsx,jsx}',
+              '**/__tests__/**',
+              '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+              '**/vitest.{workspace,projects}.[jt]s{,on}',
+              '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}',
+            ],
+            all: true,
+            thresholds: {
+              lines: 80,
+              functions: 80,
+              branches: 80,
+              statements: 80,
+            },
+          }
+        : undefined,
       ui: options.ui || false,
       open: false,
-      api: options.ui ? {
-        port: 51204,
-        strictPort: false,
-        host: '127.0.0.1'
-      } : undefined
+      api: options.ui
+        ? {
+            port: 51204,
+            strictPort: false,
+            host: '127.0.0.1',
+          }
+        : undefined,
     },
     esbuild: {
-      target: 'node18'
-    }
+      target: 'node18',
+    },
   })
 }
 
@@ -124,20 +125,17 @@ export function createUnitTestConfig(options: VitestTemplateConfig = {}): UserCo
     ...options,
     testDir: options.testDir || 'src',
     environment: options.environment || 'node',
-    setupFiles: [
-      ...(options.setupFiles || []),
-      './src/test/setup/unit.setup.ts'
-    ],
+    setupFiles: [...(options.setupFiles || []), './src/test/setup/unit.setup.ts'],
     pool: 'threads',
     poolOptions: {
       threads: {
         singleThread: false,
         isolate: true,
-        useAtomics: true
-      }
+        useAtomics: true,
+      },
     },
     testTimeout: 5000,
-    maxConcurrency: 10
+    maxConcurrency: 10,
   })
 }
 
@@ -149,26 +147,20 @@ export function createIntegrationTestConfig(options: VitestTemplateConfig = {}):
     ...options,
     testDir: options.testDir || 'src',
     environment: options.environment || 'node',
-    setupFiles: [
-      ...(options.setupFiles || []),
-      './src/test/setup/integration.setup.ts'
-    ],
-    globalSetup: [
-      ...(options.globalSetup || []),
-      './src/test/setup/global.setup.ts'
-    ],
+    setupFiles: [...(options.setupFiles || []), './src/test/setup/integration.setup.ts'],
+    globalSetup: [...(options.globalSetup || []), './src/test/setup/global.setup.ts'],
     pool: 'forks',
     poolOptions: {
       forks: {
         singleFork: false,
-        isolate: true
-      }
+        isolate: true,
+      },
     },
     testTimeout: 30000,
     hookTimeout: 30000,
     maxConcurrency: 3,
     minThreads: 1,
-    maxThreads: 3
+    maxThreads: 3,
   })
 }
 
@@ -180,27 +172,21 @@ export function createE2ETestConfig(options: VitestTemplateConfig = {}): UserCon
     ...options,
     testDir: options.testDir || 'e2e',
     environment: options.environment || 'node',
-    setupFiles: [
-      ...(options.setupFiles || []),
-      './e2e/setup/e2e.setup.ts'
-    ],
-    globalSetup: [
-      ...(options.globalSetup || []),
-      './e2e/setup/global.setup.ts'
-    ],
+    setupFiles: [...(options.setupFiles || []), './e2e/setup/e2e.setup.ts'],
+    globalSetup: [...(options.globalSetup || []), './e2e/setup/global.setup.ts'],
     pool: 'forks',
     poolOptions: {
       forks: {
         singleFork: true,
-        isolate: true
-      }
+        isolate: true,
+      },
     },
     testTimeout: 60000,
     hookTimeout: 60000,
     teardownTimeout: 30000,
     maxConcurrency: 1,
     minThreads: 1,
-    maxThreads: 1
+    maxThreads: 1,
   })
 }
 
@@ -214,33 +200,32 @@ export function createBrowserTestConfig(options: VitestTemplateConfig = {}): Use
       environment: 'happy-dom', // Fallback for non-browser tests
       setupFiles: options.setupFiles || [],
       testTimeout: options.testTimeout || 30000,
-      include: [
-        `${options.testDir || 'src'}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}`
-      ],
+      include: [`${options.testDir || 'src'}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}`],
       exclude: [
         '**/node_modules/**',
         '**/dist/**',
         '**/e2e/**',
-        '**/.{idea,git,cache,output,temp}/**'
+        '**/.{idea,git,cache,output,temp}/**',
       ],
       browser: {
         enabled: true,
         name: 'chromium',
         provider: 'playwright',
         headless: true,
-        screenshotOnFailure: true,
         api: {
           port: 63315,
           strictPort: false,
-          host: '127.0.0.1'
-        }
+          host: '127.0.0.1',
+        },
       },
-      coverage: options.coverage ? {
-        provider: 'istanbul',
-        reporter: ['text', 'json', 'html'],
-        reportsDirectory: './coverage/browser'
-      } : undefined
-    }
+      coverage: options.coverage
+        ? {
+            provider: 'istanbul',
+            reporter: ['text', 'json', 'html'],
+            reportsDirectory: './coverage/browser',
+          }
+        : undefined,
+    },
   })
 }
 
@@ -586,7 +571,7 @@ export async function teardown() {
   }
   
   console.log('Global test teardown complete')
-}`
+}`,
 }
 
 /**
@@ -594,15 +579,15 @@ export async function teardown() {
  */
 export const TEST_SCRIPTS = {
   basic: {
-    'test': 'vitest',
+    test: 'vitest',
     'test:run': 'vitest run',
     'test:watch': 'vitest --watch',
     'test:coverage': 'vitest --coverage',
-    'test:ui': 'vitest --ui'
+    'test:ui': 'vitest --ui',
   },
-  
+
   comprehensive: {
-    'test': 'vitest',
+    test: 'vitest',
     'test:run': 'vitest run',
     'test:watch': 'vitest --watch',
     'test:coverage': 'vitest --coverage',
@@ -612,8 +597,8 @@ export const TEST_SCRIPTS = {
     'test:e2e': 'vitest run --config vitest.e2e.config.ts',
     'test:browser': 'vitest run --config vitest.browser.config.ts',
     'test:all': 'bun run test:unit && bun run test:integration && bun run test:e2e',
-    'test:ci': 'vitest run --coverage --reporter=junit --outputFile=test-results.xml'
-  }
+    'test:ci': 'vitest run --coverage --reporter=junit --outputFile=test-results.xml',
+  },
 }
 
 /**
@@ -622,34 +607,34 @@ export const TEST_SCRIPTS = {
 export const TEST_DEPENDENCIES = {
   basic: {
     devDependencies: {
-      'vitest': '^2.1.0',
+      vitest: '^2.1.0',
       '@vitest/ui': '^2.1.0',
-      'happy-dom': '^15.0.0'
-    }
+      'happy-dom': '^15.0.0',
+    },
   },
-  
+
   comprehensive: {
     devDependencies: {
-      'vitest': '^2.1.0',
+      vitest: '^2.1.0',
       '@vitest/ui': '^2.1.0',
       '@vitest/coverage-v8': '^2.1.0',
       '@vitest/browser': '^2.1.0',
-      'playwright': '^1.40.0',
+      playwright: '^1.40.0',
       'happy-dom': '^15.0.0',
-      'jsdom': '^25.0.0',
+      jsdom: '^25.0.0',
       '@testing-library/dom': '^10.0.0',
       '@testing-library/user-event': '^14.0.0',
-      'msw': '^2.0.0'
-    }
+      msw: '^2.0.0',
+    },
   },
-  
+
   cloudflareWorkers: {
     devDependencies: {
-      'vitest': '^2.1.0',
+      vitest: '^2.1.0',
       '@cloudflare/vitest-pool-workers': '^0.5.0',
-      'wrangler': '^3.0.0'
-    }
-  }
+      wrangler: '^3.0.0',
+    },
+  },
 }
 
 export default {
@@ -661,5 +646,5 @@ export default {
   createWorkspaceConfig,
   SETUP_FILES,
   TEST_SCRIPTS,
-  TEST_DEPENDENCIES
+  TEST_DEPENDENCIES,
 }

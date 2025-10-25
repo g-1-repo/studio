@@ -19,11 +19,14 @@ export interface OpenAPIConfig {
   servers?: Array<{
     url: string
     description?: string
-    variables?: Record<string, {
-      default: string
-      description?: string
-      enum?: string[]
-    }>
+    variables?: Record<
+      string,
+      {
+        default: string
+        description?: string
+        enum?: string[]
+      }
+    >
   }>
   externalDocs?: {
     description?: string
@@ -44,8 +47,8 @@ export interface OpenAPISchema {
   type?: 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object'
   format?: string
   description?: string
-  example?: any
-  enum?: any[]
+  example?: unknown
+  enum?: unknown[]
   items?: OpenAPISchema
   properties?: Record<string, OpenAPISchema>
   required?: string[]
@@ -75,62 +78,83 @@ export interface OpenAPIParameter {
   explode?: boolean
   allowReserved?: boolean
   schema?: OpenAPISchema
-  example?: any
-  examples?: Record<string, {
-    summary?: string
-    description?: string
-    value?: any
-    externalValue?: string
-  }>
+  example?: unknown
+  examples?: Record<
+    string,
+    {
+      summary?: string
+      description?: string
+      value?: unknown
+      externalValue?: string
+    }
+  >
 }
 
 export interface OpenAPIRequestBody {
   description?: string
-  content: Record<string, {
-    schema?: OpenAPISchema
-    example?: any
-    examples?: Record<string, {
-      summary?: string
-      description?: string
-      value?: any
-      externalValue?: string
-    }>
-    encoding?: Record<string, {
-      contentType?: string
-      headers?: Record<string, OpenAPIParameter>
-      style?: string
-      explode?: boolean
-      allowReserved?: boolean
-    }>
-  }>
+  content: Record<
+    string,
+    {
+      schema?: OpenAPISchema
+      example?: unknown
+      examples?: Record<
+        string,
+        {
+          summary?: string
+          description?: string
+          value?: unknown
+          externalValue?: string
+        }
+      >
+      encoding?: Record<
+        string,
+        {
+          contentType?: string
+          headers?: Record<string, OpenAPIParameter>
+          style?: string
+          explode?: boolean
+          allowReserved?: boolean
+        }
+      >
+    }
+  >
   required?: boolean
 }
 
 export interface OpenAPIResponse {
   description: string
   headers?: Record<string, OpenAPIParameter>
-  content?: Record<string, {
-    schema?: OpenAPISchema
-    example?: any
-    examples?: Record<string, {
-      summary?: string
-      description?: string
-      value?: any
-      externalValue?: string
-    }>
-  }>
-  links?: Record<string, {
-    operationRef?: string
-    operationId?: string
-    parameters?: Record<string, any>
-    requestBody?: any
-    description?: string
-    server?: {
-      url: string
-      description?: string
-      variables?: Record<string, any>
+  content?: Record<
+    string,
+    {
+      schema?: OpenAPISchema
+      example?: unknown
+      examples?: Record<
+        string,
+        {
+          summary?: string
+          description?: string
+          value?: unknown
+          externalValue?: string
+        }
+      >
     }
-  }>
+  >
+  links?: Record<
+    string,
+    {
+      operationRef?: string
+      operationId?: string
+      parameters?: Record<string, unknown>
+      requestBody?: unknown
+      description?: string
+      server?: {
+        url: string
+        description?: string
+        variables?: Record<string, unknown>
+      }
+    }
+  >
 }
 
 export interface OpenAPIOperation {
@@ -145,13 +169,13 @@ export interface OpenAPIOperation {
   parameters?: OpenAPIParameter[]
   requestBody?: OpenAPIRequestBody
   responses: Record<string, OpenAPIResponse>
-  callbacks?: Record<string, any>
+  callbacks?: Record<string, unknown>
   deprecated?: boolean
   security?: Array<Record<string, string[]>>
   servers?: Array<{
     url: string
     description?: string
-    variables?: Record<string, any>
+    variables?: Record<string, unknown>
   }>
 }
 
@@ -169,7 +193,7 @@ export interface OpenAPIPath {
   servers?: Array<{
     url: string
     description?: string
-    variables?: Record<string, any>
+    variables?: Record<string, unknown>
   }>
   parameters?: OpenAPIParameter[]
 }
@@ -194,55 +218,61 @@ export interface OpenAPISpec {
   servers?: Array<{
     url: string
     description?: string
-    variables?: Record<string, any>
+    variables?: Record<string, unknown>
   }>
   paths: Record<string, OpenAPIPath>
   components?: {
     schemas?: Record<string, OpenAPISchema>
     responses?: Record<string, OpenAPIResponse>
     parameters?: Record<string, OpenAPIParameter>
-    examples?: Record<string, {
-      summary?: string
-      description?: string
-      value?: any
-      externalValue?: string
-    }>
+    examples?: Record<
+      string,
+      {
+        summary?: string
+        description?: string
+        value?: unknown
+        externalValue?: string
+      }
+    >
     requestBodies?: Record<string, OpenAPIRequestBody>
     headers?: Record<string, OpenAPIParameter>
-    securitySchemes?: Record<string, {
-      type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
-      description?: string
-      name?: string
-      in?: 'query' | 'header' | 'cookie'
-      scheme?: string
-      bearerFormat?: string
-      flows?: {
-        implicit?: {
-          authorizationUrl: string
-          refreshUrl?: string
-          scopes: Record<string, string>
+    securitySchemes?: Record<
+      string,
+      {
+        type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
+        description?: string
+        name?: string
+        in?: 'query' | 'header' | 'cookie'
+        scheme?: string
+        bearerFormat?: string
+        flows?: {
+          implicit?: {
+            authorizationUrl: string
+            refreshUrl?: string
+            scopes: Record<string, string>
+          }
+          password?: {
+            tokenUrl: string
+            refreshUrl?: string
+            scopes: Record<string, string>
+          }
+          clientCredentials?: {
+            tokenUrl: string
+            refreshUrl?: string
+            scopes: Record<string, string>
+          }
+          authorizationCode?: {
+            authorizationUrl: string
+            tokenUrl: string
+            refreshUrl?: string
+            scopes: Record<string, string>
+          }
         }
-        password?: {
-          tokenUrl: string
-          refreshUrl?: string
-          scopes: Record<string, string>
-        }
-        clientCredentials?: {
-          tokenUrl: string
-          refreshUrl?: string
-          scopes: Record<string, string>
-        }
-        authorizationCode?: {
-          authorizationUrl: string
-          tokenUrl: string
-          refreshUrl?: string
-          scopes: Record<string, string>
-        }
+        openIdConnectUrl?: string
       }
-      openIdConnectUrl?: string
-    }>
-    links?: Record<string, any>
-    callbacks?: Record<string, any>
+    >
+    links?: Record<string, unknown>
+    callbacks?: Record<string, unknown>
   }
   security?: Array<Record<string, string[]>>
   tags?: Array<{
@@ -325,25 +355,27 @@ export class OpenAPIGenerator {
     this.spec.components.securitySchemes[name] = scheme
   }
 
-  generateFromRoutes(routes: Array<{
-    method: string
-    path: string
-    handler: any
-    metadata?: {
-      summary?: string
-      description?: string
-      tags?: string[]
-      parameters?: OpenAPIParameter[]
-      requestBody?: OpenAPIRequestBody
-      responses?: Record<string, OpenAPIResponse>
-      security?: Array<Record<string, string[]>>
-    }
-  }>): void {
+  generateFromRoutes(
+    routes: Array<{
+      method: string
+      path: string
+      handler: any
+      metadata?: {
+        summary?: string
+        description?: string
+        tags?: string[]
+        parameters?: OpenAPIParameter[]
+        requestBody?: OpenAPIRequestBody
+        responses?: Record<string, OpenAPIResponse>
+        security?: Array<Record<string, string[]>>
+      }
+    }>
+  ): void {
     const pathGroups: Record<string, OpenAPIPath> = {}
 
     routes.forEach(route => {
       const { method, path, metadata } = route
-      
+
       if (!pathGroups[path]) {
         pathGroups[path] = {}
       }
@@ -515,7 +547,7 @@ export class OpenAPIGenerator {
     if (typeof value === 'number') return String(value)
     if (typeof value === 'string') return `"${value.replace(/"/g, '\\"')}"`
     if (Array.isArray(value) || typeof value === 'object') {
-      return '\n' + this.objectToYAML(value, indent)
+      return `\n${this.objectToYAML(value, indent)}`
     }
     return String(value)
   }
@@ -525,19 +557,19 @@ export function createOpenAPIMiddleware(config: OpenAPIConfig = DEFAULT_OPENAPI_
   const generator = new OpenAPIGenerator(config)
 
   return {
-    middleware: (c: any, next: any) => next(),
-    
-    addRoute: (method: string, path: string, metadata?: any) => {
+    middleware: (_c: any, next: any) => next(),
+
+    addRoute: (_method: string, _path: string, _metadata?: any) => {
       // This would be called when routes are registered
       // Implementation depends on the routing framework
     },
-    
+
     getSpec: () => generator.getSpec(),
-    
+
     serveSpec: (format: 'json' | 'yaml' = 'json') => {
       return (c: any) => {
         const spec = generator.getSpec()
-        
+
         if (format === 'yaml') {
           c.header('Content-Type', 'application/x-yaml')
           return c.text(generator.toYAML())
@@ -556,11 +588,9 @@ export const OPENAPI_CONFIGS = {
     title: 'API Documentation',
     version: '1.0.0',
     description: 'Basic API documentation',
-    servers: [
-      { url: 'http://localhost:3000', description: 'Development server' },
-    ],
+    servers: [{ url: 'http://localhost:3000', description: 'Development server' }],
   } as OpenAPIConfig,
-  
+
   production: {
     title: 'Production API',
     version: '1.0.0',
@@ -585,7 +615,7 @@ export const OPENAPI_CONFIGS = {
       { name: 'Admin', description: 'Administrative functions' },
     ],
   } as OpenAPIConfig,
-  
+
   microservice: {
     title: 'Microservice API',
     version: '1.0.0',
@@ -606,14 +636,14 @@ export const SECURITY_SCHEMES = {
     bearerFormat: 'JWT',
     description: 'JWT Bearer token authentication',
   },
-  
+
   apiKey: {
     type: 'apiKey',
     in: 'header',
     name: 'X-API-Key',
     description: 'API key authentication',
   },
-  
+
   oauth2: {
     type: 'oauth2',
     description: 'OAuth2 authentication',
@@ -622,14 +652,14 @@ export const SECURITY_SCHEMES = {
         authorizationUrl: 'https://example.com/oauth/authorize',
         tokenUrl: 'https://example.com/oauth/token',
         scopes: {
-          'read': 'Read access',
-          'write': 'Write access',
-          'admin': 'Administrative access',
+          read: 'Read access',
+          write: 'Write access',
+          admin: 'Administrative access',
         },
       },
     },
   },
-  
+
   basic: {
     type: 'http',
     scheme: 'basic',
@@ -639,7 +669,7 @@ export const SECURITY_SCHEMES = {
 
 // Helper functions for creating common schemas
 export const SCHEMA_HELPERS = {
-  string: (options?: { 
+  string: (options?: {
     minLength?: number
     maxLength?: number
     pattern?: string
@@ -650,7 +680,7 @@ export const SCHEMA_HELPERS = {
     type: 'string',
     ...options,
   }),
-  
+
   number: (options?: {
     minimum?: number
     maximum?: number
@@ -660,7 +690,7 @@ export const SCHEMA_HELPERS = {
     type: 'number',
     ...options,
   }),
-  
+
   integer: (options?: {
     minimum?: number
     maximum?: number
@@ -670,32 +700,35 @@ export const SCHEMA_HELPERS = {
     type: 'integer',
     ...options,
   }),
-  
+
   boolean: (example?: boolean): OpenAPISchema => ({
     type: 'boolean',
     example,
   }),
-  
-  array: (items: OpenAPISchema, options?: {
-    minItems?: number
-    maxItems?: number
-    uniqueItems?: boolean
-  }): OpenAPISchema => ({
+
+  array: (
+    items: OpenAPISchema,
+    options?: {
+      minItems?: number
+      maxItems?: number
+      uniqueItems?: boolean
+    }
+  ): OpenAPISchema => ({
     type: 'array',
     items,
     ...options,
   }),
-  
+
   object: (properties: Record<string, OpenAPISchema>, required?: string[]): OpenAPISchema => ({
     type: 'object',
     properties,
     required,
   }),
-  
+
   ref: (schemaName: string): OpenAPISchema => ({
     $ref: `#/components/schemas/${schemaName}`,
   }),
-  
+
   pagination: (itemSchema: OpenAPISchema): OpenAPISchema => ({
     type: 'object',
     required: ['data', 'meta'],

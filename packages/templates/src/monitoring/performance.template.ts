@@ -114,7 +114,10 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
   private config: PerformanceConfig
   private entries: PerformanceEntry[] = []
   private requests: RequestPerformance[] = []
-  private customMetrics: Map<string, { value: number; timestamp: number; metadata?: Record<string, any> }> = new Map()
+  private customMetrics: Map<
+    string,
+    { value: number; timestamp: number; metadata?: Record<string, any> }
+  > = new Map()
   private isTracking = false
   private reportingTimer?: NodeJS.Timeout
 
@@ -124,9 +127,9 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   startTracking(): void {
     if (this.isTracking) return
-    
+
     this.isTracking = true
-    
+
     // Start periodic reporting
     if (this.config.reportingInterval > 0) {
       this.reportingTimer = setInterval(() => {
@@ -140,7 +143,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   stopTracking(): void {
     this.isTracking = false
-    
+
     if (this.reportingTimer) {
       clearInterval(this.reportingTimer)
       this.reportingTimer = undefined
@@ -149,12 +152,12 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   recordEntry(entry: PerformanceEntry): void {
     if (!this.config.enabled || !this.isTracking) return
-    
+
     // Apply sampling
     if (Math.random() > this.config.sampleRate) return
 
     this.entries.push(entry)
-    
+
     // Maintain buffer size
     if (this.entries.length > this.config.maxEntries) {
       this.entries.shift()
@@ -163,14 +166,16 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   recordRequest(request: RequestPerformance): void {
     if (!this.config.enabled || !this.isTracking) return
-    
+
     this.requests.push(request)
-    
+
     // Check for slow requests
     if (request.duration > this.config.thresholds.slowRequest) {
-      console.warn(`Slow request detected: ${request.method} ${request.url} took ${request.duration}ms`)
+      console.warn(
+        `Slow request detected: ${request.method} ${request.url} took ${request.duration}ms`
+      )
     }
-    
+
     // Maintain buffer size
     if (this.requests.length > this.config.maxEntries) {
       this.requests.shift()
@@ -179,7 +184,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   recordCustomMetric(name: string, value: number, metadata?: Record<string, any>): void {
     if (!this.config.enabled || !this.config.trackCustomMetrics) return
-    
+
     this.customMetrics.set(name, {
       value,
       timestamp: Date.now(),
@@ -195,17 +200,18 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
     }
 
     // Filter requests within time range
-    const recentRequests = this.requests.filter(r => 
-      r.startTime >= timeRange.start && r.startTime <= timeRange.end
+    const recentRequests = this.requests.filter(
+      r => r.startTime >= timeRange.start && r.startTime <= timeRange.end
     )
 
     // Calculate summary statistics
     const durations = recentRequests.map(r => r.duration).sort((a, b) => a - b)
     const errors = recentRequests.filter(r => r.status >= 400)
-    
+
     const summary = {
       totalRequests: recentRequests.length,
-      averageResponseTime: durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
+      averageResponseTime:
+        durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
       p50ResponseTime: this.percentile(durations, 0.5),
       p95ResponseTime: this.percentile(durations, 0.95),
       p99ResponseTime: this.percentile(durations, 0.99),
@@ -214,9 +220,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
     }
 
     // Get slowest requests
-    const slowestRequests = recentRequests
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, 10)
+    const slowestRequests = recentRequests.sort((a, b) => b.duration - a.duration).slice(0, 10)
 
     // Get system metrics
     const systemMetrics = this.getSystemMetrics()
@@ -254,7 +258,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   private setupNodePerformanceMonitoring(): void {
     // Monitor event loop delay
-    const { monitorEventLoopDelay } = require('perf_hooks')
+    const { monitorEventLoopDelay } = require('node:perf_hooks')
     const histogram = monitorEventLoopDelay({ resolution: 20 })
     histogram.enable()
 
@@ -266,11 +270,11 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   private getSystemMetrics(): SystemMetrics {
     const timestamp = Date.now()
-    
+
     if (typeof process !== 'undefined') {
       const memUsage = process.memoryUsage()
       const cpuUsage = process.cpuUsage()
-      
+
       return {
         timestamp,
         memory: {
@@ -280,7 +284,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
         },
         cpu: {
           usage: (cpuUsage.user + cpuUsage.system) / 1000000, // Convert to seconds
-          loadAverage: require('os').loadavg(),
+          loadAverage: require('node:os').loadavg(),
         },
         eventLoop: {
           delay: 0, // Would be populated by event loop monitoring
@@ -306,16 +310,16 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
 
   private generateReport(): void {
     const report = this.getMetrics()
-    
+
     // Check thresholds and log warnings
     if (report.summary.averageResponseTime > this.config.thresholds.slowRequest) {
       console.warn(`High average response time: ${report.summary.averageResponseTime}ms`)
     }
-    
+
     if (report.systemMetrics.memory.percentage > this.config.thresholds.highMemoryUsage) {
       console.warn(`High memory usage: ${report.systemMetrics.memory.percentage}%`)
     }
-    
+
     // Emit report event (could be sent to monitoring service)
     this.emitReport(report)
   }
@@ -331,18 +335,23 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
   }
 
   private generateId(): string {
-    return crypto.randomUUID ? crypto.randomUUID() : 
-           Math.random().toString(36).substring(2) + Date.now().toString(36)
+    return crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2) + Date.now().toString(36)
   }
 }
 
-export function createPerformanceMonitor(config: PerformanceConfig = DEFAULT_PERFORMANCE_CONFIG): PerformanceMonitor {
+export function createPerformanceMonitor(
+  config: PerformanceConfig = DEFAULT_PERFORMANCE_CONFIG
+): PerformanceMonitor {
   return new PerformanceMonitorImpl(config)
 }
 
-export function createPerformanceMiddleware(config: PerformanceConfig = DEFAULT_PERFORMANCE_CONFIG) {
+export function createPerformanceMiddleware(
+  config: PerformanceConfig = DEFAULT_PERFORMANCE_CONFIG
+) {
   if (!config.enabled) {
-    return (c: any, next: any) => next()
+    return (_c: any, next: any) => next()
   }
 
   const monitor = createPerformanceMonitor(config)
@@ -350,8 +359,9 @@ export function createPerformanceMiddleware(config: PerformanceConfig = DEFAULT_
 
   return async (c: any, next: any) => {
     const startTime = Date.now()
-    const requestId = crypto.randomUUID ? crypto.randomUUID() : 
-                     Math.random().toString(36).substring(2) + Date.now().toString(36)
+    const requestId = crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2) + Date.now().toString(36)
 
     // Record performance entry for request start
     monitor.recordEntry({
@@ -369,7 +379,7 @@ export function createPerformanceMiddleware(config: PerformanceConfig = DEFAULT_
 
     try {
       await next()
-      
+
       const endTime = Date.now()
       const duration = endTime - startTime
 
@@ -388,7 +398,7 @@ export function createPerformanceMiddleware(config: PerformanceConfig = DEFAULT_
 
       // Record performance entry for request completion
       monitor.recordEntry({
-        id: requestId + '-end',
+        id: `${requestId}-end`,
         timestamp: endTime,
         type: 'measure',
         name: 'request-duration',
@@ -404,7 +414,6 @@ export function createPerformanceMiddleware(config: PerformanceConfig = DEFAULT_
       // Add performance headers
       c.header('X-Response-Time', `${duration}ms`)
       c.header('X-Request-ID', requestId)
-      
     } catch (error) {
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -435,7 +444,7 @@ export const PERFORMANCE_CONFIGS = {
     reportingInterval: 30000, // 30 seconds
     maxEntries: 500,
   } as PerformanceConfig,
-  
+
   production: {
     ...DEFAULT_PERFORMANCE_CONFIG,
     sampleRate: 0.1, // Sample 10% of requests
@@ -448,7 +457,7 @@ export const PERFORMANCE_CONFIGS = {
       highCpuUsage: 85,
     },
   } as PerformanceConfig,
-  
+
   highTraffic: {
     ...DEFAULT_PERFORMANCE_CONFIG,
     sampleRate: 0.01, // Sample 1% of requests
@@ -462,7 +471,7 @@ export const PERFORMANCE_CONFIGS = {
       highCpuUsage: 90,
     },
   } as PerformanceConfig,
-  
+
   debugging: {
     ...DEFAULT_PERFORMANCE_CONFIG,
     sampleRate: 1.0,
@@ -486,10 +495,10 @@ export const PERFORMANCE_HELPERS = {
     return ((...args: Parameters<T>) => {
       const start = Date.now()
       const id = `${name}-${Date.now()}`
-      
+
       try {
         const result = fn(...args)
-        
+
         if (result instanceof Promise) {
           return result.finally(() => {
             const duration = Date.now() - start
@@ -536,7 +545,7 @@ export const PERFORMANCE_HELPERS = {
   createTimer: (name: string, monitor: PerformanceMonitor) => {
     const start = Date.now()
     const id = `${name}-${start}`
-    
+
     return {
       end: (metadata?: Record<string, any>) => {
         const duration = Date.now() - start
@@ -561,21 +570,21 @@ export const PERFORMANCE_HELPERS = {
     monitor: PerformanceMonitor
   ): Promise<T> => {
     const timer = PERFORMANCE_HELPERS.createTimer(`db.${queryName}`, monitor)
-    
+
     try {
       const result = await queryFn()
       const duration = timer.end({ success: true })
-      
+
       monitor.recordCustomMetric(`db.${queryName}.success`, 1)
       monitor.recordCustomMetric(`db.${queryName}.duration`, duration)
-      
+
       return result
     } catch (error) {
       const duration = timer.end({ success: false, error: String(error) })
-      
+
       monitor.recordCustomMetric(`db.${queryName}.error`, 1)
       monitor.recordCustomMetric(`db.${queryName}.duration`, duration)
-      
+
       throw error
     }
   },
