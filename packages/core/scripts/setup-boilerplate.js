@@ -29,7 +29,7 @@ const { boilerplateConfig, derived } = await import(path.join(projectRoot, 'boil
 //   'package.json',
 //   'wrangler.jsonc',
 //   'README.md',
-//   'WARP.md',
+//   'README.md',
 //   'worker-configuration.d.ts',
 //   'src/**/*.ts',
 //   'src/**/*.js',

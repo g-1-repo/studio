@@ -112,41 +112,6 @@ Features:
 - Immediate relief from rate limiting
 - No restart required
 
-### `warp-workflow-enhancer.ts`
-
-Comprehensive workflow enhancement for WARP development environment.
-
-```bash
-bun run warp:enhance         # Full workflow enhancement
-bun run warp:status          # Check project status
-bun run warp:typecheck       # Quick TypeScript check
-```
-
-Features:
-
-- Automatic G1 package linking (@g-1/test, @g-1/workflow, @g-1/util)
-- TypeScript error detection and automatic fixes
-- Dependency management and reinstallation
-- Auth schema and Cloudflare types regeneration
-- Comprehensive error reporting and guidance
-- Integration points for WARP automation
-
-### `warp-integration.ts`
-
-WARP integration utilities for automatic workflow enhancement.
-
-```bash
-bun scripts/warp-integration.ts enhance    # Manual enhancement
-bun scripts/warp-integration.ts status     # Project analysis
-bun scripts/warp-integration.ts typecheck  # Quick typecheck
-```
-
-Integration Points:
-
-- `beforeCodeWork()` - Run before code generation
-- `afterCodeWork()` - Validate after code changes
-- `onTypescriptError()` - Auto-fix TypeScript issues
-
 ### Quick Commands
 
 ```bash
@@ -162,9 +127,6 @@ bun run demo                 # Show project demo
 bun run fix-rate-limit       # Fix rate limit issues (429 errors)
 bun run rate-limit           # Manage rate limits interactively
 bun run dev:unlimited        # Run dev server with higher limits
-bun run warp:enhance         # WARP workflow enhancement
-bun run warp:status          # Check WARP project status
-bun run warp:typecheck       # Quick TypeScript validation
 ```
 
 ## Dependencies

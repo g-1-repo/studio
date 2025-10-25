@@ -1,5 +1,5 @@
-import { CONFLICT, getStatusPhrase, INTERNAL_SERVER_ERROR, NOT_FOUND } from './utils/http-status'
-import { createMessageObjectSchema } from './utils/openapi/schemas'
+import { CONFLICT, getStatusPhrase, INTERNAL_SERVER_ERROR, NOT_FOUND } from './utils/http-status.js'
+import { createMessageObjectSchema } from './utils/openapi/schemas/index.js'
 
 export const ZOD_ERROR_MESSAGES = {
   REQUIRED: 'Required',

@@ -5,6 +5,7 @@ import { createProject } from '../generators/project.js'
 import type { CreateProjectOptions } from '../types/index.js'
 import { logger } from '../utils/logger.js'
 import { validateProjectName } from '../utils/validation.js'
+import { CliPluginManager } from '../plugins/manager.js'
 
 export const createCommand = new Command('create')
   .description('Create a new G1 API project')
@@ -17,6 +18,10 @@ export const createCommand = new Command('create')
   .option('--typescript', 'Use TypeScript (default: true)', true)
   .option('--no-eslint', 'Skip ESLint setup')
   .option('--no-prettier', 'Skip Prettier setup')
+  .option('--openapi', 'Include OpenAPI documentation plugin')
+  .option('--openapi-theme <theme>', 'OpenAPI theme (kepler, saturn, mars, moon, alternate)', 'kepler')
+  .option('--openapi-title <title>', 'OpenAPI documentation title')
+  .option('--no-interactive', 'Skip interactive plugin configuration')
   .action(async (projectName: string | undefined, options) => {
     try {
       logger.header('🚀 G1 API Framework Project Generator')
@@ -90,6 +95,35 @@ export const createCommand = new Command('create')
 
       const answers = await inquirer.prompt(prompts)
 
+      // Initialize plugin manager
+      const pluginManager = new CliPluginManager()
+
+      // Handle plugin selection and configuration
+      let pluginSelection: { selectedPlugins: string[]; pluginConfigs: Record<string, any> } = {
+        selectedPlugins: [],
+        pluginConfigs: {}
+      }
+      
+      if (options.interactive !== false) {
+        // Interactive mode - let user select and configure plugins
+        const projectConfig = {
+          projectName: projectName,
+          template: answers.template || options.template,
+          basepath: '/',
+          packageManager: answers.packageManager || options.packageManager || 'bun',
+          typescript: options.typescript,
+          git: options.git,
+          install: options.install,
+          eslint: options.eslint,
+          prettier: options.prettier
+        }
+        
+        pluginSelection = await pluginManager.selectAndConfigurePlugins(projectConfig)
+      } else {
+        // Non-interactive mode - parse CLI options for plugins
+        pluginSelection = pluginManager.parseCliOptions(options)
+      }
+
       // Merge options with answers
       const createOptions: CreateProjectOptions = {
         name: projectName,
@@ -101,6 +135,9 @@ export const createCommand = new Command('create')
         typescript: options.typescript,
         eslint: options.eslint,
         prettier: options.prettier,
+        plugins: pluginSelection.selectedPlugins,
+        pluginConfigs: pluginSelection.pluginConfigs,
+        interactive: options.interactive
       }
 
       // Show configuration summary
@@ -118,6 +155,7 @@ export const createCommand = new Command('create')
         { key: 'Prettier', value: createOptions.prettier ? 'Yes' : 'No' },
         { key: 'Git Init', value: createOptions.git ? 'Yes' : 'No' },
         { key: 'Install Dependencies', value: createOptions.install ? 'Yes' : 'No' },
+        { key: 'Plugins', value: createOptions.plugins?.length ? createOptions.plugins.join(', ') : 'None' },
       ])
 
       const { confirm } = await inquirer.prompt([

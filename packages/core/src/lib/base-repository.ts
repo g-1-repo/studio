@@ -1,6 +1,6 @@
-import { createDb } from '../db'
-import type { Environment } from '../env'
-import { DatabaseError } from './errors'
+import { createDb } from '../db/index.js'
+import type { Environment } from '../env.js'
+import { DatabaseError } from './errors/index.js'
 
 // Simple cache management utilities
 function clearCache() {

@@ -1,8 +1,8 @@
 import type { Hook } from '@hono/zod-openapi'
 
-import { UNPROCESSABLE_ENTITY } from '../http-status'
+import { UNPROCESSABLE_ENTITY } from '../http-status.js'
 
-const defaultHook: Hook = (result, c) => {
+const defaultHook: Hook<any, any, any, any> = (result, c) => {
   if (!result.success) {
     return c.json(
       {

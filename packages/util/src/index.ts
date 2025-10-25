@@ -1,7 +1,7 @@
-// Main exports for @g-1/util
-export * from './crypto/workers-safe'
-export * from './database'
-export * from './http'
-export * from './types'
-export * from './validation'
-export * from './web'
+// Re-export all utilities
+export * from './crypto/workers-safe.js'
+export * from './database/index.js'
+export * from './http/index.js'
+export * from './types/index.js'
+export * from './validation/index.js'
+export * from './web/index.js'

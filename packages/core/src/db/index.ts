@@ -3,7 +3,7 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1'
-import type { Environment } from '../env'
+import type { Environment } from '../env.js'
 
 export interface DatabaseConfig {
   database: D1Database

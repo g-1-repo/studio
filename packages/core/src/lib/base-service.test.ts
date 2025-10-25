@@ -1,7 +1,7 @@
 import { ConflictError, ValidationError } from '@g-1/util'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { BaseRepository } from './base-repository'
-import { BaseService } from './base-service'
+import { BaseRepository } from './base-repository.js'
+import { BaseService } from './base-service.js'
 
 // Mock BaseRepository
 class MockRepository extends BaseRepository {

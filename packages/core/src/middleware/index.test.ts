@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AppError } from '../lib/errors'
-import type { AppBindings } from '../lib/types'
-import { notFound } from './not-found'
-import { onError } from './on-error'
+import { AppError } from '../lib/errors/index.js'
+import type { AppBindings } from '../lib/types.js'
+import { notFound } from './not-found.js'
+import { onError } from './on-error.js'
 
 describe('middleware', () => {
   let app: Hono<AppBindings>

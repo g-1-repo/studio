@@ -3,8 +3,8 @@ import { isOperationalError } from '@g-1/util'
 import type { ErrorHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 
-import { AppError, getErrorCode, getErrorMessage } from '../lib/errors'
-import { INTERNAL_SERVER_ERROR, OK } from '../lib/utils/http-status'
+import { AppError, getErrorCode, getErrorMessage } from '../lib/errors/index.js'
+import { INTERNAL_SERVER_ERROR, OK } from '../lib/utils/http-status.js'
 
 const onError: ErrorHandler = (err, c) => {
   // Use structured error handling

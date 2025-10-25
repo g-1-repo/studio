@@ -4,6 +4,7 @@ import type { CreateProjectOptions, TemplateVariables } from '../types/index.js'
 import { initializeGit } from '../utils/git.js'
 import { logger } from '../utils/logger.js'
 import { installDependencies } from '../utils/package-manager.js'
+import { CliPluginManager } from '../plugins/manager.js'
 
 /**
  * Create a new G1 project from template
@@ -65,6 +66,33 @@ export async function createProject(options: CreateProjectOptions): Promise<void
     }
 
     logger.succeedSpinner('Project structure created')
+
+    // Execute plugins if any are selected
+    if (options.plugins && options.plugins.length > 0) {
+      logger.startSpinner('Applying plugins...')
+      
+      const pluginManager = new CliPluginManager()
+      const projectConfig = {
+        projectName: name,
+        template,
+        basepath: '/',
+        packageManager,
+        typescript,
+        git,
+        install,
+        eslint,
+        prettier
+      }
+      
+      await pluginManager.executePlugins(
+        options.plugins,
+        options.pluginConfigs || {},
+        projectConfig,
+        projectPath
+      )
+      
+      logger.succeedSpinner('Plugins applied')
+    }
 
     // Initialize git repository
     if (git) {

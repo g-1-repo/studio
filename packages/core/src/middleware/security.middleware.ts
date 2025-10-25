@@ -1,7 +1,7 @@
 import type { Context, MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import type { AppBindings } from '../lib/types'
+import type { AppBindings } from '../lib/types.js'
 
 /**
  * Enhanced security middleware with better performance and comprehensive protection

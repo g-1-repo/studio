@@ -1,8 +1,8 @@
 import type { ValidationResult } from '@g-1/util'
 import { email as emailRule, required, ValidationError, validate } from '@g-1/util'
-import type { BaseRepository } from './base-repository'
+import { BaseRepository } from './base-repository.js'
 
-import { createBadRequest, createConflict } from './utils/exceptions'
+import { createBadRequest, createConflict } from './utils/exceptions.js'
 
 export abstract class BaseService {
   constructor(protected repository: BaseRepository) {}

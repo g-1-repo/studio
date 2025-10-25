@@ -86,7 +86,7 @@
 
 ### Other Changes
 
-- docs: add WARP enhancement extraction plan and integration script
+- docs: add enhancement extraction plan and integration script
 
 ## [1.15.1] - 2025-10-19
 
@@ -98,7 +98,7 @@
 
 ### Features
 
-- add comprehensive WARP workflow enhancement documentation
+- add comprehensive workflow enhancement documentation
 - Replace local crypto utils with @g-1/util Workers-safe implementation
 
 ### Other Changes
@@ -214,7 +214,7 @@
 ### Changed
 
 - Updated README with latest project information
-- Improved WARP.md documentation for development
+- Improved documentation for development
 - Enhanced authentication configuration and error handling
 - Updated environment configuration with better validation
 - Improved email template rendering system

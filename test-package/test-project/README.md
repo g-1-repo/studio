@@ -1,40 +1,61 @@
 # test-project
 
-A G1 API project built with [@g-1/core](https://www.npmjs.com/package/@g-1/core).
+A G1 API Framework project
 
 ## Getting Started
 
+### Prerequisites
+
+- [Bun](https://bun.sh/) >= 1.0.0
+- Node.js >= 18.0.0
+
+### Installation
+
 1. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 
-2. Start development server:
+2. Copy environment variables:
    ```bash
-   npm run dev
+   cp .env.example .env
    ```
 
-3. Visit your API docs at: http://localhost:8787/docs
+3. Start the development server:
+   ```bash
+   bun run dev
+   ```
+
+The server will start on http://localhost:3000
+
+## Available Scripts
+
+- `bun run dev` - Start development server with hot reload
+- `bun run build` - Build for production
+- `bun run start` - Start production server
+- `bun run test` - Run tests
+- `bun run lint` - Lint code
+- `bun run format` - Format code
 
 ## Project Structure
 
-- `src/app.ts` - Main application entry point
-- `src/routes/` - API route definitions
-- `src/lib/` - Utility functions and configurations
-- `src/db/` - Database schemas and migrations
+```
+src/
+├── index.ts          # Main application entry point
+└── ...               # Add your modules here
+```
 
-## Built with G1 Core
+## Built with G1 Framework
 
-This project uses [@g-1/core](https://www.npmjs.com/package/@g-1/core) which provides:
+This project is built using the [G1 API Framework](https://github.com/g1-studio/api-framework), providing:
 
-- ✅ **BaseRepository & BaseService** - Standardized data and business logic patterns
-- ✅ **Authentication** - Better-auth integration with Cloudflare
-- ✅ **Middleware** - Security, logging, error handling
-- ✅ **Database** - Drizzle ORM with D1 integration
-- ✅ **Utilities** - Validation, crypto, HTTP status helpers
+- 🚀 Fast development with Bun and Hono
+- 🔌 Plugin system for extensibility
+- 🛡️ Built-in security and middleware
+- 📊 Database integration with Drizzle ORM
+- 🧪 Testing setup with Vitest
+- 📝 TypeScript support
 
-## Learn More
+## License
 
-- [G1 Core Documentation](https://github.com/g-1-repo/core)
-- [Hono Framework](https://hono.dev/)
-- [Cloudflare Workers](https://workers.cloudflare.com/)
+MIT

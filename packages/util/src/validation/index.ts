@@ -1,5 +1,5 @@
-import { isArray, isBoolean, isNullish, isNumber, isObject, isString } from '../types'
-import { ValidationError } from '../web'
+import { isArray, isBoolean, isNullish, isNumber, isObject, isString } from '../types/index.js'
+import { ValidationError } from '../web/index.js'
 
 /**
  * Validation result type

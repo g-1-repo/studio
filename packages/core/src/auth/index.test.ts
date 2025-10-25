@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { Environment } from '../env'
-import type { AuthConfig } from './index'
-import { auth, createAuth } from './index'
+import type { Environment } from '../env.js'
+import type { AuthConfig } from './index.js'
+import { auth, createAuth } from './index.js'
 
 describe('auth Module', () => {
   describe('createAuth', () => {

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDb } from '../db'
-import type { Environment } from '../env'
+import { createDb } from '../db/index.js'
+import type { Environment } from '../env.js'
 import { BaseRepository, clearRepositoryCaches } from './base-repository'
-import { DatabaseError } from './errors'
+import { DatabaseError } from './errors/index.js'
 
 // Mock the createDb function
 vi.mock('../db', () => ({

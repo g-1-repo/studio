@@ -2,7 +2,7 @@
  * Authentication configuration for Better Auth
  */
 
-import type { Environment } from '../env'
+import type { Environment } from '../env.js'
 
 export interface AuthConfig {
   secret: string

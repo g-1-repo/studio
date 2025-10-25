@@ -81,7 +81,6 @@ bun run lint           # eslint
 
 ### Development Guides
 
-- **[WARP.md](./WARP.md)** - WARP AI assistant guidance and commands
 - **[src/db/README.md](./src/db/README.md)** - Database structure and migration guides
 - **[scripts/README.md](./scripts/README.md)** - Development scripts and automation tools
 

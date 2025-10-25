@@ -5,6 +5,75 @@ All notable changes to the G1 API Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-12-19
+
+### 🚀 Major Release - Plugin System Architecture
+
+This release introduces a comprehensive plugin system architecture that fundamentally transforms how the G1 API Framework handles extensibility and modularity.
+
+### ✨ Added
+- **Plugin System Core Architecture**
+  - New `PluginManager` class for centralized plugin lifecycle management
+  - `PluginContext` interface providing file system operations, configuration access, and project metadata
+  - Plugin registration, initialization, and execution pipeline
+  - Support for plugin dependencies and ordering
+  
+- **Built-in Core Plugins**
+  - **OpenAPI Plugin**: Automatic OpenAPI 3.0 specification generation and Scalar documentation UI
+  - **Database Plugin**: Drizzle ORM integration with SQLite support and automatic migration handling
+  - **Authentication Plugin**: JWT-based authentication with configurable providers
+  - **Validation Plugin**: Zod-based request/response validation with automatic schema generation
+  
+- **Enhanced CLI Plugin Support**
+  - `--openapi` flag for OpenAPI documentation generation
+  - `--database` flag for database integration setup
+  - `--auth` flag for authentication system setup
+  - `--validation` flag for request validation setup
+  - Plugin-aware project scaffolding and template generation
+
+- **New Template System**
+  - Plugin-aware project templates
+  - Conditional file generation based on enabled plugins
+  - Template inheritance and composition support
+  - Dynamic configuration injection
+
+### 🔧 Fixed
+- **Dependency Management**
+  - Replaced `fs-extra` with Node.js built-in `fs/promises` in core package
+  - Fixed `fs.ensureDir` → `fs.mkdir(..., { recursive: true })` migration
+  - Fixed `fs.pathExists` → `fs.access` with proper error handling
+  - Resolved TypeScript build errors in OpenAPI and Pino logger modules
+
+- **Type Safety Improvements**
+  - Fixed `AppBindings` type compatibility issues
+  - Added proper generic type parameters to Hook definitions
+  - Resolved middleware type assertions and context handling
+  - Enhanced error handling with proper type guards
+
+### 💥 Breaking Changes
+- **Plugin System Integration**: Projects must now use the plugin system for advanced features
+- **Template Structure**: Project templates have been restructured to support plugin-based generation
+- **CLI Interface**: New plugin flags change the default project creation behavior
+- **Core Dependencies**: Removed `fs-extra` dependency from core package (internal change)
+
+### 🏗️ Technical Improvements
+- Modular architecture enabling easier feature extension
+- Improved separation of concerns between core framework and optional features
+- Enhanced testability with plugin isolation
+- Better performance through selective feature loading
+- Comprehensive plugin testing and validation
+
+### 📦 Package Updates
+- **@g-1/core**: `1.15.15` → `2.0.0`
+- **@g-1/cli**: `1.2.7` → `2.0.0`
+- **@g-1/util**: `1.0.2` → `1.1.0`
+
+### 🔄 Migration Guide
+Existing projects can be migrated to use the new plugin system by:
+1. Updating to the latest CLI version
+2. Running `npx @g-1/cli migrate` (coming in next release)
+3. Enabling desired plugins through CLI flags or configuration
+
 ## [1.1.3] - 2024-12-19
 
 ### Fixed

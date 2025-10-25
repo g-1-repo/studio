@@ -8,7 +8,7 @@ import { Logger } from '../utils/logger.js'
 import { detectPackageManager, getAvailablePackageManagers } from '../utils/package-manager.js'
 
 // Create logger instance that can be mocked in tests
-export const logger = new Logger()
+const logger = new Logger()
 
 interface TsConfig {
   compilerOptions?: {

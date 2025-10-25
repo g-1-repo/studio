@@ -19,7 +19,7 @@ import {
 } from '@g-1/util'
 
 import { text } from 'drizzle-orm/sqlite-core'
-import { InternalError, NotFound } from '../utils/exceptions'
+import { InternalError, NotFound } from '../utils/exceptions.js'
 
 // Re-export database utilities
 export {

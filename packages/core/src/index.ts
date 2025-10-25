@@ -6,19 +6,19 @@
  */
 
 // Base classes for services and repositories
-export { BaseRepository } from './lib/base-repository'
-export { BaseService } from './lib/base-service'
+export { BaseRepository } from './lib/base-repository.js'
+export { BaseService } from './lib/base-service.js'
 // Core framework exports
-export { default as configureOpenAPI } from './lib/configure-open-api'
+export { default as configureOpenAPI } from './lib/configure-open-api.js'
 
 // Utility exports
-export * from './lib/constants'
+export * from './lib/constants.js'
 
-export { createRouter } from './lib/create-app'
-export * from './lib/errors'
-export type { AppBindings, AppOpenAPI, AppRouteHandler } from './lib/types'
-export * from './lib/utils/crypto'
-export * from './lib/utils/drizzle'
+export { createRouter } from './lib/create-app.js'
+export * from './lib/errors/index.js'
+export type { AppBindings, AppOpenAPI, AppRouteHandler } from './lib/types.js'
+export * from './lib/utils/crypto.js'
+export * from './lib/utils/drizzle.js'
 // Export specific items from exceptions to avoid conflicts
 export {
   BadRequest,
@@ -36,24 +36,24 @@ export {
   NotFound,
   TooManyRequests,
   Unauthorized,
-} from './lib/utils/exceptions'
-export * from './lib/utils/http-status'
+} from './lib/utils/exceptions.js'
+export * from './lib/utils/http-status.js'
 
-export * from './lib/utils/openapi'
+export * from './lib/utils/openapi/index.js'
 export {
   jsonContent,
   jsonContentOneOf,
   jsonContentRequired,
-} from './lib/utils/openapi/helpers'
+} from './lib/utils/openapi/helpers/index.js'
 
 // OpenAPI schema and helper exports
 export {
   createErrorSchema,
   createMessageObjectSchema,
   cuid2ParamsSchema,
-} from './lib/utils/openapi/schemas'
+} from './lib/utils/openapi/schemas/index.js'
 
-export * from './lib/utils/types'
+export * from './lib/utils/types.js'
 // Middleware exports
 export {
   enhancedSecurityHeaders,
@@ -64,4 +64,7 @@ export {
   requestValidation,
   securityAuditLog,
   simpleRateLimit,
-} from './middleware'
+} from './middleware/index.js'
+
+// Plugin system exports
+export * from './plugins/index.js'

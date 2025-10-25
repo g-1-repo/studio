@@ -34,6 +34,10 @@ export interface CreateProjectOptions {
   typescript?: boolean
   eslint?: boolean
   prettier?: boolean
+  // Plugin system options
+  plugins?: string[]
+  pluginConfigs?: Record<string, Record<string, any>>
+  interactive?: boolean
 }
 
 /**

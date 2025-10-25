@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AppBindings } from '../lib/types'
+import type { AppBindings } from '../lib/types.js'
 import {
   enhancedSecurityHeaders,
   inputSanitization,

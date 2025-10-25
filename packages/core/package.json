@@ -1,7 +1,7 @@
 {
   "name": "@g-1/core",
   "type": "module",
-  "version": "1.15.15",
+  "version": "2.0.0",
   "description": "G1 Studio API Framework - A plugin-first, high-performance TypeScript API framework built on Hono for Cloudflare Workers",
   "author": "G1 Studio",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "test:dashboard": "node test-runner.js"
   },
   "dependencies": {
-    "@g-1/util": "^1.0.1",
+    "@g-1/util": "^1.0.2",
     "@hono/zod-openapi": "^1.1.4",
     "@scalar/hono-api-reference": "^0.5.0",
     "drizzle-orm": "^0.44.6",

@@ -1,61 +1,47 @@
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
+bun.lockb
 
-# Production
-/dist
-/build
+# Build output
+dist/
+build/
 
 # Environment variables
 .env
 .env.local
 .env.production
-.env.development
+
+# Database
+*.db
+*.db-journal
 
 # Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
-
-# Dependency directories
-node_modules/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# Cloudflare
-.wrangler/
-wrangler.toml
+*.lcov
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Temporary files
+tmp/
+temp/

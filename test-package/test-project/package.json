@@ -1,37 +1,46 @@
 {
   "name": "test-project",
+  "version": "0.1.0",
+  "description": "A G1 API Framework project",
   "type": "module",
-  "version": "1.0.0",
-  "description": "A G1 API project built with @g-1/core",
-  "author": "Your Name",
-  "license": "MIT",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "db:studio": "drizzle-kit studio",
-    "lint": "eslint .",
-    "lint:fix": "bun run lint --fix",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "start": "node dist/index.js",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@g-1/core": "^1.15.8",
-    "hono": "^4.10.1",
+    "@g-1/core": "^1.15.11",
+    "@g-1/util": "^1.0.0",
+    "@hono/zod-openapi": "^1.1.4",
     "drizzle-orm": "^0.44.6",
-    "zod": "^4.1.12"
+    "hono": "^4.10.1",
+    "zod": "^4.1.12",
+    "@libsql/client": "^0.10.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.0.0",
-    "@cloudflare/workers-types": "^4.20251014.0",
-    "@types/node": "^24.8.1",
-    "drizzle-kit": "^0.31.5",
-    "eslint": "^9.38.0",
-    "typescript": "^5.6.3",
-    "vitest": "~3.2.4",
-    "wrangler": "4.43.0"
-  }
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6",
+    "drizzle-kit": "^0.20.0",
+    "eslint": "^8.51.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "prettier": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "packageManager": "bun@latest"
 }

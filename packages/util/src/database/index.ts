@@ -1,4 +1,4 @@
-import { NotFoundError } from '../web'
+import { NotFoundError } from '../web/index.js'
 
 /**
  * Database error for when a required record is not found
