@@ -98,3 +98,6 @@ test-results.xml
 .changeset/*.md
 !.changeset/config.json
 !.changeset/README.md
+
+# Test projects with embedded git repositories
+test-package/test-project/test-enhanced-openapi/
