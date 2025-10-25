@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.4.1] - 2025-10-25
+
+### Features
+
+- integrate @g-1/workflow for consistent release process
+- add comprehensive monitoring templates
+- enhance OpenAPI plugin with comprehensive configuration options
+
+### Bug Fixes
+
+- resolve logger naming conflict in CLI exports
+
+### Other Changes
+
+- chore: release v1.4.0
+- chore: release v1.3.0
+- chore: commit changes before release
+- chore: commit changes before release
+- chore: release v1.2.1
+- chore: release v1.2.0
+- chore: commit changes before release
+- chore: commit changes before release
+
+
 ## [1.4.0] - 2025-10-25
 
 ### Features

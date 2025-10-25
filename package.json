@@ -1,6 +1,6 @@
 {
   "name": "@g1-studio/api-framework",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "G1 Studio API Framework - A high-performance, enterprise TypeScript API framework monorepo",
   "type": "module",
   "private": true,
