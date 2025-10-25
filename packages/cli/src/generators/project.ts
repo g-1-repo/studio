@@ -200,19 +200,16 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
   await fs.ensureDir(path.join(projectPath, 'src'))
 
   // Main application file
-  const appContent = `import { createRouter, configureOpenAPI, onError, notFound } from '@g-1/core'
+  const appContent = `import { createRouter, onError, notFound } from '@g-1/core'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 
 // Create the main application using G1's createRouter
 const app = createRouter()
 
-// Configure OpenAPI documentation
-configureOpenAPI(app)
-
 // Global middleware
 app.use('*', logger())
-app.use('*', cors())
+app.use('*', cors()))
 
 // Routes
 app.get('/', (c) => {

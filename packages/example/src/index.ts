@@ -1,5 +1,4 @@
 import {
-  configureOpenAPI,
   createRouter,
   enhancedSecurityHeaders,
   notFound,
@@ -17,9 +16,6 @@ import { parseEnv } from './env'
 
 // Create the main application
 const app = createRouter()
-
-// Configure OpenAPI documentation
-configureOpenAPI(app)
 
 // CORS configuration
 const CORS_OPTS = {

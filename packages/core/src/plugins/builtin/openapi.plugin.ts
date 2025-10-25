@@ -18,9 +18,24 @@ export const openApiPlugin: CliPlugin = {
         { name: 'Saturn', value: 'saturn' },
         { name: 'Mars', value: 'mars' },
         { name: 'Moon', value: 'moon' },
-        { name: 'Alternate', value: 'alternate' }
+        { name: 'Alternate', value: 'alternate' },
+        { name: 'Purple', value: 'purple' },
+        { name: 'Solarized', value: 'solarized' },
+        { name: 'Blue Planet', value: 'bluePlanet' },
+        { name: 'Deep Space', value: 'deepSpace' },
+        { name: 'Laserwave', value: 'laserwave' },
+        { name: 'None', value: 'none' }
       ],
       default: 'kepler'
+    },
+    layout: {
+      type: 'select',
+      description: 'Layout style for the API reference',
+      options: [
+        { name: 'Modern', value: 'modern' },
+        { name: 'Classic', value: 'classic' }
+      ],
+      default: 'modern'
     },
     title: {
       type: 'string',
@@ -46,6 +61,56 @@ export const openApiPlugin: CliPlugin = {
       type: 'string',
       description: 'API version',
       default: '1.0.0'
+    },
+    customCss: {
+      type: 'string',
+      description: 'Custom CSS to inject into the documentation',
+      default: ''
+    },
+    withDefaultFonts: {
+      type: 'boolean',
+      description: 'Whether to use Scalar\'s default fonts',
+      default: true
+    },
+    favicon: {
+      type: 'string',
+      description: 'Custom favicon URL for the documentation page',
+      default: ''
+    },
+    pageTitle: {
+      type: 'string',
+      description: 'Custom page title for the documentation',
+      default: ''
+    },
+    showSidebar: {
+      type: 'boolean',
+      description: 'Whether to show the sidebar',
+      default: true
+    },
+    hideModels: {
+      type: 'boolean',
+      description: 'Whether to hide the models section',
+      default: false
+    },
+    hideDownloadButton: {
+      type: 'boolean',
+      description: 'Whether to hide the download button',
+      default: false
+    },
+    isEditable: {
+      type: 'boolean',
+      description: 'Whether the documentation is editable',
+      default: false
+    },
+    darkMode: {
+      type: 'boolean',
+      description: 'Force dark mode on/off',
+      default: false
+    },
+    proxy: {
+      type: 'string',
+      description: 'Proxy configuration for API calls',
+      default: ''
     }
   },
 
@@ -56,11 +121,22 @@ export const openApiPlugin: CliPlugin = {
 
   async apply(ctx: PluginContext, config: Record<string, PluginConfigValue>): Promise<void> {
     const theme = config.theme || 'kepler'
+    const layout = config.layout || 'modern'
     const title = config.title || `${ctx.config.projectName} API`
     const description = config.description || `API documentation for ${ctx.config.projectName}`
     const specEndpoint = config.specEndpoint || '/doc'
     const docsEndpoint = config.docsEndpoint || '/reference'
     const version = config.version || '1.0.0'
+    const customCss = config.customCss || ''
+    const withDefaultFonts = config.withDefaultFonts !== false
+    const favicon = config.favicon || ''
+    const pageTitle = config.pageTitle || title
+    const showSidebar = config.showSidebar !== false
+    const hideModels = config.hideModels || false
+    const hideDownloadButton = config.hideDownloadButton || false
+    const isEditable = config.isEditable || false
+    const darkMode = config.darkMode || false
+    const proxy = config.proxy || ''
 
     // Generate the OpenAPI configuration file
     const configContent = `import { apiReference } from '@scalar/hono-api-reference'
@@ -77,16 +153,28 @@ export default function configureOpenAPI(app: AppOpenAPI) {
     },
   })
 
+  const scalarConfig = {
+    theme: '${theme}',
+    layout: '${layout}',
+    customCss: \`${customCss}\`,
+    withDefaultFonts: ${withDefaultFonts},
+    favicon: '${favicon}',
+    pageTitle: '${pageTitle}',
+    showSidebar: ${showSidebar},
+    hideModels: ${hideModels},
+    hideDownloadButton: ${hideDownloadButton},
+    isEditable: ${isEditable},
+    darkMode: ${darkMode},
+    proxy: '${proxy}',
+    defaultHttpClient: {
+      targetKey: 'js',
+      clientKey: 'fetch',
+    },
+  }
+
   app.get(
     '${docsEndpoint}',
-    apiReference({
-      theme: '${theme}',
-      pageTitle: '${title}',
-      defaultHttpClient: {
-        targetKey: 'js',
-        clientKey: 'fetch',
-      },
-    })
+    apiReference(scalarConfig)
   )
 }
 `

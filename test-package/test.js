@@ -1,9 +1,8 @@
 // Test importing the core package
-import { createRouter, configureOpenAPI } from '@g-1/core';
+import { createRouter } from '@g-1/core';
 import { execSync } from 'child_process';
 
 console.log('✅ Successfully imported createRouter:', typeof createRouter);
-console.log('✅ Successfully imported configureOpenAPI:', typeof configureOpenAPI);
 
 // Test the CLI tool
 console.log('Testing CLI tool availability...');

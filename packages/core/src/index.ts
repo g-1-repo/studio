@@ -9,7 +9,6 @@
 export { BaseRepository } from './lib/base-repository.js'
 export { BaseService } from './lib/base-service.js'
 // Core framework exports
-export { default as configureOpenAPI } from './lib/configure-open-api.js'
 
 // Utility exports
 export * from './lib/constants.js'
