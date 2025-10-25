@@ -1,23 +1,18 @@
-// import { env } from "cloudflare:workers";
 import { drizzle } from 'drizzle-orm/d1'
-import type { DrizzleD1Database } from 'drizzle-orm/d1'
-import type { Environment } from '../env'
-
 import * as schema from './schema'
 
-export function createDb(env: Environment): DrizzleD1Database<typeof schema> {
-  if (!env.DB) {
-    throw new Error('Database binding (DB) is not available in environment')
-  }
-
-  const db = drizzle(env.DB, {
-    casing: 'snake_case',
+export function createDb(database: D1Database) {
+  return drizzle(database, {
     schema,
+    casing: 'snake_case'
   })
-  return db
 }
 
-export * from './auth.schema'
-// Export all database utilities
-export * from './schema'
-export * from './tables'
+export * as auth from './auth.schema'
+export * as schema from './schema'
+export * as tables from './tables'
+
+// Database templates
+export * as drizzleTemplate from './drizzle.template'
+export * as prismaTemplate from './prisma.template'
+export * as kyselyTemplate from './kysely.template'

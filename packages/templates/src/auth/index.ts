@@ -9,6 +9,12 @@ import type { Environment } from '../env'
 import type { MailService } from '../services/mail'
 import { createMailService, TEMPLATE_NAMES } from '../services/mail'
 
+// Export authentication templates
+export * from './jwt.template'
+export * from './session.template'
+export * from './oauth.template'
+export * from './apikey.template'
+
 function getMailer(env?: Environment): MailService | null {
   if (!env?.RESEND_API_KEY) return null
   return createMailService({

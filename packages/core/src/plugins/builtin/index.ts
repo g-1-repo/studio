@@ -1,8 +1,24 @@
 import { openApiPlugin } from './openapi.plugin.js'
+import { securityPlugin } from './security.plugin.js'
+import { rateLimitPlugin } from './rate-limit.plugin.js'
+import { loggerPlugin } from './logger.plugin.js'
+import { corsPlugin } from './cors.plugin.js'
+import { validationPlugin } from './validation.plugin.js'
 
-export { openApiPlugin }
+export { 
+  openApiPlugin,
+  securityPlugin,
+  rateLimitPlugin,
+  loggerPlugin,
+  corsPlugin,
+  validationPlugin
+}
 
-// Export all built-in plugins as an array for easy registration
 export const builtinPlugins = [
-  openApiPlugin
+  openApiPlugin,
+  securityPlugin,
+  rateLimitPlugin,
+  loggerPlugin,
+  corsPlugin,
+  validationPlugin
 ]

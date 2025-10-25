@@ -6,6 +6,7 @@ import { createCommand } from './commands/create.js'
 import createGenerateCommand from './commands/generate.js'
 import createInfoCommand from './commands/info.js'
 import createVersionCommand from './commands/version.js'
+import createPluginCommand from './commands/plugin.js'
 
 const program = new Command()
 
@@ -20,6 +21,7 @@ program.addCommand(createCommand)
 program.addCommand(createGenerateCommand())
 program.addCommand(createInfoCommand())
 program.addCommand(createVersionCommand())
+program.addCommand(createPluginCommand())
 
 // Global error handler
 program.exitOverride()
