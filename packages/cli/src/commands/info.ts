@@ -411,3 +411,6 @@ async function getToolVersion(tool: string): Promise<string | null> {
 }
 
 export default createInfoCommand
+
+// Export logger for testing
+export { logger }
