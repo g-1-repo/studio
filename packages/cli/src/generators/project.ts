@@ -140,8 +140,8 @@ async function generateApiProject(projectPath: string, vars: TemplateVariables):
       'db:studio': 'drizzle-kit studio',
     },
     dependencies: {
-      '@g-1/core': '^1.15.11',
-      '@g-1/util': '^1.0.0',
+      '@g-1/core': '^2.0.0',
+      '@g-1/util': '^1.1.0',
       '@hono/zod-openapi': '^1.1.4',
       'drizzle-orm': '^0.44.6',
       hono: '^4.10.1',
@@ -209,7 +209,7 @@ const app = createRouter()
 
 // Global middleware
 app.use('*', logger())
-app.use('*', cors()))
+app.use('*', cors())
 
 // Routes
 app.get('/', (c) => {

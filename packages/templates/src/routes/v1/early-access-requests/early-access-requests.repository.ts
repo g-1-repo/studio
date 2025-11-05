@@ -1,7 +1,6 @@
 import type { PaginationResult } from '@g-1/core'
 import { BaseRepository, createPaginationResult } from '@g-1/core'
 import { count, desc, eq } from 'drizzle-orm'
-import { createDb } from '../../../db'
 import type { EarlyAccessRequest } from '../../../db/tables/early-access-request.table'
 import { earlyAccessRequestsTable } from '../../../db/tables/early-access-request.table'
 import type { Environment } from '../../../env'
@@ -26,24 +25,7 @@ type Create = Pick<EarlyAccessRequest, 'email'>
  * - Error handling and retry logic
  */
 export class EarlyAccessRequestsRepository extends BaseRepository {
-  // Override getDb to use templates-specific createDb with schema
-  protected getDb(env: Environment): any {
-    // Create a cache key based on environment
-    const cacheKey = `${env.CLOUDFLARE_ACCOUNT_ID || 'default'}-${env.CLOUDFLARE_DATABASE_ID || 'default'}`
-
-    if (!BaseRepository.dbCache.has(cacheKey)) {
-      if (!env.DB) {
-        throw new Error('Database binding (DB) is not available in environment')
-      }
-      BaseRepository.dbCache.set(cacheKey, createDb(env.DB) as any)
-    }
-
-    const db = BaseRepository.dbCache.get(cacheKey) as any
-    if (!db) {
-      throw new Error('Failed to get database instance from cache')
-    }
-    return db
-  }
+  // Use BaseRepository connection management (no local override with any)
 
   /**
    * Get all early access requests

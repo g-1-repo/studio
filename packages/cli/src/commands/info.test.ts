@@ -57,7 +57,7 @@ describe('info Command', () => {
 
   describe('command Configuration', () => {
     it('should export logger instance', async () => {
-      const { createInfoCommand, infoLogger: logger } = await import('./info')
+      const { infoLogger: logger } = await import('./info')
 
       expect(logger).toBeDefined()
       expect(typeof logger).toBe('object')

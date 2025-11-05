@@ -302,12 +302,10 @@ export const DEFAULT_OPENAPI_CONFIG: OpenAPIConfig = {
 }
 
 export class OpenAPIGenerator {
-  private config: OpenAPIConfig
   private spec: OpenAPISpec
   private schemas: Map<string, OpenAPISchema> = new Map()
 
   constructor(config: OpenAPIConfig) {
-    this.config = config
     this.spec = {
       openapi: '3.0.3',
       info: {
@@ -345,7 +343,41 @@ export class OpenAPIGenerator {
     this.schemas.set(name, schema)
   }
 
-  addSecurityScheme(name: string, scheme: any): void {
+  addSecurityScheme(
+    name: string,
+    scheme: {
+      type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
+      description?: string
+      name?: string
+      in?: 'query' | 'header' | 'cookie'
+      scheme?: string
+      bearerFormat?: string
+      flows?: {
+        implicit?: {
+          authorizationUrl: string
+          refreshUrl?: string
+          scopes: Record<string, string>
+        }
+        password?: {
+          tokenUrl: string
+          refreshUrl?: string
+          scopes: Record<string, string>
+        }
+        clientCredentials?: {
+          tokenUrl: string
+          refreshUrl?: string
+          scopes: Record<string, string>
+        }
+        authorizationCode?: {
+          authorizationUrl: string
+          tokenUrl: string
+          refreshUrl?: string
+          scopes: Record<string, string>
+        }
+      }
+      openIdConnectUrl?: string
+    }
+  ): void {
     if (!this.spec.components) {
       this.spec.components = {}
     }
@@ -359,7 +391,7 @@ export class OpenAPIGenerator {
     routes: Array<{
       method: string
       path: string
-      handler: any
+      handler: unknown
       metadata?: {
         summary?: string
         description?: string
@@ -425,7 +457,36 @@ export class OpenAPIGenerator {
         security: metadata?.security,
       }
 
-      pathGroups[path][method.toLowerCase() as keyof OpenAPIPath] = operation as any
+      const methodKey = method.toLowerCase()
+      switch (methodKey) {
+        case 'get':
+          pathGroups[path].get = operation
+          break
+        case 'put':
+          pathGroups[path].put = operation
+          break
+        case 'post':
+          pathGroups[path].post = operation
+          break
+        case 'delete':
+          pathGroups[path].delete = operation
+          break
+        case 'options':
+          pathGroups[path].options = operation
+          break
+        case 'head':
+          pathGroups[path].head = operation
+          break
+        case 'patch':
+          pathGroups[path].patch = operation
+          break
+        case 'trace':
+          pathGroups[path].trace = operation
+          break
+        default:
+          // Ignore unsupported methods
+          break
+      }
     })
 
     Object.entries(pathGroups).forEach(([path, pathItem]) => {
@@ -522,7 +583,7 @@ export class OpenAPIGenerator {
     return this.objectToYAML(this.spec, 0)
   }
 
-  private objectToYAML(obj: any, indent: number): string {
+  private objectToYAML(obj: unknown, indent: number): string {
     const spaces = '  '.repeat(indent)
     let yaml = ''
 
@@ -530,8 +591,9 @@ export class OpenAPIGenerator {
       obj.forEach(item => {
         yaml += `${spaces}- ${this.valueToYAML(item, indent + 1)}\n`
       })
-    } else if (typeof obj === 'object' && obj !== null) {
-      Object.entries(obj).forEach(([key, value]) => {
+    } else if (obj !== null && typeof obj === 'object') {
+      const entries = Object.entries(obj as Record<string, unknown>)
+      entries.forEach(([key, value]) => {
         yaml += `${spaces}${key}: ${this.valueToYAML(value, indent + 1)}\n`
       })
     } else {
@@ -541,12 +603,12 @@ export class OpenAPIGenerator {
     return yaml.trimEnd()
   }
 
-  private valueToYAML(value: any, indent: number): string {
+  private valueToYAML(value: unknown, indent: number): string {
     if (value === null) return 'null'
     if (typeof value === 'boolean') return String(value)
     if (typeof value === 'number') return String(value)
     if (typeof value === 'string') return `"${value.replace(/"/g, '\\"')}"`
-    if (Array.isArray(value) || typeof value === 'object') {
+    if (Array.isArray(value) || (value !== null && typeof value === 'object')) {
       return `\n${this.objectToYAML(value, indent)}`
     }
     return String(value)
@@ -557,9 +619,21 @@ export function createOpenAPIMiddleware(config: OpenAPIConfig = DEFAULT_OPENAPI_
   const generator = new OpenAPIGenerator(config)
 
   return {
-    middleware: (_c: any, next: any) => next(),
+    middleware: (_c: unknown, next: () => Promise<void>) => next(),
 
-    addRoute: (_method: string, _path: string, _metadata?: any) => {
+    addRoute: (
+      _method: string,
+      _path: string,
+      _metadata?: {
+        summary?: string
+        description?: string
+        tags?: string[]
+        parameters?: OpenAPIParameter[]
+        requestBody?: OpenAPIRequestBody
+        responses?: Record<string, OpenAPIResponse>
+        security?: Array<Record<string, string[]>>
+      }
+    ) => {
       // This would be called when routes are registered
       // Implementation depends on the routing framework
     },
@@ -567,7 +641,11 @@ export function createOpenAPIMiddleware(config: OpenAPIConfig = DEFAULT_OPENAPI_
     getSpec: () => generator.getSpec(),
 
     serveSpec: (format: 'json' | 'yaml' = 'json') => {
-      return (c: any) => {
+      return (c: {
+        header: (key: string, value: string) => void
+        json: (data: unknown) => unknown
+        text: (data: string) => unknown
+      }) => {
         const spec = generator.getSpec()
 
         if (format === 'yaml') {

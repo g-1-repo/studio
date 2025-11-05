@@ -21,15 +21,15 @@ export interface ValidationConfig {
 export interface ValidationError {
   field: string
   message: string
-  value?: any
+  value?: unknown
   code?: string
 }
 
 export interface ValidationSchema {
-  body?: z.ZodSchema | any
-  query?: z.ZodSchema | any
-  params?: z.ZodSchema | any
-  headers?: z.ZodSchema | any
+  body?: z.ZodTypeAny
+  query?: z.ZodTypeAny
+  params?: z.ZodTypeAny
+  headers?: z.ZodTypeAny
 }
 
 /**
@@ -217,7 +217,7 @@ export function createZodValidation(schema: ValidationSchema, config: Validation
  * Format Zod validation errors
  */
 function formatZodErrors(error: z.ZodError, prefix: string = ''): ValidationError[] {
-  return error.issues.map((err: any) => ({
+  return error.issues.map((err: z.ZodIssue) => ({
     field: prefix ? `${prefix}.${err.path.join('.')}` : err.path.join('.'),
     message: err.message,
     value: err.input,
@@ -230,7 +230,7 @@ function formatZodErrors(error: z.ZodError, prefix: string = ''): ValidationErro
  */
 export function createCustomValidation(
   validators: {
-    [key: string]: (value: any, c: Context) => Promise<boolean> | boolean
+    [key: string]: (value: unknown, c: Context) => Promise<boolean> | boolean
   },
   config: ValidationConfig = {}
 ) {
@@ -241,7 +241,7 @@ export function createCustomValidation(
 
     try {
       for (const [field, validator] of Object.entries(validators)) {
-        let value: any
+        let value: unknown
 
         // Extract value based on field location
         if (field.startsWith('body.')) {
@@ -299,8 +299,15 @@ export function createCustomValidation(
 /**
  * Get nested value from object
  */
-function getNestedValue(obj: any, path: string): any {
-  return path.split('.').reduce((current, key) => current?.[key], obj)
+function getNestedValue(obj: unknown, path: string): unknown {
+  if (obj === null || obj === undefined) return undefined
+  if (typeof obj !== 'object') return undefined
+  return path.split('.').reduce<unknown>((current, key) => {
+    if (current !== null && typeof current === 'object') {
+      return (current as Record<string, unknown>)[key]
+    }
+    return undefined
+  }, obj)
 }
 
 /**
@@ -484,7 +491,7 @@ export const VALIDATION_HELPERS = {
    */
   async: (
     asyncValidators: {
-      [key: string]: (value: any, c: Context) => Promise<boolean>
+      [key: string]: (value: unknown, c: Context) => Promise<boolean>
     },
     config?: ValidationConfig
   ) => {

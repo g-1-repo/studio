@@ -96,7 +96,7 @@ export interface PostmanItem {
   description?: string
   response?: Array<{
     name: string
-    originalRequest: any
+    originalRequest: PostmanItem['request']
     status: string
     code: number
     _postman_previewlanguage: string
@@ -104,7 +104,7 @@ export interface PostmanItem {
       key: string
       value: string
     }>
-    cookie: any[]
+    cookie: Array<Record<string, unknown>>
     body: string
   }>
   event?: Array<{
@@ -125,7 +125,7 @@ export interface PostmanCollection {
     schema: string
   }
   item: PostmanItem[]
-  auth?: any
+  auth?: Record<string, unknown>
   event?: Array<{
     listen: 'prerequest' | 'test'
     script: {
@@ -219,13 +219,13 @@ export class PostmanGenerator {
       description?: string
       headers?: Record<string, string>
       queryParams?: Record<string, string>
-      body?: any
+      body?: unknown
       folder?: string
       tests?: string[]
       examples?: Array<{
         name: string
         status: number
-        body: any
+        body: unknown
         headers?: Record<string, string>
       }>
     } = {}
@@ -328,7 +328,7 @@ export class PostmanGenerator {
     return [...defaultHeaders, ...customHeaders]
   }
 
-  private buildBody(body: any, method: string) {
+  private buildBody(body: unknown, method: string) {
     if (!body || ['GET', 'DELETE', 'HEAD'].includes(method.toUpperCase())) {
       return undefined
     }
@@ -357,7 +357,9 @@ export class PostmanGenerator {
   }
 
   private addToFolder(folderName: string, item: PostmanItem) {
-    let folder = this.collection.item.find((i): i is any => 'item' in i && i.name === folderName)
+    let folder = this.collection.item.find(
+      (i): i is PostmanItem & { item: PostmanItem[] } => 'item' in i && i.name === folderName
+    )
 
     if (!folder) {
       folder = {
@@ -540,50 +542,84 @@ export class PostmanGenerator {
 
 // Helper function to create Postman collection from OpenAPI spec
 export function createPostmanFromOpenAPI(
-  openApiSpec: any,
+  openApiSpec: unknown,
   config: Partial<PostmanConfig> = {}
 ): PostmanGenerator {
+  const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object'
+  const spec = isObj(openApiSpec) ? (openApiSpec as Record<string, unknown>) : {}
+  const info = isObj(spec.info) ? (spec.info as Record<string, unknown>) : {}
+  const servers = Array.isArray(spec.servers) ? (spec.servers as Array<unknown>) : []
+  const firstServer =
+    servers.length > 0 && isObj(servers[0]) ? (servers[0] as Record<string, unknown>) : undefined
+
   const fullConfig: PostmanConfig = {
     ...DEFAULT_POSTMAN_CONFIG,
-    name: openApiSpec.info?.title || 'API Collection',
-    description: openApiSpec.info?.description || 'Generated from OpenAPI specification',
-    version: openApiSpec.info?.version || '1.0.0',
-    baseUrl: openApiSpec.servers?.[0]?.url || 'http://localhost:3000',
+    name: typeof info.title === 'string' ? (info.title as string) : 'API Collection',
+    description:
+      typeof info.description === 'string'
+        ? (info.description as string)
+        : 'Generated from OpenAPI specification',
+    version: typeof info.version === 'string' ? (info.version as string) : '1.0.0',
+    baseUrl:
+      typeof firstServer?.url === 'string' ? (firstServer.url as string) : 'http://localhost:3000',
     ...config,
   }
 
   const generator = new PostmanGenerator(fullConfig)
 
   // Add authentication if present
-  if (openApiSpec.components?.securitySchemes) {
-    const schemes = openApiSpec.components.securitySchemes
-    const firstScheme = Object.values(schemes)[0] as any
+  const components = isObj(spec.components)
+    ? (spec.components as Record<string, unknown>)
+    : undefined
+  const securitySchemes =
+    components && isObj(components.securitySchemes)
+      ? (components.securitySchemes as Record<string, unknown>)
+      : undefined
 
-    if (firstScheme?.type === 'http' && firstScheme?.scheme === 'bearer') {
-      generator.addAuth({
-        type: 'bearer',
-        bearer: { token: '{{authToken}}' },
-      })
-    } else if (firstScheme?.type === 'apiKey') {
-      generator.addAuth({
-        type: 'apikey',
-        apikey: {
-          key: firstScheme.name,
-          value: '{{apiKey}}',
-          in: firstScheme.in,
-        },
-      })
+  if (securitySchemes) {
+    const schemeValues = Object.values(securitySchemes)
+    const firstScheme = schemeValues[0] as unknown
+    if (isObj(firstScheme)) {
+      const type = typeof firstScheme.type === 'string' ? (firstScheme.type as string) : undefined
+      if (
+        type === 'http' &&
+        typeof firstScheme.scheme === 'string' &&
+        firstScheme.scheme === 'bearer'
+      ) {
+        generator.addAuth({
+          type: 'bearer',
+          bearer: { token: '{{authToken}}' },
+        })
+      } else if (type === 'apikey') {
+        const name =
+          typeof firstScheme.name === 'string' ? (firstScheme.name as string) : 'X-API-Key'
+        const loc =
+          typeof firstScheme.in === 'string' ? (firstScheme.in as 'header' | 'query') : 'header'
+        generator.addAuth({
+          type: 'apikey',
+          apikey: {
+            key: name,
+            value: '{{apiKey}}',
+            in: loc,
+          },
+        })
+      }
     }
   }
 
   // Process paths
-  if (openApiSpec.paths) {
+  const paths = isObj(spec.paths) ? (spec.paths as Record<string, unknown>) : undefined
+  if (paths) {
     const folders = new Set<string>()
 
-    Object.entries(openApiSpec.paths).forEach(([path, pathItem]: [string, any]) => {
-      Object.entries(pathItem).forEach(([method, operation]: [string, any]) => {
+    Object.entries(paths).forEach(([path, pathItemUnknown]) => {
+      if (!isObj(pathItemUnknown)) return
+      const pathItem = pathItemUnknown as Record<string, unknown>
+      Object.entries(pathItem).forEach(([method, operationUnknown]) => {
         if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
-          const folder = operation.tags?.[0] || 'Default'
+          const op = isObj(operationUnknown) ? (operationUnknown as Record<string, unknown>) : {}
+          const tags = Array.isArray(op.tags) ? (op.tags as string[]) : undefined
+          const folder = tags?.[0] || 'Default'
           folders.add(folder)
 
           const tests = fullConfig.includeTests
@@ -602,23 +638,52 @@ export function createPostmanFromOpenAPI(
               ]
             : undefined
 
-          const examples = operation.responses
-            ? Object.entries(operation.responses)
-                .filter(([status]) => status.startsWith('2'))
-                .map(([status, response]: [string, any]) => ({
+          let examples:
+            | Array<{
+                name: string
+                status: number
+                body: unknown
+                headers?: Record<string, string>
+              }>
+            | undefined
+          const responses = isObj(op.responses)
+            ? (op.responses as Record<string, unknown>)
+            : undefined
+          if (responses) {
+            examples = Object.entries(responses)
+              .filter(([status]) => status.startsWith('2'))
+              .map(([status, responseUnknown]) => {
+                let exampleBody: unknown = {}
+                if (isObj(responseUnknown)) {
+                  const content = isObj(responseUnknown.content)
+                    ? (responseUnknown.content as Record<string, unknown>)
+                    : undefined
+                  const appJson =
+                    content && isObj(content['application/json'])
+                      ? (content['application/json'] as Record<string, unknown>)
+                      : undefined
+                  if (appJson && 'example' in appJson) {
+                    exampleBody = (appJson.example as unknown) ?? {}
+                  }
+                }
+                return {
                   name: `${status} Response`,
                   status: parseInt(status, 10),
-                  body: response.content?.['application/json']?.example || {},
+                  body: exampleBody,
                   headers: { 'Content-Type': 'application/json' },
-                }))
-            : undefined
+                }
+              })
+          }
 
           generator.addRequest(
-            operation.summary || `${method.toUpperCase()} ${path}`,
+            typeof op.summary === 'string'
+              ? (op.summary as string)
+              : `${method.toUpperCase()} ${path}`,
             method,
             path,
             {
-              description: operation.description,
+              description:
+                typeof op.description === 'string' ? (op.description as string) : undefined,
               folder,
               tests,
               examples,

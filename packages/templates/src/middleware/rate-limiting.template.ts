@@ -1,5 +1,19 @@
 import type { Context, Next } from 'hono'
 
+interface RedisMulti {
+  get(key: string): RedisMulti
+  incr(key: string): RedisMulti
+  expire(key: string, seconds: number): RedisMulti
+  exec(): Promise<Array<[unknown, unknown]>>
+}
+
+interface RedisClient {
+  get(key: string): Promise<string | null>
+  setex(key: string, ttlSeconds: number, value: string): Promise<void>
+  multi(): RedisMulti
+  del(key: string): Promise<void>
+}
+
 /**
  * Rate limiting middleware templates
  */
@@ -93,7 +107,7 @@ export class MemoryRateLimitStore implements RateLimitStore {
  * Redis rate limit store
  */
 export class RedisRateLimitStore implements RateLimitStore {
-  constructor(private redis: any) {}
+  constructor(private redis: RedisClient) {}
 
   async get(key: string): Promise<{ count: number; resetTime: number } | null> {
     const data = await this.redis.get(key)
@@ -114,8 +128,13 @@ export class RedisRateLimitStore implements RateLimitStore {
     multi.expire(key, Math.ceil(ttl / 1000))
 
     const results = await multi.exec()
-    const existing = results[0][1] ? JSON.parse(results[0][1]) : null
-    const count = results[1][1]
+    const existingRaw = results[0]?.[1]
+    const existing =
+      typeof existingRaw === 'string'
+        ? (JSON.parse(existingRaw) as { count: number; resetTime: number })
+        : null
+    const countRaw = results[1]?.[1]
+    const count = typeof countRaw === 'number' ? countRaw : Number(countRaw)
 
     if (!existing || existing.resetTime <= now) {
       const value = { count: 1, resetTime }
@@ -203,7 +222,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig = {}) {
       const message =
         typeof options.message === 'function' ? await options.message(c) : options.message
 
-      c.status(options.statusCode as any)
+      c.status(Number(options.statusCode ?? DEFAULT_RATE_LIMIT_CONFIG.statusCode))
       return c.json({
         error: 'Rate limit exceeded',
         message,
@@ -292,8 +311,14 @@ export const RATE_LIMIT_CONFIGS = {
     statusCode: 429,
     keyGenerator: async (c: Context) => {
       // Use email/username if available, otherwise fall back to IP
-      const body = await c.req.json?.() || {}
-      const identifier = (body as any).email || (body as any).username
+      const body: unknown = (await c.req.json?.()) || {}
+      let identifier: string | undefined
+      if (typeof body === 'object' && body) {
+        const obj = body as Record<string, unknown>
+        const email = typeof obj.email === 'string' ? obj.email : undefined
+        const username = typeof obj.username === 'string' ? obj.username : undefined
+        identifier = email ?? username
+      }
       const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'
       return identifier ? `auth:${identifier}` : `auth:ip:${ip}`
     },

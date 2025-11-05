@@ -16,21 +16,21 @@ export interface SwaggerUIConfig {
   docExpansion?: 'list' | 'full' | 'none'
   filter?: boolean | string
   maxDisplayedTags?: number
-  operationsSorter?: 'alpha' | 'method' | ((a: any, b: any) => number)
+  operationsSorter?: 'alpha' | 'method' | ((a: unknown, b: unknown) => number)
   showExtensions?: boolean
   showCommonExtensions?: boolean
-  tagsSorter?: 'alpha' | ((a: any, b: any) => number)
+  tagsSorter?: 'alpha' | ((a: unknown, b: unknown) => number)
   tryItOutEnabled?: boolean
-  requestInterceptor?: (request: any) => any
-  responseInterceptor?: (response: any) => any
+  requestInterceptor?: (request: Record<string, unknown>) => Record<string, unknown>
+  responseInterceptor?: (response: unknown) => unknown
   showMutatedRequest?: boolean
   supportedSubmitMethods?: string[]
   validatorUrl?: string | null
   withCredentials?: boolean
   persistAuthorization?: boolean
   oauth2RedirectUrl?: string
-  presets?: any[]
-  plugins?: any[]
+  presets?: unknown[]
+  plugins?: unknown[]
   layout?: string
   theme?: 'light' | 'dark'
   customCss?: string
@@ -157,7 +157,7 @@ export function generateSwaggerHTML(config: SwaggerUIConfig = DEFAULT_SWAGGER_CO
 }
 
 export function createSwaggerUIMiddleware(config: SwaggerUIConfig = DEFAULT_SWAGGER_CONFIG) {
-  return (c: any) => {
+  return (c: { header: (key: string, value: string) => void; html: (html: string) => unknown }) => {
     const html = generateSwaggerHTML(config)
     c.header('Content-Type', 'text/html')
     return c.html(html)
@@ -259,31 +259,36 @@ export const SWAGGER_UI_CONFIGS = {
 export const SWAGGER_UI_HELPERS = {
   // Add authentication header interceptor
   withBearerAuth: (getToken: () => string | null) => ({
-    requestInterceptor: (request: any) => {
+    requestInterceptor: (request: Record<string, unknown>) => {
       const token = getToken()
+      const headers = (request as { headers?: Record<string, string> }).headers ?? {}
       if (token) {
-        request.headers.Authorization = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
+      ;(request as { headers: Record<string, string> }).headers = headers
       return request
     },
   }),
 
   // Add API key header interceptor
   withApiKey: (keyName: string, getKey: () => string | null) => ({
-    requestInterceptor: (request: any) => {
+    requestInterceptor: (request: Record<string, unknown>) => {
       const key = getKey()
+      const headers = (request as { headers?: Record<string, string> }).headers ?? {}
       if (key) {
-        request.headers[keyName] = key
+        headers[keyName] = key
       }
+      ;(request as { headers: Record<string, string> }).headers = headers
       return request
     },
   }),
 
   // Add custom base URL
   withBaseUrl: (baseUrl: string) => ({
-    requestInterceptor: (request: any) => {
-      if (request.url.startsWith('/')) {
-        request.url = baseUrl + request.url
+    requestInterceptor: (request: Record<string, unknown>) => {
+      const url = (request as { url?: string }).url
+      if (url?.startsWith('/')) {
+        ;(request as { url: string }).url = baseUrl + url
       }
       return request
     },
@@ -291,11 +296,11 @@ export const SWAGGER_UI_HELPERS = {
 
   // Add request/response logging
   withLogging: () => ({
-    requestInterceptor: (request: any) => {
+    requestInterceptor: (request: Record<string, unknown>) => {
       console.log('API Request:', request)
       return request
     },
-    responseInterceptor: (response: any) => {
+    responseInterceptor: (response: unknown) => {
       console.log('API Response:', response)
       return response
     },
@@ -303,10 +308,12 @@ export const SWAGGER_UI_HELPERS = {
 
   // Add CORS headers for development
   withCors: () => ({
-    requestInterceptor: (request: any) => {
-      request.headers['Access-Control-Allow-Origin'] = '*'
-      request.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-      request.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    requestInterceptor: (request: Record<string, unknown>) => {
+      const headers = (request as { headers?: Record<string, string> }).headers ?? {}
+      headers['Access-Control-Allow-Origin'] = '*'
+      headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+      ;(request as { headers: Record<string, string> }).headers = headers
       return request
     },
   }),

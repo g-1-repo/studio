@@ -40,6 +40,50 @@ export interface SessionStore {
   cleanup(): Promise<void>
 }
 
+// Minimal Redis client interface used by the session store
+interface RedisClient {
+  get(key: string): Promise<string | null>
+  setex(key: string, ttlSeconds: number, value: string): Promise<void>
+  del(key: string): Promise<void>
+}
+
+// Minimal DB adapter interface with the chained methods used here
+type WhereArgs = [string, unknown] | [string, string, unknown]
+interface DbAdapter {
+  select(): DbAdapter
+  from(tableName: string): DbAdapter
+  where(...args: WhereArgs): DbAdapter
+  first(): Promise<unknown>
+  insert(values: Record<string, unknown>): DbAdapter
+  into(tableName: string): DbAdapter
+  onConflict(column: string): DbAdapter
+  merge(): Promise<void>
+  delete(): DbAdapter
+}
+
+// Type guard for DB row result
+function isSessionRow(input: unknown): input is {
+  id: string
+  user_id?: string
+  email?: string
+  username?: string
+  roles?: string | null
+  permissions?: string | null
+  created_at: number
+  last_accessed: number
+  expires_at: number
+  data?: string | null
+} {
+  if (!input || typeof input !== 'object') return false
+  const obj = input as Record<string, unknown>
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.created_at === 'number' &&
+    typeof obj.last_accessed === 'number' &&
+    typeof obj.expires_at === 'number'
+  )
+}
+
 /**
  * In-memory session store (for development)
  */
@@ -96,18 +140,18 @@ export class MemorySessionStore implements SessionStore {
  * Redis session store (for production)
  */
 export class RedisSessionStore implements SessionStore {
-  private redis: unknown // Redis client
+  private redis: RedisClient // Redis client
   private keyPrefix: string
 
-  constructor(redis: unknown, keyPrefix = 'session:') {
+  constructor(redis: RedisClient, keyPrefix = 'session:') {
     this.redis = redis
     this.keyPrefix = keyPrefix
   }
 
   async get(sessionId: string): Promise<SessionData | null> {
     try {
-      const data = await (this.redis as any).get(`${this.keyPrefix}${sessionId}`)
-      return data ? JSON.parse(data as string) : null
+      const data = await this.redis.get(`${this.keyPrefix}${sessionId}`)
+      return data ? JSON.parse(data) : null
     } catch (error) {
       console.error('Redis session get error:', error)
       return null
@@ -117,7 +161,7 @@ export class RedisSessionStore implements SessionStore {
   async set(sessionId: string, session: SessionData): Promise<void> {
     try {
       const ttl = Math.ceil((session.expiresAt - Date.now()) / 1000)
-      await (this.redis as any).setex(
+      await this.redis.setex(
         `${this.keyPrefix}${sessionId}`,
         Math.max(ttl, 1),
         JSON.stringify(session)
@@ -129,7 +173,7 @@ export class RedisSessionStore implements SessionStore {
 
   async delete(sessionId: string): Promise<void> {
     try {
-      await (this.redis as any).del(`${this.keyPrefix}${sessionId}`)
+      await this.redis.del(`${this.keyPrefix}${sessionId}`)
     } catch (error) {
       console.error('Redis session delete error:', error)
     }
@@ -144,19 +188,19 @@ export class RedisSessionStore implements SessionStore {
  * Database session store
  */
 export class DatabaseSessionStore implements SessionStore {
-  private db: unknown // Database connection
+  private db: DbAdapter // Database connection
   private tableName: string
 
-  constructor(db: unknown, tableName = 'sessions') {
+  constructor(db: DbAdapter, tableName = 'sessions') {
     this.db = db
     this.tableName = tableName
   }
 
   async get(sessionId: string): Promise<SessionData | null> {
     try {
-      const result = await (this.db as any).select().from(this.tableName).where('id', sessionId).first()
+      const result = await this.db.select().from(this.tableName).where('id', sessionId).first()
 
-      if (!result) return null
+      if (!result || !isSessionRow(result)) return null
 
       // Check if expired
       if (Date.now() > result.expires_at) {
@@ -169,12 +213,12 @@ export class DatabaseSessionStore implements SessionStore {
         userId: result.user_id,
         email: result.email,
         username: result.username,
-        roles: result.roles ? JSON.parse(result.roles as string) : [],
-        permissions: result.permissions ? JSON.parse(result.permissions as string) : [],
+        roles: result.roles ? JSON.parse(result.roles) : [],
+        permissions: result.permissions ? JSON.parse(result.permissions) : [],
         createdAt: result.created_at,
         lastAccessed: result.last_accessed,
         expiresAt: result.expires_at,
-        data: result.data ? JSON.parse(result.data as string) : {},
+        data: result.data ? JSON.parse(result.data) : {},
       }
     } catch (error) {
       console.error('Database session get error:', error)
@@ -184,7 +228,7 @@ export class DatabaseSessionStore implements SessionStore {
 
   async set(_sessionId: string, session: SessionData): Promise<void> {
     try {
-      await (this.db as any)
+      await this.db
         .insert({
           id: session.id,
           user_id: session.userId,
@@ -207,7 +251,7 @@ export class DatabaseSessionStore implements SessionStore {
 
   async delete(sessionId: string): Promise<void> {
     try {
-      await (this.db as any).delete().from(this.tableName).where('id', sessionId)
+      await this.db.delete().from(this.tableName).where('id', sessionId)
     } catch (error) {
       console.error('Database session delete error:', error)
     }
@@ -215,7 +259,7 @@ export class DatabaseSessionStore implements SessionStore {
 
   async cleanup(): Promise<void> {
     try {
-      await (this.db as any).delete().from(this.tableName).where('expires_at', '<', Date.now())
+      await this.db.delete().from(this.tableName).where('expires_at', '<', Date.now())
     } catch (error) {
       console.error('Database session cleanup error:', error)
     }

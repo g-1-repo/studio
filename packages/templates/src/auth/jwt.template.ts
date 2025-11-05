@@ -156,7 +156,7 @@ export class JWTAuthService {
         token,
         this.config.secret,
         this.config.algorithm
-      ) as unknown) as JWTTokenPayload
+      )) as unknown as JWTTokenPayload
 
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000)

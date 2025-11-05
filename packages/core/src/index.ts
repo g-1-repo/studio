@@ -12,8 +12,8 @@ export { BaseService } from './lib/base-service.js'
 
 // Utility exports
 export * from './lib/constants.js'
-
-export { createRouter } from './lib/create-app.js'
+// Alias for backward compatibility and consistency with docs
+export { createRouter, createRouter as createApp } from './lib/create-app.js'
 export * from './lib/errors/index.js'
 export type { AppBindings, AppOpenAPI, AppRouteHandler } from './lib/types.js'
 export * from './lib/utils/crypto.js'

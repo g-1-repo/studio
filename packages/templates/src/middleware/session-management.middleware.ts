@@ -19,11 +19,12 @@ export const sessionManagement: MiddlewareHandler = createMiddleware<AppBindings
       }
 
       // Transform the Better Auth user to match AppBindings user type
+      const roleCandidate = (session.user as { role?: unknown }).role
       const user = {
         id: session.user.id,
         name: session.user.name,
         email: session.user.email,
-        role: (session.user as any).role || 'user', // Default to 'user' if role is not set
+        role: typeof roleCandidate === 'string' ? roleCandidate : 'user',
       }
 
       c.set('user', user)

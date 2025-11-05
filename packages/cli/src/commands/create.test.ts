@@ -15,7 +15,9 @@ vi.mock('commander', () => ({
       { long: '--no-prettier' },
     ]
 
-    name() { return this }
+    name() {
+      return this
+    }
     description(desc?: string) {
       if (desc !== undefined) {
         this._description = desc
@@ -23,13 +25,17 @@ vi.mock('commander', () => ({
       }
       return this._description
     }
-    argument() { return this }
-    option() { return this }
+    argument() {
+      return this
+    }
+    option() {
+      return this
+    }
     action(handler: any) {
       this._actionHandler = handler
       return this
     }
-  }
+  },
 }))
 
 vi.mock('inquirer', () => ({
@@ -99,11 +105,10 @@ vi.mock('../utils/logger.js', () => ({
 }))
 
 // Import modules after mocking
-import { Command as _Command } from 'commander'
 import inquirer from 'inquirer'
+import { createProject } from '../generators/project.js'
 import { logger } from '../utils/logger.js'
 import { validateProjectName } from '../utils/validation.js'
-import { createProject } from '../generators/project.js'
 import { createCommand } from './create'
 
 const mockInquirer = inquirer as any
@@ -414,7 +419,9 @@ describe('create Command', () => {
         })
       ).rejects.toThrow('Process exit called')
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to create project: Invalid plugin \'security\': Plugin must have a valid category (feature, service, deployment)')
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Failed to create project: Invalid plugin 'security': Plugin must have a valid category (feature, service, deployment)"
+      )
     })
   })
 

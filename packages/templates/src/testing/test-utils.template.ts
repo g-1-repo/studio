@@ -3,6 +3,8 @@
  */
 
 import { randomUUID as cryptoRandomUUID, randomBytes } from 'node:crypto'
+import type { Server } from 'node:http'
+import type { AddressInfo } from 'node:net'
 
 /**
  * Test data generators
@@ -534,6 +536,10 @@ export namespace TestUtils {
  * Database test helpers
  */
 export namespace DatabaseTestHelpers {
+  export interface TestDbLike {
+    create(table: string, record: Record<string, unknown>): Promise<void>
+    clear(table?: string): Promise<void>
+  }
   export async function createTestDatabase(_config: Record<string, unknown> = {}) {
     // This would be implemented based on your database choice
     // Example for SQLite in-memory database
@@ -552,22 +558,22 @@ export namespace DatabaseTestHelpers {
   }
 
   export async function seedTestData(
-    db: Record<string, any>,
+    db: TestDbLike,
     data: Record<string, Record<string, unknown>[]>
   ) {
     for (const [table, records] of Object.entries(data)) {
       for (const record of records) {
-        await (db as any).create(table, record)
+        await db.create(table, record)
       }
     }
   }
 
-  export async function clearTestData(db: Record<string, any>, tables: string[] = []) {
+  export async function clearTestData(db: TestDbLike, tables: string[] = []) {
     if (tables.length === 0) {
-      await (db as any).clear()
+      await db.clear()
     } else {
       for (const table of tables) {
-        await (db as any).clear(table)
+        await db.clear(table)
       }
     }
   }
@@ -601,7 +607,7 @@ export namespace HTTPTestHelpers {
           method,
           headers: {
             'Content-Type': 'application/json',
-            ...(options.headers as Record<string, string> || {}),
+            ...((options.headers as Record<string, string>) || {}),
           },
           body: options.body ? JSON.stringify(options.body) : undefined,
         }
@@ -619,19 +625,22 @@ export namespace HTTPTestHelpers {
     }
   }
 
-  export async function startTestServer(app: Record<string, unknown>, port: number = 0) {
+  export async function startTestServer(
+    app: { listen: (port: number, cb: (err?: unknown) => void) => Server },
+    port: number = 0
+  ) {
     return new Promise((resolve, reject) => {
-      const server = (app as any).listen(port, (err: unknown) => {
+      const server = app.listen(port, (err?: unknown) => {
         if (err) {
           reject(err)
         } else {
-          const address = (server as any).address()
-          const actualPort = typeof address === 'object' ? address?.port : port
+          const address = server.address() as string | AddressInfo | null
+          const actualPort = typeof address === 'object' && address !== null ? address.port : port
           resolve({
             server,
             port: actualPort,
             url: `http://localhost:${actualPort}`,
-            close: () => new Promise(resolve => (server as any).close(resolve)),
+            close: () => new Promise<void>(resolve => server.close(() => resolve())),
           })
         }
       })

@@ -1,6 +1,7 @@
 /**
  * Performance monitoring template for tracking application performance metrics
  */
+import type { Context, Next } from 'hono'
 
 export interface PerformanceConfig {
   enabled: boolean
@@ -27,7 +28,7 @@ export interface PerformanceEntry {
   name: string
   startTime: number
   duration: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface RequestPerformance {
@@ -87,7 +88,7 @@ export interface PerformanceMonitor {
   stopTracking(): void
   recordEntry(entry: PerformanceEntry): void
   recordRequest(request: RequestPerformance): void
-  recordCustomMetric(name: string, value: number, metadata?: Record<string, any>): void
+  recordCustomMetric(name: string, value: number, metadata?: Record<string, unknown>): void
   getMetrics(): PerformanceReport
   clearMetrics(): void
 }
@@ -116,7 +117,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
   private requests: RequestPerformance[] = []
   private customMetrics: Map<
     string,
-    { value: number; timestamp: number; metadata?: Record<string, any> }
+    { value: number; timestamp: number; metadata?: Record<string, unknown> }
   > = new Map()
   private isTracking = false
   private reportingTimer?: NodeJS.Timeout
@@ -182,7 +183,7 @@ export class PerformanceMonitorImpl implements PerformanceMonitor {
     }
   }
 
-  recordCustomMetric(name: string, value: number, metadata?: Record<string, any>): void {
+  recordCustomMetric(name: string, value: number, metadata?: Record<string, unknown>): void {
     if (!this.config.enabled || !this.config.trackCustomMetrics) return
 
     this.customMetrics.set(name, {
@@ -351,13 +352,13 @@ export function createPerformanceMiddleware(
   config: PerformanceConfig = DEFAULT_PERFORMANCE_CONFIG
 ) {
   if (!config.enabled) {
-    return (_c: any, next: any) => next()
+    return (_c: Context, next: Next) => next()
   }
 
   const monitor = createPerformanceMonitor(config)
   monitor.startTracking()
 
-  return async (c: any, next: any) => {
+  return async (c: Context, next: Next) => {
     const startTime = Date.now()
     const requestId = crypto.randomUUID
       ? crypto.randomUUID()
@@ -487,7 +488,7 @@ export const PERFORMANCE_CONFIGS = {
 // Helper functions for performance monitoring
 export const PERFORMANCE_HELPERS = {
   // Measure function execution time
-  measureFunction: <T extends (...args: any[]) => any>(
+  measureFunction: <T extends (...args: unknown[]) => unknown>(
     name: string,
     fn: T,
     monitor: PerformanceMonitor
@@ -547,7 +548,7 @@ export const PERFORMANCE_HELPERS = {
     const id = `${name}-${start}`
 
     return {
-      end: (metadata?: Record<string, any>) => {
+      end: (metadata?: Record<string, unknown>) => {
         const duration = Date.now() - start
         monitor.recordEntry({
           id,

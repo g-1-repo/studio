@@ -46,20 +46,20 @@
     "test:dashboard": "node test-runner.js"
   },
   "dependencies": {
-    "@g-1/util": "^1.0.2",
-    "@hono/zod-openapi": "^1.1.4",
-    "@scalar/hono-api-reference": "^0.5.0",
-    "drizzle-orm": "^0.44.6",
-    "hono": "^4.10.1",
-    "hono-pino": "^0.4.0",
-    "pino": "^8.0.0",
-    "pino-pretty": "^10.0.0",
-    "zod": "^4.1.12"
+    "@g-1/util": "3.5.15",
+    "@hono/zod-openapi": "1.1.4",
+    "@scalar/hono-api-reference": "0.9.22",
+    "drizzle-orm": "0.44.7",
+    "hono": "4.10.3",
+    "hono-pino": "0.10.3",
+    "pino": "10.1.0",
+    "pino-pretty": "13.1.2",
+    "zod": "4.1.12"
   },
   "devDependencies": {
-    "@types/node": "^24.8.1",
-    "typescript": "^5.7.3",
-    "vitest": "~3.2.4",
-    "ws": "^8.18.0"
+    "@types/node": "24.9.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.4",
+    "ws": "8.18.3"
   }
 }

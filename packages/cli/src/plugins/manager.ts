@@ -20,14 +20,12 @@ export class CliPluginManager {
   private executor: PluginExecutor
   private projectRoot: string
   private configPath: string
-  private packageJsonPath: string
 
   constructor(projectRoot?: string) {
     this.registry = new PluginRegistry()
     this.executor = new PluginExecutor()
     this.projectRoot = projectRoot || process.cwd()
     this.configPath = path.join(this.projectRoot, 'g1.config.json')
-    this.packageJsonPath = path.join(this.projectRoot, 'package.json')
 
     // Register built-in plugins
     builtinPlugins.forEach(plugin => {
@@ -187,7 +185,8 @@ export class CliPluginManager {
                   return {
                     name: option.name,
                     value: option.value,
-                    checked: Array.isArray(defaultValue) && defaultValue.includes(option.value as string),
+                    checked:
+                      Array.isArray(defaultValue) && defaultValue.includes(option.value as string),
                   }
                 }
               ),

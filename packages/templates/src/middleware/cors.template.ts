@@ -82,7 +82,8 @@ export function createCORSMiddleware(config: CORSConfig = {}) {
 
       // Handle preflight response
       if (!options.preflightContinue) {
-        c.status((options.optionsSuccessStatus || 204) as any)
+        const status = options.optionsSuccessStatus ?? 204
+        c.status(Number(status))
         return c.body(null)
       }
     }

@@ -373,7 +373,11 @@ import { createTestDatabase, cleanupTestDatabase } from '../helpers/database'
 import { createTestServer, stopTestServer } from '../helpers/server'
 
 // Global test database
-let testDb: any
+interface TestDatabase {
+  migrate: { rollback: () => Promise<unknown>; latest: () => Promise<unknown> }
+  seed: { run: () => Promise<unknown> }
+}
+let testDb: TestDatabase | undefined
 
 // Setup before all tests
 beforeAll(async () => {
@@ -390,7 +394,9 @@ beforeAll(async () => {
 // Cleanup after all tests
 afterAll(async () => {
   await stopTestServer()
-  await cleanupTestDatabase(testDb)
+  if (testDb) {
+    await cleanupTestDatabase(testDb)
+  }
 })
 
 // Reset database state before each test
@@ -437,10 +443,16 @@ global.integrationUtils = {
   e2e: `// E2E test setup
 import { vi } from 'vitest'
 import { spawn } from 'child_process'
+import type { ChildProcess } from 'child_process'
 import { createTestDatabase, cleanupTestDatabase } from '../helpers/database'
 
-let testServer: any
-let testDb: any
+let testServer: ChildProcess | undefined
+interface TestDatabase {
+  migrate: { rollback: () => Promise<unknown>; latest: () => Promise<unknown> }
+  seed: { run: () => Promise<unknown> }
+  connectionString?: string
+}
+let testDb: TestDatabase | undefined
 
 // Global setup - runs once before all tests
 beforeAll(async () => {
@@ -497,7 +509,9 @@ afterAll(async () => {
   }
   
   if (testDb) {
+  if (testDb) {
     await cleanupTestDatabase(testDb)
+  }
   }
   
   console.log('E2E test environment cleaned up')

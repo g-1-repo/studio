@@ -33,7 +33,7 @@ export interface ApiKey {
     requests: number
     windowMs: number
   }
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   createdAt: number
   lastUsedAt?: number
   expiresAt?: number
@@ -146,12 +146,40 @@ export class MemoryApiKeyStore implements ApiKeyStore {
 /**
  * Database API key store
  */
+type SelectBuilder = {
+  from: (table: string) => SelectBuilder
+  where: (column: string, opOrVal: unknown, value?: unknown) => SelectBuilder
+  first: () => Promise<Record<string, unknown> | undefined>
+  orderBy: (column: string, direction: 'asc' | 'desc') => Promise<Record<string, unknown>[]>
+}
+
+type InsertBuilder = {
+  into: (table: string) => Promise<unknown>
+}
+
+type UpdateBuilder = {
+  from: (table: string) => UpdateBuilder
+  where: (column: string, value: unknown) => Promise<unknown>
+}
+
+type DeleteBuilder = {
+  from: (table: string) => DeleteBuilder
+  where: (column: string, opOrVal: unknown, value?: unknown) => Promise<unknown>
+}
+
+type DbClient = {
+  select: () => SelectBuilder
+  insert: (row: Record<string, unknown>) => InsertBuilder
+  update: (row: Record<string, unknown>) => UpdateBuilder
+  delete: () => DeleteBuilder
+}
+
 export class DatabaseApiKeyStore implements ApiKeyStore {
-  private db: any
+  private db: DbClient
   private keysTable: string
   private usageTable: string
 
-  constructor(db: any, keysTable = 'api_keys', usageTable = 'api_key_usage') {
+  constructor(db: DbClient, keysTable = 'api_keys', usageTable = 'api_key_usage') {
     this.db = db
     this.keysTable = keysTable
     this.usageTable = usageTable
@@ -192,7 +220,7 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
         .where('user_id', userId)
         .where('is_active', true)
 
-      return results.map((result: any) => this.mapDbToApiKey(result))
+      return results.map(result => this.mapDbToApiKey(result))
     } catch (error) {
       console.error('Database API key get by user ID error:', error)
       return []
@@ -256,15 +284,15 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
 
       const results = await query.orderBy('timestamp', 'desc')
 
-      return results.map((result: any) => ({
-        keyId: result.key_id,
-        timestamp: result.timestamp,
-        endpoint: result.endpoint,
-        method: result.method,
-        ip: result.ip,
-        userAgent: result.user_agent,
-        success: result.success,
-        error: result.error,
+      return results.map((row: Record<string, unknown>) => ({
+        keyId: String(row.key_id),
+        timestamp: Number(row.timestamp),
+        endpoint: String(row.endpoint),
+        method: String(row.method),
+        ip: String(row.ip),
+        userAgent: row.user_agent as string | undefined,
+        success: Boolean(row.success),
+        error: row.error as string | undefined,
       }))
     } catch (error) {
       console.error('Database API key usage get error:', error)
@@ -281,26 +309,40 @@ export class DatabaseApiKeyStore implements ApiKeyStore {
     }
   }
 
-  private mapDbToApiKey(dbRow: any): ApiKey {
+  private mapDbToApiKey(dbRow: Record<string, unknown>): ApiKey {
+    const parseJson = <T>(value: unknown, fallback: T): T => {
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value) as T
+        } catch {
+          return fallback
+        }
+      }
+      return (value as T) ?? fallback
+    }
+
     return {
-      id: dbRow.id,
-      name: dbRow.name,
-      keyHash: dbRow.key_hash,
-      userId: dbRow.user_id,
-      scopes: dbRow.scopes ? JSON.parse(dbRow.scopes) : [],
-      permissions: dbRow.permissions ? JSON.parse(dbRow.permissions) : [],
-      rateLimit: dbRow.rate_limit ? JSON.parse(dbRow.rate_limit) : undefined,
-      metadata: dbRow.metadata ? JSON.parse(dbRow.metadata) : {},
-      createdAt: dbRow.created_at,
-      lastUsedAt: dbRow.last_used_at,
-      expiresAt: dbRow.expires_at,
-      isActive: dbRow.is_active,
-      usageCount: dbRow.usage_count || 0,
+      id: String(dbRow.id),
+      name: String(dbRow.name),
+      keyHash: String(dbRow.key_hash),
+      userId: dbRow.user_id as string | undefined,
+      scopes: parseJson<string[]>(dbRow.scopes, []),
+      permissions: parseJson<string[]>(dbRow.permissions, []),
+      rateLimit: parseJson<{ requests: number; windowMs: number } | undefined>(
+        dbRow.rate_limit,
+        undefined
+      ),
+      metadata: parseJson<Record<string, unknown>>(dbRow.metadata, {}),
+      createdAt: Number(dbRow.created_at),
+      lastUsedAt: dbRow.last_used_at as number | undefined,
+      expiresAt: dbRow.expires_at as number | undefined,
+      isActive: Boolean(dbRow.is_active),
+      usageCount: Number(dbRow.usage_count ?? 0),
     }
   }
 
-  private mapApiKeyToDb(apiKey: ApiKey, isUpdate = false): any {
-    const dbRow: any = {
+  private mapApiKeyToDb(apiKey: ApiKey, isUpdate = false): Record<string, unknown> {
+    const dbRow: Record<string, unknown> = {
       name: apiKey.name,
       key_hash: apiKey.keyHash,
       user_id: apiKey.userId,
@@ -375,7 +417,7 @@ export class ApiKeyManager {
     permissions?: string[]
     rateLimit?: { requests: number; windowMs: number }
     expiresAt?: number
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   }): Promise<{ apiKey: ApiKey; key: string }> {
     const { key, hash } = this.generateApiKey()
     const id = randomBytes(16).toString('hex')
@@ -728,8 +770,10 @@ export function createApiKeyRoutes(apiKeyManager: ApiKeyManager) {
     usage: async (c: Context) => {
       const keyId = c.req.param('id')
       const userId = c.get('user')?.id
-      const from = c.req.query('from') ? parseInt(c.req.query('from')!, 10) : undefined
-      const to = c.req.query('to') ? parseInt(c.req.query('to')!, 10) : undefined
+      const fromStr = c.req.query('from')
+      const toStr = c.req.query('to')
+      const from = fromStr ? parseInt(fromStr, 10) : undefined
+      const to = toStr ? parseInt(toStr, 10) : undefined
 
       if (!keyId) {
         throw new HTTPException(400, { message: 'API key ID required' })

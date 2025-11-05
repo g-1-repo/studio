@@ -100,9 +100,9 @@ export const sqlitePostsTable = sqliteTable(
  * Simplified version that only supports SQLite databases
  */
 export class DrizzleDatabaseManager {
-  private db: any
+  private db: unknown
   private config: SQLiteConfig
-  private database?: any // Database.Database
+  private database?: unknown // Database.Database
 
   constructor(config: SQLiteConfig) {
     this.config = config
@@ -120,8 +120,8 @@ export class DrizzleDatabaseManager {
    */
   private async initializeSQLite(config: SQLiteConfig): Promise<void> {
     try {
-      const dbPath = config.filename || (config.memory ? ':memory:' : './database.db')
-      
+      const _dbPath = config.filename || (config.memory ? ':memory:' : './database.db')
+
       // this.database = new Database(dbPath, {
       //   readonly: config.readonly || false,
       //   fileMustExist: config.fileMustExist || false,
@@ -130,7 +130,7 @@ export class DrizzleDatabaseManager {
       // })
 
       // this.db = drizzle(this.database, { schema: config.schema })
-      
+
       // Placeholder implementation - requires better-sqlite3 to be installed
       throw new Error('Database initialization requires better-sqlite3 package to be installed')
     } catch (error) {
@@ -147,9 +147,9 @@ export class DrizzleDatabaseManager {
     }
 
     try {
-      const folder = migrationsFolder || this.config.migrationsFolder || './migrations'
+      const _folder = migrationsFolder || this.config.migrationsFolder || './migrations'
       // await migrate(this.db, { migrationsFolder: folder })
-      
+
       // Placeholder implementation - requires better-sqlite3 to be installed
       throw new Error('Migration requires better-sqlite3 package to be installed')
     } catch (error) {
@@ -160,7 +160,7 @@ export class DrizzleDatabaseManager {
   /**
    * Get the database instance
    */
-  getDb(): any {
+  getDb(): unknown {
     if (!this.db) {
       throw new Error('Database not initialized')
     }
@@ -182,7 +182,7 @@ export class DrizzleDatabaseManager {
   async healthCheck(): Promise<boolean> {
     try {
       if (!this.db) return false
-      
+
       // Simple query to test connection
       await this.db.select().from(sqliteUsersTable).limit(1)
       return true
@@ -197,10 +197,10 @@ export class DrizzleDatabaseManager {
  * Base Repository Class for SQLite operations
  */
 export abstract class BaseRepository<T extends Record<string, unknown>> {
-  protected db: any
-  protected table: any
+  protected db: unknown
+  protected table: unknown
 
-  constructor(db: any, table: any) {
+  constructor(db: unknown, table: unknown) {
     this.db = db
     this.table = table
   }
@@ -217,7 +217,7 @@ export abstract class BaseRepository<T extends Record<string, unknown>> {
    * Find all records with optional filtering and pagination
    */
   async findAll(
-    options: { where?: any; orderBy?: any; limit?: number; offset?: number } = {}
+    options: { where?: unknown; orderBy?: unknown; limit?: number; offset?: number } = {}
   ): Promise<T[]> {
     let query = this.db.select().from(this.table)
 
@@ -250,7 +250,14 @@ export abstract class BaseRepository<T extends Record<string, unknown>> {
       updatedAt: new Date(),
     }
 
-    const result = await (this.db as any).insert(this.table).values(insertData).returning()
+    const result = await (
+      this.db as {
+        insert: (table: unknown) => { values: (data: unknown) => { returning: () => T[] } }
+      }
+    )
+      .insert(this.table)
+      .values(insertData)
+      .returning()
     return result[0]
   }
 
@@ -283,7 +290,7 @@ export abstract class BaseRepository<T extends Record<string, unknown>> {
   /**
    * Count records with optional filtering
    */
-  async count(where?: any): Promise<number> {
+  async count(where?: unknown): Promise<number> {
     let query = this.db.select({ count: count() }).from(this.table)
 
     if (where) {
@@ -297,7 +304,7 @@ export abstract class BaseRepository<T extends Record<string, unknown>> {
   /**
    * Check if a record exists
    */
-  async exists(where: any): Promise<boolean> {
+  async exists(where: unknown): Promise<boolean> {
     const result = await this.count(where)
     return result > 0
   }
@@ -318,21 +325,21 @@ export const QueryHelpers = {
   /**
    * Text search helper
    */
-  searchText: (column: any, term: string) => sql`${column} LIKE ${`%${term}%`}`,
+  searchText: (column: unknown, term: string) => sql`${column} LIKE ${`%${term}%`}`,
 
   /**
    * Date range helper
    */
-  dateRange: (column: any, start: Date, end: Date) =>
+  dateRange: (column: unknown, start: Date, end: Date) =>
     and(sql`${column} >= ${start}`, sql`${column} <= ${end}`),
 
   /**
    * Sorting helpers
    */
   sortBy: {
-    newest: (column: any) => desc(column),
-    oldest: (column: any) => asc(column),
-    alphabetical: (column: any) => asc(column),
+    newest: (column: unknown) => desc(column as unknown as never),
+    oldest: (column: unknown) => asc(column as unknown as never),
+    alphabetical: (column: unknown) => asc(column as unknown as never),
   },
 
   /**
@@ -351,8 +358,8 @@ export const QueryHelpers = {
  * Transaction wrapper
  */
 export async function withTransaction<T>(
-  db: any,
-  callback: (tx: any) => Promise<T>
+  db: { transaction: (cb: (tx: unknown) => Promise<T>) => Promise<T> },
+  callback: (tx: unknown) => Promise<T>
 ): Promise<T> {
   return await db.transaction(callback)
 }

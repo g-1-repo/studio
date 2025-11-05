@@ -1,9 +1,12 @@
+import type { IncomingRequestCfProperties } from '@cloudflare/workers-types'
 import type { MiddlewareHandler } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { createAuth } from '../auth'
 
 export const authManagement: MiddlewareHandler = createMiddleware(async (c, next) => {
-  const cfProperties = (c.req.raw as { cf?: Record<string, unknown> }).cf || {
+  const cfProperties: IncomingRequestCfProperties = (
+    c.req.raw as { cf?: IncomingRequestCfProperties }
+  ).cf ?? {
     colo: 'unknown',
     edgeRequestKeepAliveStatus: 0,
     httpProtocol: 'HTTP/1.1',
@@ -11,7 +14,7 @@ export const authManagement: MiddlewareHandler = createMiddleware(async (c, next
     tlsVersion: 'TLSv1.3',
     tlsCipher: 'unknown',
   }
-  const auth = createAuth(c.env, cfProperties as any)
+  const auth = createAuth(c.env, cfProperties)
   c.set('auth', auth)
   return await next()
 })

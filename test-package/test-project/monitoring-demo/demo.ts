@@ -55,9 +55,11 @@ async function demoMetrics() {
     console.log('   - Request durations: 150ms, 89ms')
 
     // Get metrics in Prometheus format (using PrometheusCollector specific method)
-    const prometheusCollector = metricsCollector as any
-    if (prometheusCollector.getMetricsText) {
-        const metricsText = prometheusCollector.getMetricsText()
+    function isPrometheusCollector(v: unknown): v is { getMetricsText: () => string } {
+        return typeof (v as { getMetricsText?: unknown }).getMetricsText === 'function'
+    }
+    if (isPrometheusCollector(metricsCollector)) {
+        const metricsText = metricsCollector.getMetricsText()
         console.log('\n📈 Prometheus Metrics Output:')
         console.log(metricsText.substring(0, 200) + '...')
     } else {

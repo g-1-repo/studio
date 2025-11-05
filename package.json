@@ -26,7 +26,11 @@
     "version-packages": "changeset version",
     "workflow:release": "bunx @g-1/workflow release",
     "release": "bun run workflow:release",
-    "new-branch": "./scripts/new-branch.sh"
+    "new-branch": "./scripts/new-branch.sh",
+    "generate:postman": "bun scripts/generate-postman.ts --env --sample",
+    "auto:lint-templates": "bash ./scripts/lint-templates.sh",
+    "auto:check-any": "bash ./scripts/check-any.sh",
+    "auto:all": "bun run auto:lint-templates && bun run auto:check-any"
   },
   "keywords": [
     "api-framework",
@@ -52,10 +56,10 @@
     "bun": ">=1.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.0",
+    "@biomejs/biome": "2.3.1",
     "@changesets/cli": "2.29.7",
     "@cloudflare/workers-types": "4.20251014.0",
-    "@g-1/workflow": "^3.5.10",
+    "@g-1/workflow": "3.13.0",
     "@types/fs-extra": "11.0.4",
     "@types/jest": "30.0.0",
     "@types/node": "24.9.1",

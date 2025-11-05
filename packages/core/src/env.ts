@@ -4,10 +4,10 @@
 
 export interface Environment {
   // Database bindings
-  DB?: any
+  DB?: unknown
 
   // KV bindings
-  MY_API_PROJECT_KV_AUTH?: any
+  MY_API_PROJECT_KV_AUTH?: unknown
 
   // Environment variables
   NODE_ENV?: string

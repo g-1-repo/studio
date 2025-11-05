@@ -52,6 +52,8 @@ bun run simple-demo.ts
 import { Hono } from 'hono'
 import { 
   createMetricsMiddleware,
+  createMetricsCollector,
+  createMetricsRoute,
   createHealthCheckMiddleware,
   createErrorTrackingMiddleware,
   createPerformanceMiddleware,
@@ -64,6 +66,7 @@ import {
 const app = new Hono()
 
 // Add monitoring middleware
+const metricsCollector = createMetricsCollector(METRICS_CONFIGS.prometheus)
 app.use('*', createMetricsMiddleware(METRICS_CONFIGS.production))
 app.use('*', createHealthCheckMiddleware(HEALTH_CONFIGS.withDatabase))
 app.use('*', createErrorTrackingMiddleware(ERROR_TRACKING_CONFIGS.production))

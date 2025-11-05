@@ -238,7 +238,13 @@ export class OAuthManager {
       throw new Error(`Token exchange failed: ${error}`)
     }
 
-    const tokenData = await response.json() as any
+    type TokenResponse = {
+      access_token: string
+      refresh_token?: string
+      expires_in?: number
+      token_type?: string
+    }
+    const tokenData = (await response.json()) as TokenResponse
 
     return {
       accessToken: tokenData.access_token,
@@ -268,7 +274,7 @@ export class OAuthManager {
       throw new Error(`Failed to fetch user info: ${response.statusText}`)
     }
 
-    const userData = await response.json() as Record<string, unknown>
+    const userData = (await response.json()) as Record<string, unknown>
 
     // Normalize user data based on provider
     return this.normalizeUserData(provider, userData, accessToken)
@@ -282,6 +288,11 @@ export class OAuthManager {
     userData: Record<string, unknown>,
     accessToken: string
   ): OAuthUser {
+    const toStringId = (value: unknown): string | undefined => {
+      if (typeof value === 'string') return value
+      if (typeof value === 'number') return String(value)
+      return undefined
+    }
     const baseUser: OAuthUser = {
       id: '',
       provider,
@@ -293,12 +304,12 @@ export class OAuthManager {
       case 'google':
         return {
           ...baseUser,
-          id: (userData.sub as string),
-          providerId: (userData.sub as string),
-          email: (userData.email as string | undefined),
-          name: (userData.name as string | undefined),
-          username: (userData.email as string | undefined),
-          avatar: (userData.picture as string | undefined),
+          id: userData.sub as string,
+          providerId: userData.sub as string,
+          email: userData.email as string | undefined,
+          name: userData.name as string | undefined,
+          username: userData.email as string | undefined,
+          avatar: userData.picture as string | undefined,
         }
 
       case 'github':
@@ -306,20 +317,20 @@ export class OAuthManager {
           ...baseUser,
           id: (userData.id as number).toString(),
           providerId: (userData.id as number).toString(),
-          email: (userData.email as string | undefined),
-          name: (userData.name as string | undefined),
-          username: (userData.login as string | undefined),
-          avatar: (userData.avatar_url as string | undefined),
+          email: userData.email as string | undefined,
+          name: userData.name as string | undefined,
+          username: userData.login as string | undefined,
+          avatar: userData.avatar_url as string | undefined,
         }
 
       case 'discord':
         return {
           ...baseUser,
-          id: (userData.id as string),
-          providerId: (userData.id as string),
-          email: (userData.email as string | undefined),
+          id: userData.id as string,
+          providerId: userData.id as string,
+          email: userData.email as string | undefined,
           name: (userData.global_name as string) || (userData.username as string),
-          username: (userData.username as string),
+          username: userData.username as string,
           avatar: userData.avatar
             ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
             : undefined,
@@ -328,32 +339,35 @@ export class OAuthManager {
       case 'microsoft':
         return {
           ...baseUser,
-          id: (userData.id as string),
-          providerId: (userData.id as string),
+          id: userData.id as string,
+          providerId: userData.id as string,
           email: (userData.mail as string) || (userData.userPrincipalName as string),
-          name: (userData.displayName as string),
-          username: (userData.userPrincipalName as string),
+          name: userData.displayName as string,
+          username: userData.userPrincipalName as string,
         }
 
       case 'twitter':
         return {
           ...baseUser,
-          id: (userData.id as string),
-          providerId: (userData.id as string),
-          name: (userData.name as string),
-          username: (userData.username as string),
-          avatar: (userData.profile_image_url as string | undefined),
+          id: userData.id as string,
+          providerId: userData.id as string,
+          name: userData.name as string,
+          username: userData.username as string,
+          avatar: userData.profile_image_url as string | undefined,
         }
 
       default:
         return {
           ...baseUser,
-          id: (userData.id as any)?.toString() || (userData.sub as string),
-          providerId: (userData.id as any)?.toString() || (userData.sub as string),
-          email: (userData.email as string | undefined),
-          name: (userData.name as string | undefined) || (userData.display_name as string | undefined),
-          username: (userData.username as string | undefined) || (userData.login as string | undefined),
-          avatar: (userData.avatar_url as string | undefined) || (userData.picture as string | undefined),
+          id: toStringId(userData.id) || (userData.sub as string),
+          providerId: toStringId(userData.id) || (userData.sub as string),
+          email: userData.email as string | undefined,
+          name:
+            (userData.name as string | undefined) || (userData.display_name as string | undefined),
+          username:
+            (userData.username as string | undefined) || (userData.login as string | undefined),
+          avatar:
+            (userData.avatar_url as string | undefined) || (userData.picture as string | undefined),
         }
     }
   }
@@ -395,7 +409,14 @@ export class OAuthManager {
       throw new Error(`Token refresh failed: ${response.statusText}`)
     }
 
-    const tokenData = await response.json() as any
+    type TokenResponse = {
+      access_token: string
+      refresh_token?: string
+      expires_in?: number
+      token_type?: string
+    }
+
+    const tokenData = (await response.json()) as TokenResponse
 
     return {
       accessToken: tokenData.access_token,

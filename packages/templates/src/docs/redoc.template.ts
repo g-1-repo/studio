@@ -1,6 +1,7 @@
 /**
  * ReDoc template for alternative API documentation interface
  */
+import type { Context } from 'hono'
 
 export interface RedocConfig {
   title?: string
@@ -230,7 +231,7 @@ export function generateRedocHTML(config: RedocConfig = DEFAULT_REDOC_CONFIG): s
 }
 
 export function createRedocMiddleware(config: RedocConfig = DEFAULT_REDOC_CONFIG) {
-  return (c: any) => {
+  return (c: Context) => {
     const html = generateRedocHTML(config)
     c.header('Content-Type', 'text/html')
     return c.html(html)

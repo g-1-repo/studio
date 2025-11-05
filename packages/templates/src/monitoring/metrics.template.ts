@@ -1,6 +1,7 @@
 /**
  * Metrics monitoring template for API performance tracking
  */
+import type { Context, Next } from 'hono'
 
 export interface MetricsConfig {
   enabled: boolean
@@ -191,7 +192,7 @@ export class DatadogCollector implements MetricsCollector {
         body: JSON.stringify({
           series: metrics.map(metric => ({
             metric: metric.name,
-            points: [[Math.floor(metric.timestamp! / 1000), metric.value]],
+            points: [[Math.floor((metric.timestamp ?? Date.now()) / 1000), metric.value]],
             type: metric.type,
             tags: metric.labels ? Object.entries(metric.labels).map(([k, v]) => `${k}:${v}`) : [],
           })),
@@ -218,7 +219,7 @@ export function createMetricsCollector(config: MetricsConfig): MetricsCollector 
 
 export function createMetricsMiddleware(config: MetricsConfig = DEFAULT_METRICS_CONFIG) {
   if (!config.enabled) {
-    return (_c: any, next: any) => next()
+    return (_c: Context, next: Next) => next()
   }
 
   const collector = createMetricsCollector(config)
@@ -230,7 +231,7 @@ export function createMetricsMiddleware(config: MetricsConfig = DEFAULT_METRICS_
     }, config.flushInterval)
   }
 
-  return async (c: any, next: any) => {
+  return async (c: Context, next: Next) => {
     const start = Date.now()
     const method = c.req.method
     const path = c.req.path
@@ -310,7 +311,7 @@ export const METRICS_CONFIGS = {
 
 // Metrics route for Prometheus scraping
 export function createMetricsRoute(collector: MetricsCollector) {
-  return (c: any) => {
+  return (c: Context) => {
     if (collector instanceof PrometheusCollector) {
       const metricsText = collector.getMetricsText()
       return c.text(metricsText, 200, {

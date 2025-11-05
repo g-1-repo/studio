@@ -64,6 +64,21 @@ bun run typecheck
 bun run clean
 ```
 
+### Automation While You’re Away
+
+```bash
+# Lint templates and check for explicit `any` in docs/templates
+bun run auto:all
+
+# Or run individually
+bun run auto:lint-templates
+bun run auto:check-any
+```
+
+- Enforces no explicit `any` in framework templates and docs.
+- Uses Biome for lint/check and a simple scanner for `any` in `.ts` and `.md`.
+- Ignores the `web-framework` folder per request.
+
 ### Working with Individual Packages
 
 ```bash

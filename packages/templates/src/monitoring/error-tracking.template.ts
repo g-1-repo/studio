@@ -33,7 +33,7 @@ export interface ErrorEvent {
     method: string
     url: string
     headers: Record<string, string>
-    body?: any
+    body?: unknown
   }
   user?: {
     id?: string
@@ -42,7 +42,7 @@ export interface ErrorEvent {
     ip?: string
   }
   tags?: Record<string, string>
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
   breadcrumbs?: Breadcrumb[]
   fingerprint?: string[]
   environment?: string
@@ -65,7 +65,7 @@ export interface Breadcrumb {
   category?: string
   message?: string
   level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug'
-  data?: Record<string, any>
+  data?: Record<string, unknown>
 }
 
 export interface ErrorTracker {
@@ -78,8 +78,8 @@ export interface ErrorTracker {
   addBreadcrumb(breadcrumb: Breadcrumb): void
   setUser(user: ErrorEvent['user']): void
   setTag(key: string, value: string): void
-  setExtra(key: string, value: any): void
-  setContext(name: string, context: Record<string, any>): void
+  setExtra(key: string, value: unknown): void
+  setContext(name: string, context: Record<string, unknown>): void
   flush(timeout?: number): Promise<boolean>
 }
 
@@ -100,8 +100,8 @@ export class SentryErrorTracker implements ErrorTracker {
   private breadcrumbs: Breadcrumb[] = []
   private user?: ErrorEvent['user']
   private tags: Record<string, string> = {}
-  private extra: Record<string, any> = {}
-  private contexts: Record<string, Record<string, any>> = {}
+  private extra: Record<string, unknown> = {}
+  private contexts: Record<string, Record<string, unknown>> = {}
 
   constructor(config: ErrorTrackingConfig) {
     this.config = config
@@ -180,11 +180,11 @@ export class SentryErrorTracker implements ErrorTracker {
     this.tags[key] = value
   }
 
-  setExtra(key: string, value: any): void {
+  setExtra(key: string, value: unknown): void {
     this.extra[key] = value
   }
 
-  setContext(name: string, context: Record<string, any>): void {
+  setContext(name: string, context: Record<string, unknown>): void {
     this.contexts[name] = context
   }
 
@@ -271,7 +271,7 @@ export class CustomErrorTracker implements ErrorTracker {
   private breadcrumbs: Breadcrumb[] = []
   private user?: ErrorEvent['user']
   private tags: Record<string, string> = {}
-  private extra: Record<string, any> = {}
+  private extra: Record<string, unknown> = {}
 
   constructor(config: ErrorTrackingConfig) {
     this.config = config
@@ -341,11 +341,11 @@ export class CustomErrorTracker implements ErrorTracker {
     this.tags[key] = value
   }
 
-  setExtra(key: string, value: any): void {
+  setExtra(key: string, value: unknown): void {
     this.extra[key] = value
   }
 
-  setContext(_name: string, _context: Record<string, any>): void {
+  setContext(_name: string, _context: Record<string, unknown>): void {
     // Custom implementation can store contexts as needed
   }
 
@@ -387,12 +387,12 @@ export function createErrorTrackingMiddleware(
   config: ErrorTrackingConfig = DEFAULT_ERROR_TRACKING_CONFIG
 ) {
   if (!config.enabled) {
-    return (_c: any, next: any) => next()
+    return (_c: import('hono').Context, next: import('hono').Next) => next()
   }
 
   const errorTracker = createErrorTracker(config)
 
-  return async (c: any, next: any) => {
+  return async (c: import('hono').Context, next: import('hono').Next) => {
     // Add request breadcrumb
     errorTracker.addBreadcrumb({
       timestamp: Date.now(),
@@ -491,28 +491,28 @@ export const ERROR_TRACKING_CONFIGS = {
 // Helper functions for common error tracking patterns
 export const ERROR_TRACKING_HELPERS = {
   // Wrap async functions with error tracking
-  wrapAsync: <T extends (...args: any[]) => Promise<any>>(
-    fn: T,
+  wrapAsync: <TArgs extends unknown[], TReturn>(
+    fn: (...args: TArgs) => Promise<TReturn>,
     tracker: ErrorTracker,
     context?: Partial<ErrorEvent>
-  ): T => {
-    return (async (...args: Parameters<T>) => {
+  ): ((...args: TArgs) => Promise<TReturn>) => {
+    return async (...args: TArgs) => {
       try {
         return await fn(...args)
       } catch (error) {
         tracker.captureException(error instanceof Error ? error : new Error(String(error)), context)
         throw error
       }
-    }) as T
+    }
   },
 
   // Create performance monitoring wrapper
-  withPerformanceTracking: <T extends (...args: any[]) => any>(
+  withPerformanceTracking: <TArgs extends unknown[], TReturn>(
     name: string,
-    fn: T,
+    fn: (...args: TArgs) => TReturn,
     tracker: ErrorTracker
-  ): T => {
-    return ((...args: Parameters<T>) => {
+  ): ((...args: TArgs) => TReturn | Promise<TReturn>) => {
+    return (...args: TArgs) => {
       const start = Date.now()
 
       tracker.addBreadcrumb({
@@ -545,7 +545,7 @@ export const ERROR_TRACKING_HELPERS = {
             message: `Completed ${name}`,
             data: { duration },
           })
-          return result
+          return result as TReturn
         }
       } catch (error) {
         const duration = Date.now() - start
@@ -558,7 +558,7 @@ export const ERROR_TRACKING_HELPERS = {
         })
         throw error
       }
-    }) as T
+    }
   },
 }
 

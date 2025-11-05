@@ -1,5 +1,5 @@
 // Export all template components
-export { createAuth, auth as authInstance } from './auth'
+export { auth as authInstance, createAuth } from './auth'
 export * from './db'
 export { createDb } from './db'
 // Deployment templates

@@ -26,7 +26,7 @@ export interface HealthStatus {
   status: 'healthy' | 'unhealthy' | 'degraded'
   message?: string
   responseTime?: number
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   timestamp: number
 }
 
@@ -326,14 +326,16 @@ export const DEPENDENCY_CHECKS = {
   }),
 }
 
+import type { Context, Next } from 'hono'
+
 export function createHealthCheckMiddleware(config: HealthCheckConfig = DEFAULT_HEALTH_CONFIG) {
   if (!config.enabled) {
-    return (_c: any, next: any) => next()
+    return (_c: Context, next: Next) => next()
   }
 
   const healthChecker = new HealthChecker(config)
 
-  return async (c: any, next: any) => {
+  return async (c: Context, next: Next) => {
     if (c.req.path === config.endpoint) {
       try {
         const report = await healthChecker.checkHealth()

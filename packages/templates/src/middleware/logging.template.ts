@@ -24,10 +24,10 @@ export interface LoggingConfig {
 }
 
 export interface Logger {
-  debug(message: string, meta?: any): void
-  info(message: string, meta?: any): void
-  warn(message: string, meta?: any): void
-  error(message: string, meta?: any): void
+  debug(message: string, meta?: Record<string, unknown>): void
+  info(message: string, meta?: Record<string, unknown>): void
+  warn(message: string, meta?: Record<string, unknown>): void
+  error(message: string, meta?: Record<string, unknown>): void
 }
 
 export interface LogData {
@@ -42,10 +42,10 @@ export interface LogData {
   ip: string
   statusCode: number
   responseTime: number
-  requestBody?: any
-  responseBody?: any
+  requestBody?: unknown
+  responseBody?: unknown
   error?: Error
-  user?: any
+  user?: unknown
   level: string
 }
 
@@ -55,23 +55,23 @@ export interface LogData {
 export class ConsoleLogger implements Logger {
   constructor(private colorize: boolean = true) {}
 
-  debug(message: string, meta?: any): void {
+  debug(message: string, meta?: Record<string, unknown>): void {
     this.log('debug', message, meta)
   }
 
-  info(message: string, meta?: any): void {
+  info(message: string, meta?: Record<string, unknown>): void {
     this.log('info', message, meta)
   }
 
-  warn(message: string, meta?: any): void {
+  warn(message: string, meta?: Record<string, unknown>): void {
     this.log('warn', message, meta)
   }
 
-  error(message: string, meta?: any): void {
+  error(message: string, meta?: Record<string, unknown>): void {
     this.log('error', message, meta)
   }
 
-  private log(level: string, message: string, meta?: any): void {
+  private log(level: string, message: string, meta?: Record<string, unknown>): void {
     const timestamp = new Date().toISOString()
     const colorMap = {
       debug: '\x1b[36m', // cyan
@@ -92,28 +92,28 @@ export class ConsoleLogger implements Logger {
  * Structured JSON logger
  */
 export class JSONLogger implements Logger {
-  debug(message: string, meta?: any): void {
+  debug(message: string, meta?: Record<string, unknown>): void {
     this.log('debug', message, meta)
   }
 
-  info(message: string, meta?: any): void {
+  info(message: string, meta?: Record<string, unknown>): void {
     this.log('info', message, meta)
   }
 
-  warn(message: string, meta?: any): void {
+  warn(message: string, meta?: Record<string, unknown>): void {
     this.log('warn', message, meta)
   }
 
-  error(message: string, meta?: any): void {
+  error(message: string, meta?: Record<string, unknown>): void {
     this.log('error', message, meta)
   }
 
-  private log(level: string, message: string, meta?: any): void {
+  private log(level: string, message: string, meta?: Record<string, unknown>): void {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...meta,
+      ...(meta ?? {}),
     }
     console.log(JSON.stringify(logEntry))
   }
@@ -149,16 +149,23 @@ function generateRequestId(): string {
 /**
  * Mask sensitive data
  */
-function maskSensitiveData(obj: any, sensitiveFields: string[]): any {
-  if (!obj || typeof obj !== 'object') return obj
+function maskSensitiveData(obj: unknown, sensitiveFields: string[]): unknown {
+  if (obj === null || obj === undefined) return obj
+  if (Array.isArray(obj)) {
+    return obj.map(item => maskSensitiveData(item, sensitiveFields))
+  }
+  if (typeof obj !== 'object') return obj
 
-  const masked = Array.isArray(obj) ? [...obj] : { ...obj }
+  const record = obj as Record<string, unknown>
+  const masked: Record<string, unknown> = {}
 
-  for (const key in masked) {
+  for (const [key, value] of Object.entries(record)) {
     if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
       masked[key] = '***MASKED***'
-    } else if (typeof masked[key] === 'object') {
-      masked[key] = maskSensitiveData(masked[key], sensitiveFields)
+    } else if (value !== null && typeof value === 'object') {
+      masked[key] = maskSensitiveData(value, sensitiveFields)
+    } else {
+      masked[key] = value
     }
   }
 
@@ -239,7 +246,7 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
       'unknown'
 
     // Capture request body if enabled
-    let requestBody: any
+    let requestBody: unknown
     if (options.includeRequestBody && ['POST', 'PUT', 'PATCH'].includes(method)) {
       try {
         const contentType = c.req.header('content-type') || ''
@@ -265,7 +272,7 @@ export function createLoggingMiddleware(config: LoggingConfig = {}) {
     }
 
     let error: Error | undefined
-    let responseBody: any
+    let responseBody: unknown
 
     try {
       await next()
@@ -465,10 +472,14 @@ export const LOGGING_CONFIGS = {
  */
 export function createStructuredLogger(transports: LogTransport[] = []) {
   return {
-    debug: (message: string, meta?: any) => log('debug', message, meta, transports),
-    info: (message: string, meta?: any) => log('info', message, meta, transports),
-    warn: (message: string, meta?: any) => log('warn', message, meta, transports),
-    error: (message: string, meta?: any) => log('error', message, meta, transports),
+    debug: (message: string, meta?: Partial<LogData> & Record<string, unknown>) =>
+      log('debug', message, meta, transports),
+    info: (message: string, meta?: Partial<LogData> & Record<string, unknown>) =>
+      log('info', message, meta, transports),
+    warn: (message: string, meta?: Partial<LogData> & Record<string, unknown>) =>
+      log('warn', message, meta, transports),
+    error: (message: string, meta?: Partial<LogData> & Record<string, unknown>) =>
+      log('error', message, meta, transports),
   }
 }
 
@@ -478,7 +489,12 @@ export interface LogTransport {
   write: (logData: LogData) => void | Promise<void>
 }
 
-function log(level: string, _message: string, meta: any, transports: LogTransport[]) {
+function log(
+  level: string,
+  _message: string,
+  meta: Partial<LogData> & Record<string, unknown>,
+  transports: LogTransport[]
+) {
   const logData: LogData = {
     timestamp: new Date().toISOString(),
     level,

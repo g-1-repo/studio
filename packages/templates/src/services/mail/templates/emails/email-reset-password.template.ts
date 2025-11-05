@@ -34,7 +34,7 @@ export class ResetPasswordEmail extends LayoutEmailTemplate {
       </p>
       
       ${this.components.alert(
-        "If you have any questions or concerns, please don't hesitate to reach out to us. We're here to help.",
+        "If you have questions or concerns, please reach out to us. We're here to help.",
         'info'
       )}
       
